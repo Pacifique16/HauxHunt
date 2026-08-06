@@ -1,9 +1,9 @@
 import { KeyRound, ReceiptText, ShieldCheck } from "lucide-react";
 
 const PROOF_POINTS = [
-  { icon: ShieldCheck, label: "Every listing verified" },
-  { icon: ReceiptText, label: "True move-in cost upfront" },
-  { icon: KeyRound, label: "Landlords identity-checked" },
+  { icon: ShieldCheck, label: "Verified homes" },
+  { icon: KeyRound, label: "Checked landlords" },
+  { icon: ReceiptText, label: "Clear move-in costs" },
 ] as const;
 
 /**
@@ -16,13 +16,13 @@ const PROOF_POINTS = [
  */
 export function HeroProof() {
   return (
-    <ul className="flex flex-col gap-x-10 gap-y-3 sm:flex-row sm:flex-wrap">
+    <ul className="flex flex-wrap justify-center gap-x-7 gap-y-3">
       {PROOF_POINTS.map(({ icon: Icon, label }) => (
         <li
           key={label}
-          className="text-label text-fg-muted flex items-center gap-2.5"
+          className="text-caption text-fg-tertiary flex items-center gap-2"
         >
-          <Icon aria-hidden="true" className="size-4 shrink-0" />
+          <Icon aria-hidden="true" className="text-fg-brand size-4 shrink-0" />
           {label}
         </li>
       ))}

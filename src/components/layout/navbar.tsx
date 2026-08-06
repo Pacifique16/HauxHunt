@@ -64,7 +64,7 @@ export function Navbar() {
       >
         <nav
           aria-label="Primary"
-          className="mx-auto grid h-full w-full max-w-[1440px] grid-cols-[auto_1fr_auto] items-center gap-4 px-6 sm:px-10 lg:grid-cols-[1fr_auto_1fr] lg:gap-8 lg:px-16"
+          className="mx-auto grid h-full w-[calc(100%-2.5rem)] max-w-[1562px] grid-cols-[auto_1fr_auto] items-center gap-4 sm:w-[calc(100%-3rem)] lg:w-[calc(100%-5.5rem)] lg:grid-cols-[1fr_auto_1fr] lg:gap-10 xl:w-[calc(100%-6.5rem)]"
         >
           <Link
             href="/"
@@ -73,18 +73,18 @@ export function Navbar() {
           >
             {/* Shrinks with the bar so the lockup keeps its breathing room in
                 both states rather than crowding the condensed nav. */}
-            <Wordmark height={scrolled ? 44 : 60} />
+            <Wordmark height={scrolled ? 38 : 48} />
           </Link>
 
           {/* --- Sections, centred --------------------------------------- */}
-          <ul className="hidden items-center gap-9 justify-self-center lg:flex">
+          <ul className="hidden items-center gap-8 justify-self-center lg:flex xl:gap-10">
             {navConfig.map((item) => (
               <li key={item.href}>
                 <Link
                   href={item.href}
                   aria-current={isCurrent(item.href) ? "page" : undefined}
                   className={[
-                    "text-body-s rounded-sm transition-colors duration-150",
+                    "font-bricolage text-body-m rounded-sm transition-colors duration-150",
                     isCurrent(item.href)
                       ? "text-fg font-medium"
                       : "text-fg-tertiary hover:text-fg",
@@ -97,18 +97,18 @@ export function Navbar() {
           </ul>
 
           {/* --- Account actions, right ---------------------------------- */}
-          <div className="flex items-center gap-2 justify-self-end sm:gap-5">
+          <div className="flex items-center gap-2 justify-self-end lg:gap-4 xl:gap-5">
             <Link
-              href={authConfig.login.href}
-              className="text-body-s text-fg-tertiary hover:text-fg hidden rounded-sm transition-colors duration-150 sm:inline"
+              href={authConfig.register.href}
+              className="font-bricolage text-body-m text-fg-tertiary hover:text-fg hidden h-10 items-center rounded-sm px-2 font-medium transition-colors duration-150 sm:inline-flex"
             >
-              {authConfig.login.label}
+              {authConfig.register.label}
             </Link>
             <Link
-              href={authConfig.signup.href}
-              className="bg-action-primary text-fg-on-brand text-body-s hover:bg-action-primary-hover active:bg-action-primary-active inline-flex h-10 items-center rounded-full px-5 font-medium transition-colors duration-150"
+              href={authConfig.login.href}
+              className="font-bricolage bg-carbon-900 text-carbon-0 text-body-m hover:bg-carbon-800 active:bg-carbon-950 inline-flex h-10 items-center rounded-full px-5 font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] transition-colors duration-150"
             >
-              {authConfig.signup.label}
+              {authConfig.login.label}
             </Link>
 
             <button
@@ -138,7 +138,7 @@ export function Navbar() {
           id="primary-menu"
           className="nav-surface border-border-subtle fixed inset-x-0 top-16 z-40 border-b lg:hidden"
         >
-          <ul className="mx-auto flex w-full max-w-[1440px] flex-col px-6 py-2 sm:px-10">
+          <ul className="mx-auto flex w-full max-w-[1440px] flex-col px-5 py-2 sm:px-8">
             {navConfig.map((item) => (
               <li key={item.href}>
                 <Link
@@ -146,7 +146,7 @@ export function Navbar() {
                   onClick={() => setMenuOpen(false)}
                   aria-current={isCurrent(item.href) ? "page" : undefined}
                   className={[
-                    "text-body-l border-border-subtle block border-b py-4 transition-colors duration-150",
+                    "font-bricolage text-body-l border-border-subtle block border-b py-4 transition-colors duration-150",
                     isCurrent(item.href)
                       ? "text-fg font-medium"
                       : "text-fg-secondary hover:text-fg",
@@ -158,11 +158,11 @@ export function Navbar() {
             ))}
             <li className="sm:hidden">
               <Link
-                href={authConfig.login.href}
+                href={authConfig.register.href}
                 onClick={() => setMenuOpen(false)}
-                className="text-body-l text-fg-secondary hover:text-fg block py-4 transition-colors duration-150"
+                className="font-bricolage text-body-l text-fg-secondary hover:text-fg block py-4 transition-colors duration-150"
               >
-                {authConfig.login.label}
+                {authConfig.register.label}
               </Link>
             </li>
           </ul>

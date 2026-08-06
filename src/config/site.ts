@@ -30,14 +30,13 @@ export type SiteConfig = typeof siteConfig;
  * later. They will 404 until those pages are built.
  */
 export const navConfig: { label: string; href: string }[] = [
-  { label: "Home", href: "/" },
-  { label: "Categories", href: "/categories" },
-  { label: "Contact", href: "/contact" },
-  { label: "About us", href: "/about" },
+  { label: "Rent", href: "/rent" },
+  { label: "Buy", href: "/buy" },
+  { label: "List", href: "/landlords" },
 ];
 
 /** Account actions, right-aligned in the header. */
 export const authConfig = {
-  login: { label: "Log in", href: "/login" },
-  signup: { label: "Sign up", href: "/signup" },
+  register: { label: "Register", href: "/register" },
+  login: { label: "Login", href: "/login" },
 } as const;

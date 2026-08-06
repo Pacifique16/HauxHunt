@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 import { heroContainer, heroRise } from "./hero-motion";
 
-const HEADLINE_LINES = ["The home you describe", "is the home you'll find."];
+const HEADLINE_LINES = ["Find a home that fits", "the way you live."];
 
 /**
  * The editorial type stack: eyebrow, two-line statement, one supporting
@@ -19,33 +19,28 @@ const HEADLINE_LINES = ["The home you describe", "is the home you'll find."];
  */
 export function HeroStatement() {
   return (
-    <motion.div initial="hidden" animate="visible" variants={heroContainer}>
-      <motion.p
-        variants={heroRise}
-        className="text-label text-fg-tertiary uppercase"
-      >
-        Verified rentals · Rwanda &amp; Nigeria
-      </motion.p>
-
-      <h1 className="text-display-xl text-fg mt-7">
-        {HEADLINE_LINES.map((line, index) => (
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={heroContainer}
+      className="mx-auto flex flex-col items-center"
+    >
+      <h1 className="font-bricolage text-fg max-w-[16ch] text-[clamp(3rem,5.4vw,5rem)] leading-[0.98] font-normal tracking-[-0.045em] text-balance">
+        {HEADLINE_LINES.map((line) => (
           <motion.span key={line} variants={heroRise} className="block">
             {/* The second line carries the resolution, so it gets the lighter
                 weight — the eye lands on the promise, then settles. */}
-            <span className={index === 1 ? "text-fg-secondary" : undefined}>
-              {line}
-            </span>
+            <span>{line}</span>
           </motion.span>
         ))}
       </h1>
 
       <motion.p
         variants={heroRise}
-        className="text-body-l text-fg-secondary mt-7 max-w-[46ch]"
+        className="text-body-l text-fg-secondary mt-6 max-w-[48ch] text-balance"
       >
-        Write it the way you&apos;d say it out loud. Every home you see has been
-        verified before it reaches you — no ghost listings, no surprises at the
-        door.
+        Find the right home with ease. Search naturally, choose what matters,
+        and discover places that fit your needs.
       </motion.p>
     </motion.div>
   );
