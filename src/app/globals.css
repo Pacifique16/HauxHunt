@@ -2,27 +2,624 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* Class-scoped, never media-scoped: HauxHunt has no user-facing dark-mode
+   toggle. The official identity is dark-first — Dark Green and Carbon are the
+   default canvas, not an alternate theme. Light ("Paper") is a scoped context
+   for documents/forms, opted into via `.theme-paper`, never via OS preference. */
 @custom-variant dark (&:is(.dark *));
 
+/* ==========================================================================
+   AETHER — primary typeface, sitewide.
+
+   Drop the webfont files into `public/fonts/` and uncomment. Until then the
+   stack falls through to the system UI sans, which keeps metrics close enough
+   to avoid layout shift when Aether lands. Do NOT add a second family: Aether
+   carries the whole system, display weight through caption.
+
+@font-face {
+  font-family: "Aether";
+  src: url("/fonts/aether-regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Aether";
+  src: url("/fonts/aether-medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Aether";
+  src: url("/fonts/aether-semibold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Aether";
+  src: url("/fonts/aether-bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+   ========================================================================== */
+
+:root {
+  /* ======================================================================
+     LAYER 1 — PRIMITIVES
+     Raw brand ramps. Never reference a primitive directly from a component;
+     always go through a semantic role (Layer 2). Primitives exist so that a
+     future palette shift is one edit here, not a thousand edits downstream.
+     ====================================================================== */
+
+  /* -- Martian Green — hsl(80 60% L). PRIMARY BRAND. Used sparingly, and
+        almost exclusively for primary actions. ------------------------- */
+  --martian-50: #f7fbef;
+  --martian-100: #ebf5d6;
+  --martian-200: #d6ebad;
+  --martian-300: #c2e085;
+  --martian-400: #add65c;
+  --martian-500: #99cc33; /* ← official brand color */
+  --martian-600: #80ab2b;
+  --martian-700: #698c21;
+  --martian-800: #506b19; /* lowest step that passes AA as text on light */
+  --martian-900: #374912;
+  --martian-950: #222d0b;
+
+  /* -- Lime — hsl(77 100% L). ACCENT. Focus, success, intelligent parsing,
+        subtle highlight. Never a background fill, never decoration. ----- */
+  --lime-50: #f9ffeb;
+  --lime-100: #f3ffd6;
+  --lime-200: #e9ffb3;
+  --lime-300: #dbff80;
+  --lime-400: #d1ff5c;
+  --lime-500: #c6ff34; /* ← official accent color */
+  --lime-600: #a8e212;
+  --lime-700: #7ca512;
+  --lime-800: #59760f;
+  --lime-900: #36470a;
+
+  /* -- Dark Green — hsl(180 …). PRIMARY BACKGROUND family. -------------- */
+  --deep-50: #f0fafa;
+  --deep-100: #d9f2f2;
+  --deep-200: #b3e6e6;
+  --deep-300: #75d1d1;
+  --deep-400: #37bebe;
+  --deep-500: #1a9393;
+  --deep-600: #0d7777;
+  --deep-700: #055c5c;
+  --deep-800: #004747;
+  --deep-900: #003333; /* ← official primary background */
+  --deep-950: #001a1a;
+
+  /* -- Carbon — neutral surface family. -------------------------------- */
+  --carbon-0: #ffffff;
+  --carbon-50: #f4f4f4;
+  --carbon-100: #e4e4e4;
+  --carbon-200: #c9c9c9;
+  --carbon-300: #a3a3a3;
+  --carbon-400: #7a7a7a;
+  --carbon-500: #575757;
+  --carbon-600: #3d3d3d;
+  --carbon-700: #2e2e2e;
+  --carbon-800: #212121;
+  --carbon-900: #171717; /* ← official surface color */
+  --carbon-950: #0b0b0b;
+
+  /* -- Mist — Dark-Green-tinted neutrals. The on-dark TEXT scale. A faint
+        180° tint (10–16% sat) reads as intentional against Dark Green and
+        is imperceptible against Carbon, so one ramp serves both. ------- */
+  --mist-100: #e7efef;
+  --mist-200: #cad8d8;
+  --mist-300: #a8bdbd;
+  --mist-400: #819c9c; /* floor for body text — 4.71:1 on Dark Green */
+  --mist-500: #6e9191; /* floor for interactive borders — 4.02:1 */
+  --mist-600: #5c7070; /* disabled only — WCAG-exempt, never body text */
+
+  /* -- Signal hues — the ONLY non-brand hues permitted in the system.
+        Success is Lime (see semantic layer); these cover the rest. ----- */
+  --signal-warning-500: #ffc34d;
+  --signal-warning-700: #a86f00;
+  --signal-danger-500: #ff6c5c;
+  --signal-danger-700: #b32b1c;
+  --signal-info-500: #75d1d1; /* = deep-300 */
+  --signal-info-700: #055c5c; /* = deep-700 */
+
+  /* ======================================================================
+     LAYER 2 — SEMANTIC ROLES (default context: DARK)
+     This is the layer components consume. Every value below is contrast-
+     audited against its intended background — see docs/design/Design-System.md
+     §3 for the full table.
+     ====================================================================== */
+
+  /* -- Backgrounds ------------------------------------------------------ */
+  --bg-canvas: var(--deep-900); /* page background */
+  --bg-canvas-deep: var(--deep-950); /* deepest band: footer, full-bleed */
+  --bg-canvas-raised: var(--deep-800); /* tinted section on canvas */
+  --bg-surface: var(--carbon-900); /* cards, panels, sheets */
+  --bg-surface-raised: var(--carbon-800); /* elevated card, popover, menu */
+  --bg-surface-sunken: var(--carbon-950); /* wells, code blocks, inset */
+  --bg-inverse: var(--deep-50); /* light island inside dark UI */
+  --bg-overlay: rgba(0, 26, 26, 0.72); /* modal scrim */
+  --bg-subtle: rgba(255, 255, 255, 0.04); /* hover wash, zebra rows */
+  --bg-muted: rgba(255, 255, 255, 0.08); /* input rest, disabled fill */
+
+  /* -- Text ------------------------------------------------------------- */
+  --text-primary: #ffffff; /* 13.80:1 on canvas */
+  --text-secondary: var(--mist-200); /*  9.42:1 */
+  --text-tertiary: var(--mist-300); /*  7.02:1 */
+  --text-muted: var(--mist-400); /*  4.71:1 — AA floor */
+  --text-disabled: var(--mist-600); /*  exempt from contrast minimums */
+  --text-brand: var(--martian-500); /*  7.26:1 */
+  --text-accent: var(--lime-500); /* 11.67:1 */
+  --text-inverse: var(--deep-900); /* on --bg-inverse */
+  --text-on-brand: var(--deep-950); /*  9.50:1 on Martian Green */
+  --text-on-accent: var(--deep-950); /* 15.27:1 on Lime */
+
+  /* -- Borders ---------------------------------------------------------- */
+  --border-subtle: rgba(255, 255, 255, 0.08); /* decorative hairline only */
+  --border-default: rgba(255, 255, 255, 0.14); /* card/panel edge */
+  --border-strong: rgba(255, 255, 255, 0.24); /* emphasis divider */
+  /* Boundaries of real controls (inputs, selects, checkboxes) must clear
+     3:1 per WCAG 1.4.11 — the white-alpha values above do not. Use this. */
+  --border-interactive: var(--mist-500); /* 4.02:1 on canvas */
+  --border-brand: var(--martian-500);
+  --border-accent: var(--lime-500);
+
+  /* -- Actions ---------------------------------------------------------- */
+  --action-primary: var(--martian-500);
+  --action-primary-hover: var(
+    --martian-400
+  ); /* brighten on dark, don't darken */
+  --action-primary-active: var(--martian-600);
+  --action-primary-fg: var(--deep-950);
+  --action-primary-subtle: rgba(153, 204, 51, 0.12);
+  --action-primary-subtle-hover: rgba(153, 204, 51, 0.18);
+
+  --action-secondary: transparent;
+  --action-secondary-hover: rgba(255, 255, 255, 0.06);
+  --action-secondary-border: var(--border-strong);
+  --action-secondary-fg: var(--text-primary);
+
+  --action-ghost-hover: rgba(255, 255, 255, 0.06);
+  --action-ghost-fg: var(--text-secondary);
+
+  --action-disabled-bg: var(--bg-muted);
+  --action-disabled-fg: var(--text-disabled);
+
+  /* -- Focus — Lime, always, on dark. One focus color sitewide. --------- */
+  --focus-ring: var(--lime-500); /* 11.67:1 on canvas — far above the 3:1 min */
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+  --focus-ring-offset-color: var(--bg-canvas);
+
+  /* -- Status ----------------------------------------------------------- */
+  --status-success: var(--lime-500);
+  --status-success-fg: var(--deep-950);
+  --status-success-bg: rgba(198, 255, 52, 0.12);
+  --status-success-border: rgba(198, 255, 52, 0.32);
+
+  --status-warning: var(--signal-warning-500);
+  --status-warning-fg: var(--deep-950);
+  --status-warning-bg: rgba(255, 195, 77, 0.12);
+  --status-warning-border: rgba(255, 195, 77, 0.32);
+
+  --status-danger: var(--signal-danger-500);
+  --status-danger-fg: var(--deep-950);
+  --status-danger-bg: rgba(255, 108, 92, 0.12);
+  --status-danger-border: rgba(255, 108, 92, 0.32);
+
+  --status-info: var(--signal-info-500);
+  --status-info-fg: var(--deep-950);
+  --status-info-bg: rgba(117, 209, 209, 0.12);
+  --status-info-border: rgba(117, 209, 209, 0.32);
+
+  /* -- Intelligence — parsing, matching, confidence. Lime's other job.
+        Never asserts "AI"; it marks machine-derived evidence. ---------- */
+  --intel-highlight: var(--lime-500);
+  --intel-highlight-bg: rgba(198, 255, 52, 0.1);
+  --intel-highlight-border: rgba(198, 255, 52, 0.3);
+  --intel-unclear: var(
+    --signal-warning-500
+  ); /* low-confidence parse; always
+                                                 paired with an icon + text */
+
+  /* -- Elevation. On a dark canvas, shadow grounds and glow signifies.
+        Never use both at full strength on the same element.
+        Named `--elevation-*`, not `--shadow-*`: the latter is Tailwind's own
+        theme namespace, and reusing it here would self-reference in @theme. */
+  --elevation-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --elevation-sm: 0 2px 8px 0 rgba(0, 0, 0, 0.35);
+  --elevation-md: 0 8px 24px 0 rgba(0, 0, 0, 0.4);
+  --elevation-lg: 0 16px 48px 0 rgba(0, 0, 0, 0.45);
+  --glow-brand: 0 0 28px 0 rgba(153, 204, 51, 0.22);
+  --glow-accent: 0 0 28px 0 rgba(198, 255, 52, 0.2);
+
+  /* ======================================================================
+     LAYER 3 — shadcn/Radix bridge. Maps the vendor-expected role names onto
+     the HauxHunt semantic layer so third-party primitives inherit the brand
+     without being re-skinned one by one.
+     ====================================================================== */
+  --background: var(--bg-canvas);
+  --foreground: var(--text-primary);
+  --card: var(--bg-surface);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-surface-raised);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--action-primary);
+  --primary-foreground: var(--action-primary-fg);
+  --secondary: var(--bg-muted);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--bg-subtle);
+  --muted-foreground: var(--text-muted);
+  --accent: var(--action-primary-subtle);
+  --accent-foreground: var(--text-brand);
+  --destructive: var(--status-danger);
+  --ring: var(--focus-ring);
+
+  --radius: 0.625rem;
+
+  /* Motion timing. Unchanged by the identity update — consumed directly by
+     the component layer below and by Framer Motion props. */
+  --motion-micro: 150ms;
+  --motion-standard: 250ms;
+  --motion-reveal: 400ms;
+  --motion-stagger: 400ms;
+
+  --border: var(--border-default);
+  --input: var(--border-interactive);
+
+  /* ======================================================================
+     ATMOSPHERE CONTEXT — what the hero photograph dissolves into.
+     Declared per theme so the hero's gradient stack, glass and photo grading
+     are written once and follow whichever background the page is set to.
+     ====================================================================== */
+  --atmo-base-rgb: 0 51 51; /* Dark Green — the colour the photo melts into */
+  --atmo-shadow-rgb: 0 26 26; /* vignette */
+  --atmo-vignette-mid: 0.45;
+  --atmo-vignette-edge: 0.7;
+  --atmo-wash: 0.24; /* flat unifying veil over the whole photo */
+  --bloom-rgb: 231 239 239; /* implied light: near-white on a dark canvas */
+  --bloom-strength: 0.07;
+  --photo-grade: saturate(0.72) contrast(1.12) brightness(0.82);
+  --glass-rgb: 23 23 23; /* Carbon */
+  --glass-alpha: 0.76;
+  --nav-glass-alpha: 0.86;
+  --glass-bevel-rgb: 255 255 255;
+  --glass-bevel-alpha: 0.05;
+}
+
+/* ==========================================================================
+   PAPER — the light context. Opt in with `.theme-paper` on any subtree
+   (documents, long-form forms, print, transactional email shells). It is not
+   a user-toggleable theme and never keys off prefers-color-scheme.
+
+   Two roles genuinely invert rather than re-map, because the brand greens are
+   high-luminance and fail against light backgrounds:
+     • Primary action becomes Martian 800 on white text (Martian 500 on paper
+       is 1.79:1 — the button's own edge would be invisible).
+     • Focus becomes Martian 800, not Lime (Lime on paper is 1.18:1).
+   ========================================================================== */
+.theme-paper {
+  /* White, literally — the approved background as of 2026-08-06. Deep 50 is
+     kept one step down as the sunken/banded tone so surfaces still have
+     somewhere to sit without introducing a grey. */
+  --bg-canvas: var(--carbon-0);
+  --bg-canvas-deep: var(--deep-50);
+  --bg-canvas-raised: var(--carbon-0);
+  --bg-surface: var(--carbon-0);
+  --bg-surface-raised: var(--carbon-0);
+  --bg-surface-sunken: var(--mist-100);
+  --bg-inverse: var(--deep-900);
+  --bg-overlay: rgba(0, 26, 26, 0.48);
+  --bg-subtle: rgba(0, 51, 51, 0.04);
+  --bg-muted: rgba(0, 51, 51, 0.07);
+
+  --text-primary: var(--deep-900); /* 12.99:1 on paper canvas */
+  --text-secondary: var(--deep-700); /*  7.34:1 */
+  --text-tertiary: var(--carbon-500); /*  6.80:1 */
+  --text-muted: var(--carbon-500);
+  --text-disabled: var(--carbon-400);
+  --text-brand: var(--martian-800); /*  5.71:1 — Martian 500 fails here */
+  --text-accent: var(--martian-800); /*  Lime is unusable as text on light */
+  --text-inverse: #ffffff;
+  --text-on-brand: #ffffff;
+  --text-on-accent: var(--deep-950);
+
+  --border-subtle: rgba(0, 51, 51, 0.1);
+  /* Slightly firmer than the dark context's equivalent: on white, a panel
+     edge has no luminance difference to lean on and the hairline is the only
+     thing separating the workspace from the page. */
+  --border-default: rgba(0, 51, 51, 0.18);
+  --border-strong: rgba(0, 51, 51, 0.3);
+  --border-interactive: var(--deep-600);
+  --border-brand: var(--martian-800);
+  --border-accent: var(--martian-800);
+
+  --action-primary: var(--martian-800); /* 4.43:1 edge, 6.07:1 white label */
+  --action-primary-hover: var(--martian-900);
+  --action-primary-active: var(--martian-950);
+  --action-primary-fg: #ffffff;
+  --action-primary-subtle: rgba(80, 107, 25, 0.1);
+  --action-primary-subtle-hover: rgba(80, 107, 25, 0.16);
+
+  --action-secondary-hover: rgba(0, 51, 51, 0.05);
+  --action-secondary-border: var(--border-strong);
+  --action-secondary-fg: var(--text-primary);
+  --action-ghost-hover: rgba(0, 51, 51, 0.05);
+  --action-ghost-fg: var(--text-secondary);
+
+  --focus-ring: var(--martian-800);
+  --focus-ring-offset-color: var(--bg-canvas);
+
+  --status-success: var(--lime-800);
+  --status-success-fg: #ffffff;
+  --status-success-bg: rgba(89, 118, 15, 0.1);
+  --status-success-border: rgba(89, 118, 15, 0.28);
+  --status-warning: var(--signal-warning-700);
+  --status-warning-fg: #ffffff;
+  --status-warning-bg: rgba(168, 111, 0, 0.1);
+  --status-warning-border: rgba(168, 111, 0, 0.28);
+  --status-danger: var(--signal-danger-700);
+  --status-danger-fg: #ffffff;
+  --status-danger-bg: rgba(179, 43, 28, 0.1);
+  --status-danger-border: rgba(179, 43, 28, 0.28);
+  --status-info: var(--signal-info-700);
+  --status-info-fg: #ffffff;
+  --status-info-bg: rgba(5, 92, 92, 0.1);
+  --status-info-border: rgba(5, 92, 92, 0.28);
+
+  --intel-highlight: var(--martian-800);
+  --intel-highlight-bg: rgba(80, 107, 25, 0.1);
+  --intel-highlight-border: rgba(80, 107, 25, 0.28);
+  --intel-unclear: var(--signal-warning-700);
+
+  --elevation-xs: 0 1px 2px 0 rgba(0, 51, 51, 0.06);
+  --elevation-sm: 0 2px 8px 0 rgba(0, 51, 51, 0.08);
+  --elevation-md: 0 8px 24px 0 rgba(0, 51, 51, 0.1);
+  --elevation-lg: 0 16px 48px 0 rgba(0, 51, 51, 0.12);
+
+  /* -- Atmosphere on Paper. The photo now dissolves into white rather than
+        Dark Green, and the grading inverts: brightness lifts and contrast
+        eases so the render melts into the page instead of sinking beneath it.
+        The source's near-white sky makes this dissolve almost seamless.
+        The vignette carries a trace of Dark Green rather than black — a grey
+        vignette on white reads as a printing defect. -------------------- */
+  --atmo-base-rgb: 255 255 255;
+  --atmo-shadow-rgb: 0 51 51;
+  --atmo-vignette-mid: 0.05;
+  --atmo-vignette-edge: 0.1;
+  --atmo-wash: 0.14;
+  --bloom-rgb: 0 51 51;
+  --bloom-strength: 0.035;
+  --photo-grade: saturate(0.78) contrast(1.02) brightness(1.05);
+  /* The workspace glass carries a whisper of Dark Green rather than being
+     white. White-on-white composites to nothing: over the canvas the panel
+     would vanish and only reappear where it crosses the photograph, so the
+     one object meant to hold the composition together would read as two
+     different things along its own width. This tint is barely nameable and
+     still leaves every label above 6.8:1. */
+  --glass-rgb: 240 250 250;
+  --glass-alpha: 0.88;
+  --nav-glass-alpha: 0.92;
+  /* The inset top highlight is a dark-UI device — a white bevel on a
+     near-white panel does nothing. On Paper the hairline and the shadow do
+     all the work. */
+  --glass-bevel-rgb: 255 255 255;
+  --glass-bevel-alpha: 0;
+  --glow-brand: 0 0 24px 0 rgba(80, 107, 25, 0.14);
+  --glow-accent: 0 0 24px 0 rgba(80, 107, 25, 0.12);
+}
+
 @theme inline {
+  /* ---- Typography ------------------------------------------------------
+     Aether carries the entire system. `--font-sans` and `--font-heading` are
+     deliberately the same family; there is no display/body pairing. */
+  --font-sans:
+    "Aether", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-heading: var(--font-sans);
+
+  /* Sanctioned weights — four, no more. Anything outside this set is a bug. */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* The 12-step scale. Each token carries size + line-height + tracking +
+     weight, so `text-display-xl` alone produces the complete, correct style —
+     there is no way to apply a size without its paired metrics.
+     Display and Heading XL/L are fluid; they reach their maximum at ~960px
+     viewport and never require a per-breakpoint override. */
+  --text-display-xl: clamp(2.75rem, 1.5rem + 5vw, 4.5rem); /* 44 → 72 */
+  --text-display-xl--line-height: 1.06;
+  --text-display-xl--letter-spacing: -0.03em;
+  --text-display-xl--font-weight: 700;
+
+  --text-display-l: clamp(2.25rem, 1.35rem + 3.6vw, 3.75rem); /* 36 → 60 */
+  --text-display-l--line-height: 1.07;
+  --text-display-l--letter-spacing: -0.028em;
+  --text-display-l--font-weight: 700;
+
+  --text-display-m: clamp(2rem, 1.4rem + 2.4vw, 3rem); /* 32 → 48 */
+  --text-display-m--line-height: 1.13;
+  --text-display-m--letter-spacing: -0.024em;
+  --text-display-m--font-weight: 700;
+
+  --text-heading-xl: clamp(1.75rem, 1.35rem + 1.6vw, 2.5rem); /* 28 → 40 */
+  --text-heading-xl--line-height: 1.15;
+  --text-heading-xl--letter-spacing: -0.02em;
+  --text-heading-xl--font-weight: 600;
+
+  --text-heading-l: clamp(1.5rem, 1.25rem + 1vw, 2rem); /* 24 → 32 */
+  --text-heading-l--line-height: 1.25;
+  --text-heading-l--letter-spacing: -0.018em;
+  --text-heading-l--font-weight: 600;
+
+  --text-heading-m: 1.5rem; /* 24 */
+  --text-heading-m--line-height: 1.33;
+  --text-heading-m--letter-spacing: -0.014em;
+  --text-heading-m--font-weight: 600;
+
+  --text-heading-s: 1.25rem; /* 20 */
+  --text-heading-s--line-height: 1.4;
+  --text-heading-s--letter-spacing: -0.01em;
+  --text-heading-s--font-weight: 600;
+
+  --text-body-l: 1.125rem; /* 18 */
+  --text-body-l--line-height: 1.67;
+  --text-body-l--letter-spacing: -0.002em;
+  --text-body-l--font-weight: 400;
+
+  --text-body-m: 1rem; /* 16 — default body size */
+  --text-body-m--line-height: 1.63;
+  --text-body-m--letter-spacing: 0em;
+  --text-body-m--font-weight: 400;
+
+  --text-body-s: 0.875rem; /* 14 */
+  --text-body-s--line-height: 1.57;
+  --text-body-s--letter-spacing: 0.002em;
+  --text-body-s--font-weight: 400;
+
+  --text-label: 0.8125rem; /* 13 — eyebrows, form labels, chips */
+  --text-label--line-height: 1.23;
+  --text-label--letter-spacing: 0.04em;
+  --text-label--font-weight: 500;
+
+  --text-caption: 0.75rem; /* 12 — the smallest permitted size, anywhere */
+  --text-caption--line-height: 1.5;
+  --text-caption--letter-spacing: 0.01em;
+  --text-caption--font-weight: 400;
+
+  /* ---- Color: primitives as utilities (bg-martian-500, text-lime-500 …) -- */
+  --color-martian-50: var(--martian-50);
+  --color-martian-100: var(--martian-100);
+  --color-martian-200: var(--martian-200);
+  --color-martian-300: var(--martian-300);
+  --color-martian-400: var(--martian-400);
+  --color-martian-500: var(--martian-500);
+  --color-martian-600: var(--martian-600);
+  --color-martian-700: var(--martian-700);
+  --color-martian-800: var(--martian-800);
+  --color-martian-900: var(--martian-900);
+  --color-martian-950: var(--martian-950);
+
+  --color-lime-50: var(--lime-50);
+  --color-lime-100: var(--lime-100);
+  --color-lime-200: var(--lime-200);
+  --color-lime-300: var(--lime-300);
+  --color-lime-400: var(--lime-400);
+  --color-lime-500: var(--lime-500);
+  --color-lime-600: var(--lime-600);
+  --color-lime-700: var(--lime-700);
+  --color-lime-800: var(--lime-800);
+  --color-lime-900: var(--lime-900);
+
+  --color-deep-50: var(--deep-50);
+  --color-deep-100: var(--deep-100);
+  --color-deep-200: var(--deep-200);
+  --color-deep-300: var(--deep-300);
+  --color-deep-400: var(--deep-400);
+  --color-deep-500: var(--deep-500);
+  --color-deep-600: var(--deep-600);
+  --color-deep-700: var(--deep-700);
+  --color-deep-800: var(--deep-800);
+  --color-deep-900: var(--deep-900);
+  --color-deep-950: var(--deep-950);
+
+  --color-carbon-0: var(--carbon-0);
+  --color-carbon-50: var(--carbon-50);
+  --color-carbon-100: var(--carbon-100);
+  --color-carbon-200: var(--carbon-200);
+  --color-carbon-300: var(--carbon-300);
+  --color-carbon-400: var(--carbon-400);
+  --color-carbon-500: var(--carbon-500);
+  --color-carbon-600: var(--carbon-600);
+  --color-carbon-700: var(--carbon-700);
+  --color-carbon-800: var(--carbon-800);
+  --color-carbon-900: var(--carbon-900);
+  --color-carbon-950: var(--carbon-950);
+
+  --color-mist-100: var(--mist-100);
+  --color-mist-200: var(--mist-200);
+  --color-mist-300: var(--mist-300);
+  --color-mist-400: var(--mist-400);
+  --color-mist-500: var(--mist-500);
+  --color-mist-600: var(--mist-600);
+
+  /* ---- Color: semantic roles as utilities. Prefer these in components over
+          raw primitives: bg-canvas, bg-surface, text-fg-muted, border-interactive.
+
+          Background roles live under `bg-*`/`canvas`/`surface`; foreground
+          roles are prefixed `fg-` so `text-fg-muted` reads unambiguously and
+          never collides with Tailwind's own `text-*` size utilities. -------- */
+  --color-canvas: var(--bg-canvas);
+  --color-canvas-deep: var(--bg-canvas-deep);
+  --color-canvas-raised: var(--bg-canvas-raised);
+  --color-surface: var(--bg-surface);
+  --color-surface-raised: var(--bg-surface-raised);
+  --color-surface-sunken: var(--bg-surface-sunken);
+  --color-inverse: var(--bg-inverse);
+  --color-overlay: var(--bg-overlay);
+  --color-subtle: var(--bg-subtle);
+  --color-wash: var(--bg-muted);
+
+  --color-fg: var(--text-primary);
+  --color-fg-secondary: var(--text-secondary);
+  --color-fg-tertiary: var(--text-tertiary);
+  --color-fg-muted: var(--text-muted);
+  --color-fg-disabled: var(--text-disabled);
+  --color-fg-brand: var(--text-brand);
+  --color-fg-accent: var(--text-accent);
+  --color-fg-on-brand: var(--text-on-brand);
+  --color-fg-on-accent: var(--text-on-accent);
+  --color-fg-inverse: var(--text-inverse);
+
+  --color-border-subtle: var(--border-subtle);
+  --color-border-default: var(--border-default);
+  --color-border-strong: var(--border-strong);
+  --color-border-interactive: var(--border-interactive);
+  --color-border-brand: var(--border-brand);
+  --color-border-accent: var(--border-accent);
+
+  --color-action-primary: var(--action-primary);
+  --color-action-primary-hover: var(--action-primary-hover);
+  --color-action-primary-active: var(--action-primary-active);
+  --color-action-primary-subtle: var(--action-primary-subtle);
+
+  --color-focus: var(--focus-ring);
+
+  --color-success: var(--status-success);
+  --color-success-bg: var(--status-success-bg);
+  --color-success-border: var(--status-success-border);
+  --color-warning: var(--status-warning);
+  --color-warning-bg: var(--status-warning-bg);
+  --color-warning-border: var(--status-warning-border);
+  --color-danger: var(--status-danger);
+  --color-danger-bg: var(--status-danger-bg);
+  --color-danger-border: var(--status-danger-border);
+  --color-info: var(--status-info);
+  --color-info-bg: var(--status-info-bg);
+  --color-info-border: var(--status-info-border);
+
+  --color-intel: var(--intel-highlight);
+  --color-intel-bg: var(--intel-highlight-bg);
+  --color-intel-border: var(--intel-highlight-border);
+  --color-intel-unclear: var(--intel-unclear);
+
+  /* ---- Elevation as utilities: shadow-e-md, shadow-glow-brand … -------- */
+  --shadow-e-xs: var(--elevation-xs);
+  --shadow-e-sm: var(--elevation-sm);
+  --shadow-e-md: var(--elevation-md);
+  --shadow-e-lg: var(--elevation-lg);
+  --shadow-glow-brand: var(--glow-brand);
+  --shadow-glow-accent: var(--glow-accent);
+
+  /* ---- shadcn/Radix bridge ------------------------------------------- */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -39,6 +636,7 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -48,83 +646,194 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-:root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-}
-
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
   body {
     @apply bg-background text-foreground;
   }
   html {
     @apply font-sans;
+    scroll-behavior: smooth;
+  }
+}
+
+/* One focus treatment sitewide, offset from the element so it stays legible
+   over any surface. Keyboard-only (`:focus-visible`) — pointer interaction
+   never paints a ring. The colour comes from the active theme context: Lime on
+   dark, Martian 800 on Paper, since Lime is 1.18:1 against white.
+
+   Deliberately UNLAYERED. In Tailwind v4 the `utilities` layer is ordered
+   after `base`, so a single stray `outline-none` on a component silently wins
+   over a base-layer focus rule and removes the ring entirely — which is what
+   happened here, across seventeen interactive elements, until it was caught.
+   Unlayered declarations outrank every layered one regardless of specificity,
+   so this rule cannot be switched off by a utility again. */
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* ==========================================================================
+   HERO — atmospheric image integration.
+
+   The house is never a wallpaper and never a framed picture. It is bedded
+   into the canvas: graded toward the brand, its sky dissolved away, its
+   upper-left corner evaporating diagonally into the page so the roofline
+   emerges out of atmosphere rather than sitting on top of it.
+
+   Every value below is driven by the context variables declared above, so the
+   same treatment works on Dark Green or on Paper without a second set of
+   rules. All of it is CSS over an untouched source photo — no pre-processing,
+   no masking, no exported variants.
+   ========================================================================== */
+@layer components {
+  /* Grade. The source is a dusk architectural render: a near-white sky, cool
+     blue-grey render tones, and bright warm interior lighting. Saturation is
+     pulled back so the render's own blue can't argue with the palette, and
+     contrast is adjusted so the building keeps its edges once it is veiled.
+     Brightness moves in opposite directions per context — the photograph must
+     always sit *under* the workspace in the hierarchy, which means darkening
+     it on Dark Green and lifting it on Paper. */
+  .hero-photo {
+    filter: var(--photo-grade);
+  }
+
+  /* Six stacked gradients, topmost first. Together they erase the sky, fade
+     three edges into the page, and close the corners with a vignette.
+
+     The stop positions are tuned to where things actually sit in this frame,
+     not to round numbers: sky across the top ~18%, gate along the bottom
+     ~28%. Falloffs are gentle and stop short of the middle so the building
+     itself stays legible — a dissolve that meets in the centre erases the
+     subject and leaves an expensive-looking smudge. */
+  .hero-atmosphere {
+    background-image:
+      radial-gradient(
+        ellipse 100% 92% at 55% 42%,
+        transparent 34%,
+        rgb(var(--atmo-shadow-rgb) / var(--atmo-vignette-mid)) 76%,
+        rgb(var(--atmo-shadow-rgb) / var(--atmo-vignette-edge)) 100%
+      ),
+      /* Bottom: eats the gate, the driveway paving and the road. */
+        linear-gradient(
+          to top,
+          rgb(var(--atmo-base-rgb)) 0%,
+          rgb(var(--atmo-base-rgb) / 0.88) 8%,
+          rgb(var(--atmo-base-rgb) / 0.4) 20%,
+          transparent 34%
+        ),
+      /* Left: reaches past the right edge of the headline, so the type column
+         always sits on near-solid canvas. Contrast is never left dependent on
+         how bright the photograph happens to be at that point. */
+        linear-gradient(
+          to right,
+          rgb(var(--atmo-base-rgb)) 0%,
+          rgb(var(--atmo-base-rgb) / 0.94) 10%,
+          rgb(var(--atmo-base-rgb) / 0.62) 22%,
+          rgb(var(--atmo-base-rgb) / 0.24) 33%,
+          transparent 46%
+        ),
+      /* Top: dissolves the sky, which is the brightest area in the source and
+         the one that would most obviously read as "a photo pasted on". */
+        linear-gradient(
+          to bottom,
+          rgb(var(--atmo-base-rgb)) 0%,
+          rgb(var(--atmo-base-rgb) / 0.95) 7%,
+          rgb(var(--atmo-base-rgb) / 0.6) 15%,
+          rgb(var(--atmo-base-rgb) / 0.22) 24%,
+          transparent 36%
+        ),
+      linear-gradient(
+        to bottom right,
+        rgb(var(--atmo-base-rgb)) 0%,
+        rgb(var(--atmo-base-rgb) / 0.55) 24%,
+        rgb(var(--atmo-base-rgb) / 0.14) 44%,
+        transparent 62%
+      ),
+      linear-gradient(
+        rgb(var(--atmo-base-rgb) / var(--atmo-wash)),
+        rgb(var(--atmo-base-rgb) / var(--atmo-wash))
+      );
+  }
+
+  /* One implied light source, high and slightly right — the same direction for
+     every shadow and highlight on the site from here on. Colourless: a tint
+     here would read as a glow effect, which the brand does not do. */
+  .hero-bloom {
+    background-image: radial-gradient(
+      ellipse 46% 52% at 64% 34%,
+      rgb(var(--bloom-rgb) / var(--bloom-strength)) 0%,
+      rgb(var(--bloom-rgb) / calc(var(--bloom-strength) * 0.43)) 38%,
+      transparent 72%
+    );
+  }
+
+  /* Guarantees text contrast where the composition puts copy over the photo
+     (mobile, where the image sits behind the stack rather than beside it). */
+  .hero-scrim {
+    background-image: linear-gradient(
+      to bottom,
+      rgb(var(--atmo-base-rgb)) 0%,
+      rgb(var(--atmo-base-rgb) / 0.92) 34%,
+      rgb(var(--atmo-base-rgb) / 0.62) 62%,
+      rgb(var(--atmo-base-rgb) / 0.25) 100%
+    );
+  }
+
+  /* Restrained glass: a panel that lets the atmosphere through, with a single
+     hairline and a 1px inner top highlight for a soft physical bevel. No
+     coloured edge, no glow — the workspace earns attention by being the
+     sharpest and most solid object, not the loudest. */
+  .workspace-surface {
+    background-color: rgb(var(--glass-rgb) / var(--glass-alpha));
+    -webkit-backdrop-filter: blur(20px) saturate(1.1);
+    backdrop-filter: blur(20px) saturate(1.1);
+    border: 1px solid var(--border-default);
+    box-shadow:
+      var(--elevation-lg),
+      inset 0 1px 0 0 rgb(var(--glass-bevel-rgb) / var(--glass-bevel-alpha));
+  }
+
+  /* Nav after scroll. Same recipe, denser, so the two surfaces read as one
+     material at two depths. */
+  .nav-surface {
+    background-color: rgb(var(--glass-rgb) / var(--nav-glass-alpha));
+    -webkit-backdrop-filter: blur(16px) saturate(1.1);
+    backdrop-filter: blur(16px) saturate(1.1);
+  }
+}
+
+/* ---- Ambient light drift. The only looping animation in the hero: a very
+   slow, low-amplitude shift of the implied light source. It is a single
+   compositor-only transform on one layer, so it costs nothing and reads as
+   air moving rather than as an effect. ---------------------------------- */
+@layer utilities {
+  @keyframes hero-light-drift {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    50% {
+      transform: translate3d(-1.5%, 1%, 0) scale(1.04);
+    }
+  }
+
+  .animate-light-drift {
+    animation: hero-light-drift 26s ease-in-out infinite;
+    will-change: transform;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-light-drift {
+    animation: none !important;
   }
 }

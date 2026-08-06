@@ -10,3 +10,40 @@ export type NavItem = {
   href: string;
   external?: boolean;
 };
+
+/** Currency codes for HauxHunt's launch markets (UIUX Brief §3). */
+export type CurrencyCode = "RWF" | "NGN";
+
+/**
+ * One parsed criterion from a natural-language search query, shown as an
+ * editable filter chip (UIUX Brief Flow 3B — "what we understood," not a
+ * chat response).
+ */
+export type ParsedFilter = {
+  id: string;
+  kind:
+    | "location"
+    | "bedrooms"
+    | "maxPrice"
+    | "amenity"
+    | "availability"
+    | "custom";
+  label: string;
+  /** Set when the parser flagged this fragment as low-confidence/unclear. */
+  unclear?: boolean;
+};
+
+export type PropertyPreview = {
+  id: string;
+  title: string;
+  location: string;
+  currency: CurrencyCode;
+  price: number;
+  bedrooms: number;
+  amenities: string[];
+  verified: boolean;
+  /** 0–100. Computed against the visitor's current filters, not fixed. */
+  matchPercentage: number;
+  /** Short, specific reasoning — evidence, not a marketing claim (Creative Direction). */
+  whyItMatches: string;
+};

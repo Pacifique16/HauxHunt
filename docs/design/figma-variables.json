@@ -1,0 +1,520 @@
+{
+  "$schema": "https://www.figma.com/plugin-docs/api/VariableCollection",
+  "name": "HauxHunt Design System",
+  "version": "1.0.0",
+  "description": "Official HauxHunt brand identity. Import with any Figma Variables import plugin. Semantic aliases point at Primitives, mirroring src/app/globals.css exactly — editing a primitive propagates in Figma the same way it does in code. See docs/design/Design-System.md.",
+  "collections": [
+    {
+      "name": "HauxHunt/Primitives",
+      "modes": ["Default"],
+      "variables": {
+        "martian/50": { "type": "COLOR", "values": { "Default": "#F7FBEF" } },
+        "martian/100": { "type": "COLOR", "values": { "Default": "#EBF5D6" } },
+        "martian/200": { "type": "COLOR", "values": { "Default": "#D6EBAD" } },
+        "martian/300": { "type": "COLOR", "values": { "Default": "#C2E085" } },
+        "martian/400": { "type": "COLOR", "values": { "Default": "#ADD65C" } },
+        "martian/500": {
+          "type": "COLOR",
+          "values": { "Default": "#99CC33" },
+          "description": "Official primary brand color. Primary actions only."
+        },
+        "martian/600": { "type": "COLOR", "values": { "Default": "#80AB2B" } },
+        "martian/700": { "type": "COLOR", "values": { "Default": "#698C21" } },
+        "martian/800": {
+          "type": "COLOR",
+          "values": { "Default": "#506B19" },
+          "description": "Lowest step that passes AA as text on light backgrounds."
+        },
+        "martian/900": { "type": "COLOR", "values": { "Default": "#374912" } },
+        "martian/950": { "type": "COLOR", "values": { "Default": "#222D0B" } },
+
+        "lime/50": { "type": "COLOR", "values": { "Default": "#F9FFEB" } },
+        "lime/100": { "type": "COLOR", "values": { "Default": "#F3FFD6" } },
+        "lime/200": { "type": "COLOR", "values": { "Default": "#E9FFB3" } },
+        "lime/300": { "type": "COLOR", "values": { "Default": "#DBFF80" } },
+        "lime/400": { "type": "COLOR", "values": { "Default": "#D1FF5C" } },
+        "lime/500": {
+          "type": "COLOR",
+          "values": { "Default": "#C6FF34" },
+          "description": "Official accent. Focus, success, intelligent parsing, subtle highlight only."
+        },
+        "lime/600": { "type": "COLOR", "values": { "Default": "#A8E212" } },
+        "lime/700": { "type": "COLOR", "values": { "Default": "#7CA512" } },
+        "lime/800": { "type": "COLOR", "values": { "Default": "#59760F" } },
+        "lime/900": { "type": "COLOR", "values": { "Default": "#36470A" } },
+
+        "deep/50": { "type": "COLOR", "values": { "Default": "#F0FAFA" } },
+        "deep/100": { "type": "COLOR", "values": { "Default": "#D9F2F2" } },
+        "deep/200": { "type": "COLOR", "values": { "Default": "#B3E6E6" } },
+        "deep/300": { "type": "COLOR", "values": { "Default": "#75D1D1" } },
+        "deep/400": { "type": "COLOR", "values": { "Default": "#37BEBE" } },
+        "deep/500": { "type": "COLOR", "values": { "Default": "#1A9393" } },
+        "deep/600": { "type": "COLOR", "values": { "Default": "#0D7777" } },
+        "deep/700": { "type": "COLOR", "values": { "Default": "#055C5C" } },
+        "deep/800": { "type": "COLOR", "values": { "Default": "#004747" } },
+        "deep/900": {
+          "type": "COLOR",
+          "values": { "Default": "#003333" },
+          "description": "Official primary background."
+        },
+        "deep/950": { "type": "COLOR", "values": { "Default": "#001A1A" } },
+
+        "carbon/0": { "type": "COLOR", "values": { "Default": "#FFFFFF" } },
+        "carbon/50": { "type": "COLOR", "values": { "Default": "#F4F4F4" } },
+        "carbon/100": { "type": "COLOR", "values": { "Default": "#E4E4E4" } },
+        "carbon/200": { "type": "COLOR", "values": { "Default": "#C9C9C9" } },
+        "carbon/300": { "type": "COLOR", "values": { "Default": "#A3A3A3" } },
+        "carbon/400": { "type": "COLOR", "values": { "Default": "#7A7A7A" } },
+        "carbon/500": { "type": "COLOR", "values": { "Default": "#575757" } },
+        "carbon/600": { "type": "COLOR", "values": { "Default": "#3D3D3D" } },
+        "carbon/700": { "type": "COLOR", "values": { "Default": "#2E2E2E" } },
+        "carbon/800": { "type": "COLOR", "values": { "Default": "#212121" } },
+        "carbon/900": {
+          "type": "COLOR",
+          "values": { "Default": "#171717" },
+          "description": "Official surface color."
+        },
+        "carbon/950": { "type": "COLOR", "values": { "Default": "#0B0B0B" } },
+
+        "mist/100": { "type": "COLOR", "values": { "Default": "#E7EFEF" } },
+        "mist/200": { "type": "COLOR", "values": { "Default": "#CAD8D8" } },
+        "mist/300": { "type": "COLOR", "values": { "Default": "#A8BDBD" } },
+        "mist/400": {
+          "type": "COLOR",
+          "values": { "Default": "#819C9C" },
+          "description": "Floor for body text on dark — 4.71:1 on Dark Green."
+        },
+        "mist/500": {
+          "type": "COLOR",
+          "values": { "Default": "#6E9191" },
+          "description": "Floor for interactive borders on dark — 4.02:1."
+        },
+        "mist/600": {
+          "type": "COLOR",
+          "values": { "Default": "#5C7070" },
+          "description": "Disabled only. WCAG-exempt. Never body text."
+        },
+
+        "signal/warning-500": {
+          "type": "COLOR",
+          "values": { "Default": "#FFC34D" }
+        },
+        "signal/warning-700": {
+          "type": "COLOR",
+          "values": { "Default": "#A86F00" }
+        },
+        "signal/danger-500": {
+          "type": "COLOR",
+          "values": { "Default": "#FF6C5C" }
+        },
+        "signal/danger-700": {
+          "type": "COLOR",
+          "values": { "Default": "#B32B1C" }
+        },
+        "signal/info-500": {
+          "type": "COLOR",
+          "values": { "Default": "#75D1D1" }
+        },
+        "signal/info-700": {
+          "type": "COLOR",
+          "values": { "Default": "#055C5C" }
+        }
+      }
+    },
+
+    {
+      "name": "HauxHunt/Semantic",
+      "modes": ["Dark", "Paper"],
+      "description": "Dark is the default context. Paper is a scoped light context for documents, long-form forms, print and transactional email — never a user-facing theme toggle.",
+      "variables": {
+        "bg/canvas": {
+          "type": "COLOR",
+          "values": { "Dark": "{deep/900}", "Paper": "{deep/50}" }
+        },
+        "bg/canvas-deep": {
+          "type": "COLOR",
+          "values": { "Dark": "{deep/950}", "Paper": "{deep/100}" }
+        },
+        "bg/canvas-raised": {
+          "type": "COLOR",
+          "values": { "Dark": "{deep/800}", "Paper": "{carbon/0}" }
+        },
+        "bg/surface": {
+          "type": "COLOR",
+          "values": { "Dark": "{carbon/900}", "Paper": "{carbon/0}" }
+        },
+        "bg/surface-raised": {
+          "type": "COLOR",
+          "values": { "Dark": "{carbon/800}", "Paper": "{carbon/0}" }
+        },
+        "bg/surface-sunken": {
+          "type": "COLOR",
+          "values": { "Dark": "{carbon/950}", "Paper": "{mist/100}" }
+        },
+        "bg/inverse": {
+          "type": "COLOR",
+          "values": { "Dark": "{deep/50}", "Paper": "{deep/900}" }
+        },
+        "bg/overlay": {
+          "type": "COLOR",
+          "values": { "Dark": "#001A1AB8", "Paper": "#001A1A7A" }
+        },
+        "bg/subtle": {
+          "type": "COLOR",
+          "values": { "Dark": "#FFFFFF0A", "Paper": "#0033330A" }
+        },
+        "bg/muted": {
+          "type": "COLOR",
+          "values": { "Dark": "#FFFFFF14", "Paper": "#00333312" }
+        },
+
+        "text/primary": {
+          "type": "COLOR",
+          "values": { "Dark": "#FFFFFF", "Paper": "{deep/900}" },
+          "description": "13.80:1 on Dark Green, 17.93:1 on Carbon, 12.99:1 on Paper."
+        },
+        "text/secondary": {
+          "type": "COLOR",
+          "values": { "Dark": "{mist/200}", "Paper": "{deep/700}" },
+          "description": "9.42:1 on Dark Green, 7.34:1 on Paper."
+        },
+        "text/tertiary": {
+          "type": "COLOR",
+          "values": { "Dark": "{mist/300}", "Paper": "{carbon/500}" },
+          "description": "7.02:1 on Dark Green, 6.80:1 on Paper."
+        },
+        "text/muted": {
+          "type": "COLOR",
+          "values": { "Dark": "{mist/400}", "Paper": "{carbon/500}" },
+          "description": "4.71:1 on Dark Green. The AA floor — nothing dimmer carries body copy."
+        },
+        "text/disabled": {
+          "type": "COLOR",
+          "values": { "Dark": "{mist/600}", "Paper": "{carbon/400}" }
+        },
+        "text/brand": {
+          "type": "COLOR",
+          "values": { "Dark": "{martian/500}", "Paper": "{martian/800}" },
+          "description": "7.26:1 on Dark Green. Martian 500 fails on light — Paper substitutes Martian 800 at 5.71:1."
+        },
+        "text/accent": {
+          "type": "COLOR",
+          "values": { "Dark": "{lime/500}", "Paper": "{martian/800}" },
+          "description": "11.67:1 on Dark Green. Lime is unusable as text on light (1.18:1)."
+        },
+        "text/inverse": {
+          "type": "COLOR",
+          "values": { "Dark": "{deep/900}", "Paper": "#FFFFFF" }
+        },
+        "text/on-brand": {
+          "type": "COLOR",
+          "values": { "Dark": "{deep/950}", "Paper": "#FFFFFF" },
+          "description": "9.50:1 on Martian 500; 6.07:1 white on Martian 800."
+        },
+        "text/on-accent": {
+          "type": "COLOR",
+          "values": { "Dark": "{deep/950}", "Paper": "{deep/950}" },
+          "description": "15.27:1 on Lime."
+        },
+
+        "border/subtle": {
+          "type": "COLOR",
+          "values": { "Dark": "#FFFFFF14", "Paper": "#00333314" },
+          "description": "Decorative hairline only. Does not meet WCAG 1.4.11."
+        },
+        "border/default": {
+          "type": "COLOR",
+          "values": { "Dark": "#FFFFFF24", "Paper": "#00333324" },
+          "description": "Card and panel edge. Does not meet WCAG 1.4.11."
+        },
+        "border/strong": {
+          "type": "COLOR",
+          "values": { "Dark": "#FFFFFF3D", "Paper": "#00333342" },
+          "description": "Emphasis divider. 2.11:1 on Dark Green — not for control boundaries."
+        },
+        "border/interactive": {
+          "type": "COLOR",
+          "values": { "Dark": "{mist/500}", "Paper": "{deep/600}" },
+          "description": "REQUIRED on the boundary of any active control. 4.02:1 on Dark Green."
+        },
+        "border/brand": {
+          "type": "COLOR",
+          "values": { "Dark": "{martian/500}", "Paper": "{martian/800}" }
+        },
+        "border/accent": {
+          "type": "COLOR",
+          "values": { "Dark": "{lime/500}", "Paper": "{martian/800}" }
+        },
+
+        "action/primary": {
+          "type": "COLOR",
+          "values": { "Dark": "{martian/500}", "Paper": "{martian/800}" }
+        },
+        "action/primary-hover": {
+          "type": "COLOR",
+          "values": { "Dark": "{martian/400}", "Paper": "{martian/900}" },
+          "description": "On dark, hover brightens. On Paper the direction inverts."
+        },
+        "action/primary-active": {
+          "type": "COLOR",
+          "values": { "Dark": "{martian/600}", "Paper": "{martian/950}" }
+        },
+        "action/primary-fg": {
+          "type": "COLOR",
+          "values": { "Dark": "{deep/950}", "Paper": "#FFFFFF" }
+        },
+        "action/primary-subtle": {
+          "type": "COLOR",
+          "values": { "Dark": "#99CC331F", "Paper": "#506B191A" }
+        },
+        "action/secondary-border": {
+          "type": "COLOR",
+          "values": { "Dark": "#FFFFFF3D", "Paper": "#00333342" }
+        },
+        "action/secondary-fg": {
+          "type": "COLOR",
+          "values": { "Dark": "#FFFFFF", "Paper": "{deep/900}" }
+        },
+        "action/disabled-bg": {
+          "type": "COLOR",
+          "values": { "Dark": "#FFFFFF14", "Paper": "#00333312" }
+        },
+        "action/disabled-fg": {
+          "type": "COLOR",
+          "values": { "Dark": "{mist/600}", "Paper": "{carbon/400}" }
+        },
+
+        "focus/ring": {
+          "type": "COLOR",
+          "values": { "Dark": "{lime/500}", "Paper": "{martian/800}" },
+          "description": "11.67:1 on Dark Green, 4.43:1 on Paper. Lime cannot be used on light (1.18:1)."
+        },
+        "focus/width": { "type": "FLOAT", "values": { "Dark": 2, "Paper": 2 } },
+        "focus/offset": {
+          "type": "FLOAT",
+          "values": { "Dark": 2, "Paper": 2 }
+        },
+
+        "status/success": {
+          "type": "COLOR",
+          "values": { "Dark": "{lime/500}", "Paper": "{lime/800}" }
+        },
+        "status/success-bg": {
+          "type": "COLOR",
+          "values": { "Dark": "#C6FF341F", "Paper": "#59760F1A" }
+        },
+        "status/success-border": {
+          "type": "COLOR",
+          "values": { "Dark": "#C6FF3452", "Paper": "#59760F47" }
+        },
+        "status/warning": {
+          "type": "COLOR",
+          "values": {
+            "Dark": "{signal/warning-500}",
+            "Paper": "{signal/warning-700}"
+          }
+        },
+        "status/warning-bg": {
+          "type": "COLOR",
+          "values": { "Dark": "#FFC34D1F", "Paper": "#A86F001A" }
+        },
+        "status/warning-border": {
+          "type": "COLOR",
+          "values": { "Dark": "#FFC34D52", "Paper": "#A86F0047" }
+        },
+        "status/danger": {
+          "type": "COLOR",
+          "values": {
+            "Dark": "{signal/danger-500}",
+            "Paper": "{signal/danger-700}"
+          }
+        },
+        "status/danger-bg": {
+          "type": "COLOR",
+          "values": { "Dark": "#FF6C5C1F", "Paper": "#B32B1C1A" }
+        },
+        "status/danger-border": {
+          "type": "COLOR",
+          "values": { "Dark": "#FF6C5C52", "Paper": "#B32B1C47" }
+        },
+        "status/info": {
+          "type": "COLOR",
+          "values": {
+            "Dark": "{signal/info-500}",
+            "Paper": "{signal/info-700}"
+          }
+        },
+        "status/info-bg": {
+          "type": "COLOR",
+          "values": { "Dark": "#75D1D11F", "Paper": "#055C5C1A" }
+        },
+        "status/info-border": {
+          "type": "COLOR",
+          "values": { "Dark": "#75D1D152", "Paper": "#055C5C47" }
+        },
+
+        "intel/highlight": {
+          "type": "COLOR",
+          "values": { "Dark": "{lime/500}", "Paper": "{martian/800}" },
+          "description": "Machine-derived evidence: parsed fragments, match confidence, reasoning. Marks evidence, never asserts 'AI'."
+        },
+        "intel/highlight-bg": {
+          "type": "COLOR",
+          "values": { "Dark": "#C6FF341A", "Paper": "#506B191A" }
+        },
+        "intel/highlight-border": {
+          "type": "COLOR",
+          "values": { "Dark": "#C6FF344D", "Paper": "#506B1947" }
+        },
+        "intel/unclear": {
+          "type": "COLOR",
+          "values": {
+            "Dark": "{signal/warning-500}",
+            "Paper": "{signal/warning-700}"
+          },
+          "description": "Low-confidence parse. Always paired with an icon and text — never colour alone."
+        }
+      }
+    },
+
+    {
+      "name": "HauxHunt/Typography",
+      "modes": ["Default"],
+      "description": "Aether, sans-serif — one family across the whole system. Sizes are the desktop maximum; Display XL/L/M and Heading XL/L scale fluidly down to the listed minimum in code and reach maximum at ~960px viewport.",
+      "variables": {
+        "family/sans": {
+          "type": "STRING",
+          "values": { "Default": "Aether" },
+          "description": "Fallback stack: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif"
+        },
+
+        "weight/regular": { "type": "FLOAT", "values": { "Default": 400 } },
+        "weight/medium": { "type": "FLOAT", "values": { "Default": 500 } },
+        "weight/semibold": { "type": "FLOAT", "values": { "Default": 600 } },
+        "weight/bold": { "type": "FLOAT", "values": { "Default": 700 } },
+
+        "display-xl/size": { "type": "FLOAT", "values": { "Default": 72 } },
+        "display-xl/size-min": { "type": "FLOAT", "values": { "Default": 44 } },
+        "display-xl/line-height": {
+          "type": "FLOAT",
+          "values": { "Default": 76 }
+        },
+        "display-xl/weight": { "type": "FLOAT", "values": { "Default": 700 } },
+        "display-xl/letter-spacing": {
+          "type": "FLOAT",
+          "values": { "Default": -2.16 }
+        },
+
+        "display-l/size": { "type": "FLOAT", "values": { "Default": 60 } },
+        "display-l/size-min": { "type": "FLOAT", "values": { "Default": 36 } },
+        "display-l/line-height": {
+          "type": "FLOAT",
+          "values": { "Default": 64 }
+        },
+        "display-l/weight": { "type": "FLOAT", "values": { "Default": 700 } },
+        "display-l/letter-spacing": {
+          "type": "FLOAT",
+          "values": { "Default": -1.68 }
+        },
+
+        "display-m/size": { "type": "FLOAT", "values": { "Default": 48 } },
+        "display-m/size-min": { "type": "FLOAT", "values": { "Default": 32 } },
+        "display-m/line-height": {
+          "type": "FLOAT",
+          "values": { "Default": 54 }
+        },
+        "display-m/weight": { "type": "FLOAT", "values": { "Default": 700 } },
+        "display-m/letter-spacing": {
+          "type": "FLOAT",
+          "values": { "Default": -1.15 }
+        },
+
+        "heading-xl/size": { "type": "FLOAT", "values": { "Default": 40 } },
+        "heading-xl/size-min": { "type": "FLOAT", "values": { "Default": 28 } },
+        "heading-xl/line-height": {
+          "type": "FLOAT",
+          "values": { "Default": 46 }
+        },
+        "heading-xl/weight": { "type": "FLOAT", "values": { "Default": 600 } },
+        "heading-xl/letter-spacing": {
+          "type": "FLOAT",
+          "values": { "Default": -0.8 }
+        },
+
+        "heading-l/size": { "type": "FLOAT", "values": { "Default": 32 } },
+        "heading-l/size-min": { "type": "FLOAT", "values": { "Default": 24 } },
+        "heading-l/line-height": {
+          "type": "FLOAT",
+          "values": { "Default": 40 }
+        },
+        "heading-l/weight": { "type": "FLOAT", "values": { "Default": 600 } },
+        "heading-l/letter-spacing": {
+          "type": "FLOAT",
+          "values": { "Default": -0.58 }
+        },
+
+        "heading-m/size": { "type": "FLOAT", "values": { "Default": 24 } },
+        "heading-m/line-height": {
+          "type": "FLOAT",
+          "values": { "Default": 32 }
+        },
+        "heading-m/weight": { "type": "FLOAT", "values": { "Default": 600 } },
+        "heading-m/letter-spacing": {
+          "type": "FLOAT",
+          "values": { "Default": -0.34 }
+        },
+
+        "heading-s/size": { "type": "FLOAT", "values": { "Default": 20 } },
+        "heading-s/line-height": {
+          "type": "FLOAT",
+          "values": { "Default": 28 }
+        },
+        "heading-s/weight": { "type": "FLOAT", "values": { "Default": 600 } },
+        "heading-s/letter-spacing": {
+          "type": "FLOAT",
+          "values": { "Default": -0.2 }
+        },
+
+        "body-l/size": { "type": "FLOAT", "values": { "Default": 18 } },
+        "body-l/line-height": { "type": "FLOAT", "values": { "Default": 30 } },
+        "body-l/weight": { "type": "FLOAT", "values": { "Default": 400 } },
+        "body-l/letter-spacing": {
+          "type": "FLOAT",
+          "values": { "Default": -0.04 }
+        },
+
+        "body-m/size": { "type": "FLOAT", "values": { "Default": 16 } },
+        "body-m/line-height": { "type": "FLOAT", "values": { "Default": 26 } },
+        "body-m/weight": { "type": "FLOAT", "values": { "Default": 400 } },
+        "body-m/letter-spacing": {
+          "type": "FLOAT",
+          "values": { "Default": 0 }
+        },
+
+        "body-s/size": { "type": "FLOAT", "values": { "Default": 14 } },
+        "body-s/line-height": { "type": "FLOAT", "values": { "Default": 22 } },
+        "body-s/weight": { "type": "FLOAT", "values": { "Default": 400 } },
+        "body-s/letter-spacing": {
+          "type": "FLOAT",
+          "values": { "Default": 0.03 }
+        },
+
+        "label/size": { "type": "FLOAT", "values": { "Default": 13 } },
+        "label/line-height": { "type": "FLOAT", "values": { "Default": 16 } },
+        "label/weight": { "type": "FLOAT", "values": { "Default": 500 } },
+        "label/letter-spacing": {
+          "type": "FLOAT",
+          "values": { "Default": 0.52 }
+        },
+
+        "caption/size": { "type": "FLOAT", "values": { "Default": 12 } },
+        "caption/line-height": { "type": "FLOAT", "values": { "Default": 18 } },
+        "caption/weight": { "type": "FLOAT", "values": { "Default": 400 } },
+        "caption/letter-spacing": {
+          "type": "FLOAT",
+          "values": { "Default": 0.12 }
+        }
+      }
+    }
+  ]
+}
