@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useRef } from "react";
 import {
   motion,
@@ -38,20 +37,10 @@ export function HeroAtmosphere() {
           loop
           playsInline
           preload="metadata"
-          poster="/images/hero-home.webp"
-          className="hero-photo absolute inset-0 h-full w-full object-cover object-center motion-reduce:hidden"
+          className="hero-photo absolute inset-0 h-full w-full object-cover object-center"
         >
           <source src="/videos/hauxhunt-hero.mp4" type="video/mp4" />
         </video>
-        <Image
-          src="/images/hero-home.webp"
-          alt="A contemporary long-term rental home at dusk"
-          fill
-          loading="eager"
-          fetchPriority="high"
-          sizes="100vw"
-          className="hero-photo hidden object-cover object-center motion-reduce:block"
-        />
       </motion.div>
 
       <div aria-hidden="true" className="hero-atmosphere absolute inset-0" />
