@@ -1,8 +1,12 @@
-import { Landmark } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
 
-import { Footer } from "@/components/layout/footer";
-import { Navbar } from "@/components/layout/navbar";
 import { AuthenticationForm } from "@/components/auth/authentication-form";
+import { LoginMosaic } from "@/components/auth/login-mosaic";
+import { Wordmark } from "@/components/layout/wordmark";
+
+import registrationImage from "../../../interior.jpg";
 
 type AuthenticationPageProps = {
   mode: "login" | "register";
@@ -11,43 +15,105 @@ type AuthenticationPageProps = {
 export function AuthenticationPage({ mode }: AuthenticationPageProps) {
   const isRegister = mode === "register";
 
-  return (
-    <>
-      <Navbar />
-      <main className="bg-carbon-50 min-h-svh pt-24">
-        <section className="px-5 py-14 sm:px-6 sm:py-20 lg:px-11 xl:px-[52px]">
-          <div className="mx-auto grid max-w-[1180px] overflow-hidden rounded-[2rem] border border-black/10 bg-white shadow-[0_24px_70px_rgba(0,0,0,0.08)] lg:grid-cols-[0.78fr_1.22fr]">
-            <aside className="relative overflow-hidden bg-black p-8 text-white sm:p-12">
-              <div
-                aria-hidden="true"
-                className="absolute inset-0 [background-image:radial-gradient(circle_at_center,white_1px,transparent_1px)] [background-size:18px_18px] opacity-20"
-              />
-              <div className="relative z-10 flex h-full min-h-72 flex-col">
-                <span className="flex size-12 items-center justify-center rounded-full border border-white/20 bg-white/10">
-                  <Landmark aria-hidden="true" className="size-5" />
-                </span>
-                <h1 className="font-bricolage mt-8 text-[clamp(2.6rem,5vw,4.5rem)] leading-[0.95] font-medium tracking-[-0.055em]">
-                  {isRegister ? "Join HauxHunt." : "Welcome back."}
-                </h1>
-                <p className="mt-5 max-w-md text-sm leading-6 text-white/65">
-                  {isRegister
-                    ? "One trusted account for finding houses, listing properties, and working with serious renters and buyers."
-                    : "Continue your property search, manage saved houses, or return to your listings."}
-                </p>
-                <p className="mt-auto pt-10 text-xs leading-5 text-white/45">
-                  Accounts for renters, landlords, brokers, and real estate
-                  agencies.
-                </p>
-              </div>
-            </aside>
+  if (!isRegister) {
+    return (
+      <main className="min-h-svh bg-[#0a0a0a] p-3 text-white sm:p-5 lg:h-svh lg:overflow-hidden">
+        <div className="mx-auto grid min-h-[calc(100svh-1.5rem)] max-w-[1600px] gap-3 lg:h-[calc(100svh-2.5rem)] lg:min-h-0 lg:grid-cols-[minmax(360px,0.68fr)_minmax(0,1.32fr)]">
+          <section className="flex min-h-[720px] flex-col p-6 sm:p-9 lg:min-h-0 lg:p-10 xl:p-14">
+            <div className="flex items-center justify-between gap-5">
+              <Link
+                href="/"
+                aria-label="HauxHunt home"
+                className="w-fit invert"
+              >
+                <Wordmark height={42} />
+              </Link>
+              <Link
+                href="/"
+                className="font-bricolage inline-flex h-10 items-center gap-0.5 text-sm font-medium text-white/60 transition-colors hover:text-white"
+              >
+                <ChevronLeft aria-hidden="true" className="size-4" />
+                Back
+              </Link>
+            </div>
 
-            <div className="p-6 sm:p-10 lg:p-12">
-              <AuthenticationForm mode={mode} />
+            <div className="my-auto w-full max-w-md self-center py-14">
+              <h1 className="font-bricolage text-[clamp(2.7rem,5vw,4.7rem)] leading-[0.92] font-medium tracking-[-0.055em]">
+                Welcome back.
+              </h1>
+              <p className="mt-4 max-w-sm text-sm leading-6 text-white/45">
+                Sign in to continue your property search, manage saved homes, or
+                return to your listings.
+              </p>
+              <div className="mt-10">
+                <AuthenticationForm mode="login" variant="dark" />
+              </div>
+            </div>
+
+          </section>
+
+          <LoginMosaic />
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="bg-carbon-50 min-h-svh lg:h-svh lg:overflow-hidden">
+      <div className="grid min-h-svh w-full bg-white lg:h-full lg:min-h-0 lg:grid-cols-2 lg:overflow-hidden">
+        <section className="relative hidden min-h-0 overflow-hidden lg:block lg:w-[calc(100%+3rem)]">
+          <Image
+            src={registrationImage}
+            alt="A calm modern interior with a wooden lounge chair"
+            fill
+            priority
+            sizes="(min-width: 1024px) 46vw, 100vw"
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/5 to-black/65" />
+          <div className="relative z-10 flex h-full flex-col p-10 text-white xl:p-14">
+            <div className="flex items-center justify-between gap-5 lg:pr-28">
+              <Link
+                href="/"
+                aria-label="HauxHunt home"
+                className="w-fit invert"
+              >
+                <Wordmark height={42} />
+              </Link>
+              <Link
+                href="/"
+                className="font-bricolage inline-flex h-10 items-center gap-0.5 text-sm font-medium text-white/70 transition-colors hover:text-white"
+              >
+                <ChevronLeft aria-hidden="true" className="size-4" />
+                Back
+              </Link>
+            </div>
+
+            <div className="mt-auto max-w-xl pb-5">
+              <h1 className="font-bricolage text-[clamp(3.5rem,7vw,7rem)] leading-[0.86] font-medium tracking-[-0.065em]">
+                Join HauxHunt.
+              </h1>
+              <p className="mt-7 max-w-lg text-base leading-7 text-white/70">
+                Create one trusted account to find a home, list properties, and
+                connect with serious renters, buyers, and property partners.
+              </p>
             </div>
           </div>
         </section>
-      </main>
-      <Footer />
-    </>
+
+        <section className="relative z-10 min-h-svh bg-white px-5 py-5 sm:px-8 sm:py-6 lg:-ml-12 lg:h-full lg:min-h-0 lg:overflow-hidden lg:rounded-tl-[5.5rem] lg:px-12 xl:px-16">
+          <div className="mx-auto flex min-h-[calc(100svh-2.5rem)] max-w-xl flex-col justify-center lg:h-full lg:min-h-0">
+            <Link
+              href="/"
+              className="font-bricolage mb-5 inline-flex h-10 w-fit items-center gap-0.5 text-sm font-medium text-black/60 transition-colors hover:text-black lg:hidden"
+            >
+              <ChevronLeft aria-hidden="true" className="size-4" />
+              Back
+            </Link>
+            <AuthenticationForm mode="register" compact />
+          </div>
+        </section>
+      </div>
+    </main>
   );
 }

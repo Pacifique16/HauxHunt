@@ -957,6 +957,59 @@
   }
 }
 
+@keyframes login-mosaic-message-enter {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translateY(10%) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes login-mosaic-message-exit {
+  from {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    filter: blur(3px);
+    transform: translateY(-6%) scale(0.99);
+  }
+}
+
+.login-mosaic-message-enter,
+.login-mosaic-message-exit {
+  will-change: transform, opacity, filter;
+  animation-fill-mode: both;
+}
+
+.login-mosaic-message-enter {
+  opacity: 0;
+  animation-name: login-mosaic-message-enter;
+  animation-duration: 700ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.login-mosaic-message-exit {
+  animation-name: login-mosaic-message-exit;
+  animation-duration: 600ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-mosaic-message-enter,
+  .login-mosaic-message-exit {
+    opacity: 1;
+    animation: none;
+  }
+}
+
 /* Dark editorial island inside the Paper site context. These selectors only
    re-point the existing semantic roles to their documented dark values. */
 .hero-dark,

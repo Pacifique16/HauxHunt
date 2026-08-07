@@ -9,8 +9,6 @@ import {
   useTransform,
 } from "framer-motion";
 
-import houseImage from "../../../../landing.png";
-
 /** A cinematic property film with restrained scroll depth on desktop. */
 export function HeroAtmosphere() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -40,18 +38,17 @@ export function HeroAtmosphere() {
           loop
           playsInline
           preload="metadata"
-          poster={houseImage.src}
+          poster="/images/hero-home.webp"
           className="hero-photo absolute inset-0 h-full w-full object-cover object-center motion-reduce:hidden"
         >
           <source src="/videos/hauxhunt-hero.mp4" type="video/mp4" />
         </video>
         <Image
-          src={houseImage}
+          src="/images/hero-home.webp"
           alt="A contemporary long-term rental home at dusk"
           fill
           loading="eager"
           fetchPriority="high"
-          placeholder="blur"
           sizes="100vw"
           className="hero-photo hidden object-cover object-center motion-reduce:block"
         />

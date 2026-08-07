@@ -1,6 +1,6 @@
 import type { StaticImageData } from "next/image";
 import Link from "next/link";
-import { MapPin, Search, SlidersHorizontal } from "lucide-react";
+import { ChevronDown, MapPin, Search, SlidersHorizontal } from "lucide-react";
 
 import house1 from "../../../house1.jpg";
 import house2 from "../../../house2.jpg";
@@ -10,6 +10,7 @@ import house5 from "../../../house5.jpg";
 import house6 from "../../../house6.jpeg";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
+import { AutoSubmitFilterForm } from "@/components/listings/auto-submit-filter-form";
 import { ListingCard } from "@/components/sections/featured-listings/listing-card";
 import { matchListings, parseQuery } from "@/data/hero-search-demo";
 import type { PropertyPreview } from "@/types";
@@ -89,11 +90,24 @@ type SearchPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
+function valueOf(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : (value ?? "");
+}
+
+function propertyType(property: PropertyPreview) {
+  const title = property.title.toLowerCase();
+  if (title.includes("studio")) return "Studio apartment";
+  if (title.includes("apartment")) return "Apartment";
+  if (title.includes("villa")) return "Villa";
+  if (title.includes("duplex")) return "Duplex";
+  return "House";
+}
+
 export default function SearchPage({ searchParams }: SearchPageProps) {
   return (
     <>
       <Navbar />
-      <main className="bg-carbon-50 min-h-svh pt-24">
+      <main className="bg-carbon-50 min-h-svh pt-16">
         <SearchResults searchParams={searchParams} />
       </main>
       <Footer />
@@ -103,8 +117,12 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
 
 async function SearchResults({ searchParams }: SearchPageProps) {
   const params = await searchParams;
-  const queryValue = params.q;
-  const query = Array.isArray(queryValue) ? queryValue[0] : (queryValue ?? "");
+  const query = valueOf(params.q);
+  const type = valueOf(params.type);
+  const priceRange = valueOf(params.price);
+  const bedroomsValue = valueOf(params.bedrooms);
+  const bathroomsValue = valueOf(params.bathrooms);
+  const sort = valueOf(params.sort);
   const categoryValue = params.category;
   const categoryKey = Array.isArray(categoryValue)
     ? categoryValue[0]
@@ -112,13 +130,47 @@ async function SearchResults({ searchParams }: SearchPageProps) {
   const category = categoryKey ? CATEGORY_RESULTS[categoryKey] : undefined;
   const filters = query ? parseQuery(query) : [];
   const allResults = matchListings([]);
-  const results = query
+  const baseResults = query
     ? matchListings(filters)
     : category
       ? allResults.filter((property) =>
           category.propertyIds.includes(property.id),
         )
       : [];
+  const bedrooms = Number.parseInt(bedroomsValue, 10) || 0;
+  const bathrooms = Number.parseInt(bathroomsValue, 10) || 0;
+  const results = baseResults
+    .filter((property) => !type || propertyType(property) === type)
+    .filter((property) => {
+      if (!priceRange) return true;
+      const [minimum, maximum] = priceRange
+        .split("-")
+        .map((value) => Number(value));
+      return (
+        property.price >= minimum &&
+        (!Number.isFinite(maximum) || property.price <= maximum)
+      );
+    })
+    .filter((property) =>
+      !bedrooms
+        ? true
+        : bedroomsValue === "5+"
+          ? property.bedrooms >= 5
+          : property.bedrooms === bedrooms,
+    )
+    .filter((property) => {
+      const propertyBathrooms = Math.max(1, property.bedrooms - 1);
+      return !bathrooms
+        ? true
+        : bathroomsValue === "5+"
+          ? propertyBathrooms >= 5
+          : propertyBathrooms === bathrooms;
+    })
+    .sort((a, b) => {
+      if (sort === "price-low") return a.price - b.price;
+      if (sort === "price-high") return b.price - a.price;
+      return a.id.localeCompare(b.id);
+    });
   const resultLabel = query || category?.label || "";
 
   return (
@@ -127,55 +179,85 @@ async function SearchResults({ searchParams }: SearchPageProps) {
         aria-label="Search filters"
         className="border-border-subtle bg-white px-5 py-6 sm:px-6 lg:px-11 xl:px-[52px]"
       >
-        <form
+        <AutoSubmitFilterForm
+          key={`${query}|${categoryKey}|${type}|${priceRange}|${bedroomsValue}|${bathroomsValue}`}
           action="/search"
-          className="mx-auto grid max-w-[1562px] gap-4 md:grid-cols-2 xl:grid-cols-[2fr_1fr_1fr_0.85fr_auto] xl:items-end"
+          className="mx-auto grid max-w-[1562px] items-end gap-4 md:grid-cols-2 xl:grid-cols-[minmax(250px,1.5fr)_repeat(4,minmax(135px,0.7fr))]"
         >
-          <label className="min-w-0">
-            <span className="font-bricolage text-carbon-900 mb-2 block text-sm font-medium">
+          {categoryKey ? (
+            <input type="hidden" name="category" value={categoryKey} />
+          ) : null}
+          <label className="min-w-0 md:col-span-2 xl:col-span-1">
+            <span className="text-carbon-900 mb-2 block text-sm font-medium">
               What are you looking for?
             </span>
-            <span className="border-border-default flex h-13 items-center gap-3 rounded-xl border bg-white px-4">
+            <span className="flex h-12 items-center gap-3 rounded-xl border border-black/15 px-4 transition-colors focus-within:border-black">
               <Search aria-hidden="true" className="text-carbon-500 size-5" />
               <input
                 name="q"
                 defaultValue={query}
                 placeholder="2 bedrooms in Kigali under USD 800"
-                className="text-carbon-900 placeholder:text-carbon-400 min-w-0 flex-1 bg-transparent text-base outline-none"
+                className="catalogue-filter-control min-w-0 flex-1 bg-transparent text-sm outline-none"
               />
             </span>
           </label>
           <SearchSelect
             label="Property type"
             name="type"
-            options={["Any type", "Apartment", "House", "Villa", "Studio"]}
+            placeholder="Any Type"
+            value={type}
+            options={[
+              "House",
+              "Apartment",
+              "Duplex",
+              "Studio apartment",
+              "Villa",
+            ]}
           />
           <SearchSelect
             label="Price range"
             name="price"
-            options={[
-              "Any price",
-              "Under USD 500",
-              "Under USD 1,000",
-              "USD 1,000+",
-            ]}
+            placeholder="Any Price"
+            value={priceRange}
+            options={["0-500", "501-1000", "1001-2000", "2001-Infinity"]}
+            optionLabels={{
+              "0-500": "Under USD 500",
+              "501-1000": "USD 500 – 1,000",
+              "1001-2000": "USD 1,000 – 2,000",
+              "2001-Infinity": "Above USD 2,000",
+            }}
           />
           <SearchSelect
             label="Bedrooms"
             name="bedrooms"
-            options={["Any", "1", "2", "3", "4+"]}
+            placeholder="Any"
+            value={bedroomsValue}
+            options={["1", "2", "3", "4", "5+"]}
           />
-          <button
-            type="submit"
-            className="font-bricolage bg-carbon-900 h-13 rounded-xl px-6 font-medium text-white transition-colors hover:bg-black"
-          >
-            Search
-          </button>
-        </form>
+          <SearchSelect
+            label="Bathrooms"
+            name="bathrooms"
+            placeholder="Any"
+            value={bathroomsValue}
+            options={["1", "2", "3", "4", "5+"]}
+          />
+        </AutoSubmitFilterForm>
       </section>
 
       {results.length > 0 ? (
-        <ResultsGrid query={resultLabel} results={results} />
+        <ResultsGrid
+          query={resultLabel}
+          results={results}
+          filters={{
+            query,
+            categoryKey,
+            type,
+            priceRange,
+            bedroomsValue,
+            bathroomsValue,
+            sort,
+          }}
+        />
       ) : (
         <EmptyResults hasQuery={Boolean(query || category)} />
       )}
@@ -186,25 +268,41 @@ async function SearchResults({ searchParams }: SearchPageProps) {
 function SearchSelect({
   label,
   name,
+  placeholder,
+  value,
   options,
+  optionLabels = {},
 }: {
   label: string;
   name: string;
+  placeholder: string;
+  value: string;
   options: string[];
+  optionLabels?: Record<string, string>;
 }) {
   return (
     <label>
-      <span className="font-bricolage text-carbon-900 mb-2 block text-sm font-medium">
+      <span className="text-carbon-900 mb-2 block text-sm font-medium">
         {label}
       </span>
-      <select
-        name={name}
-        className="border-border-default text-carbon-900 h-13 w-full rounded-xl border bg-white px-4 text-base"
-      >
-        {options.map((option) => (
-          <option key={option}>{option}</option>
-        ))}
-      </select>
+      <span className="relative block">
+        <select
+          name={name}
+          defaultValue={value}
+          className="catalogue-filter-control text-carbon-900 h-12 w-full appearance-none rounded-xl border border-black/15 bg-white pr-11 pl-4 text-sm transition-colors outline-none focus:border-black"
+        >
+          <option value="">{placeholder}</option>
+          {options.map((option) => (
+            <option key={option} value={option}>
+              {optionLabels[option] ?? option}
+            </option>
+          ))}
+        </select>
+        <ChevronDown
+          aria-hidden="true"
+          className="pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2 text-black/55"
+        />
+      </span>
     </label>
   );
 }
@@ -212,9 +310,19 @@ function SearchSelect({
 function ResultsGrid({
   query,
   results,
+  filters,
 }: {
   query: string;
   results: PropertyPreview[];
+  filters: {
+    query: string;
+    categoryKey?: string;
+    type: string;
+    priceRange: string;
+    bedroomsValue: string;
+    bathroomsValue: string;
+    sort: string;
+  };
 }) {
   return (
     <section
@@ -233,14 +341,51 @@ function ResultsGrid({
               {results.length === 1 ? "home" : "homes"}
             </h1>
           </div>
-          <label className="flex items-center gap-3">
-            <span className="text-carbon-700 text-sm font-medium">Sort</span>
-            <select className="border-border-default h-11 rounded-xl border bg-white px-4 text-sm">
-              <option>Best match</option>
-              <option>Lowest price</option>
-              <option>Newest</option>
-            </select>
-          </label>
+          <AutoSubmitFilterForm
+            key={`sort-${filters.sort}`}
+            action="/search"
+            className="flex items-center gap-2"
+          >
+            <input type="hidden" name="q" value={filters.query} />
+            {filters.categoryKey ? (
+              <input
+                type="hidden"
+                name="category"
+                value={filters.categoryKey}
+              />
+            ) : null}
+            <input type="hidden" name="type" value={filters.type} />
+            <input type="hidden" name="price" value={filters.priceRange} />
+            <input
+              type="hidden"
+              name="bedrooms"
+              value={filters.bedroomsValue}
+            />
+            <input
+              type="hidden"
+              name="bathrooms"
+              value={filters.bathroomsValue}
+            />
+            <label htmlFor="search-sort" className="text-sm font-medium">
+              Sort:
+            </label>
+            <span className="relative block">
+              <select
+                id="search-sort"
+                name="sort"
+                defaultValue={filters.sort}
+                className="catalogue-filter-control h-11 appearance-none rounded-xl border border-black/15 bg-white pr-10 pl-4 text-sm transition-colors outline-none focus:border-black"
+              >
+                <option value="">Newest</option>
+                <option value="price-low">Price: low to high</option>
+                <option value="price-high">Price: high to low</option>
+              </select>
+              <ChevronDown
+                aria-hidden="true"
+                className="pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2 text-black/55"
+              />
+            </span>
+          </AutoSubmitFilterForm>
         </div>
 
         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
