@@ -15,7 +15,7 @@ const LISTINGS = [
   {
     title: "Modern family home",
     location: "Kibagabaga, Kigali",
-    price: "RWF 1,200,000",
+    price: "USD 830",
     period: "per month",
     bedrooms: 3,
     bathrooms: 2,
@@ -29,7 +29,7 @@ const LISTINGS = [
   {
     title: "Contemporary duplex",
     location: "Lekki Phase 1, Lagos",
-    price: "NGN 3,500,000",
+    price: "USD 2,100",
     period: "per month",
     bedrooms: 4,
     bathrooms: 4,
@@ -43,7 +43,7 @@ const LISTINGS = [
   {
     title: "Lakefront residence",
     location: "Gisenyi, Rwanda",
-    price: "RWF 850,000",
+    price: "USD 590",
     period: "per month",
     bedrooms: 2,
     bathrooms: 2,
@@ -57,7 +57,7 @@ const LISTINGS = [
   {
     title: "Garden penthouse",
     location: "Nyarutarama, Kigali",
-    price: "RWF 1,650,000",
+    price: "USD 1,140",
     period: "per month",
     bedrooms: 3,
     bathrooms: 3,
@@ -71,7 +71,7 @@ const LISTINGS = [
   {
     title: "Quiet city villa",
     location: "Maitama, Abuja",
-    price: "NGN 4,200,000",
+    price: "USD 2,500",
     period: "per month",
     bedrooms: 5,
     bathrooms: 5,
@@ -85,7 +85,7 @@ const LISTINGS = [
   {
     title: "Waterfront apartment",
     location: "Ikoyi, Lagos",
-    price: "NGN 2,800,000",
+    price: "USD 1,700",
     period: "per month",
     bedrooms: 3,
     bathrooms: 3,
@@ -99,7 +99,7 @@ const LISTINGS = [
   {
     title: "Hillside family house",
     location: "Karongi, Rwanda",
-    price: "RWF 720,000",
+    price: "USD 500",
     period: "per month",
     bedrooms: 3,
     bathrooms: 2,
@@ -113,7 +113,7 @@ const LISTINGS = [
   {
     title: "Lake-view apartment",
     location: "Gisenyi, Rwanda",
-    price: "RWF 640,000",
+    price: "USD 445",
     period: "per month",
     bedrooms: 2,
     bathrooms: 1,

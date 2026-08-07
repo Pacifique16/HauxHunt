@@ -9,7 +9,7 @@ import type { CurrencyCode, ParsedFilter, PropertyPreview } from "@/types";
  */
 
 export const SUGGESTED_QUERIES = [
-  "Quiet 2-bedroom in Kigali under RWF 900,000",
+  "Quiet 2-bedroom in Kigali under USD 700",
   "Furnished 1-bedroom in Abuja, move-in now",
   "3-bedroom near Lekki with parking and a garden",
 ];
@@ -21,6 +21,7 @@ export type MockListing = {
   matchLocations: string[];
   currency: CurrencyCode;
   price: number;
+  purpose?: "rent" | "sale";
   bedrooms: number;
   amenities: string[];
   verified: boolean;
@@ -32,8 +33,8 @@ export const DEMO_LISTINGS: MockListing[] = [
     title: "Garden-level 2-bedroom apartment",
     location: "Kacyiru, Kigali",
     matchLocations: ["kigali", "kacyiru"],
-    currency: "RWF",
-    price: 750_000,
+    currency: "USD",
+    price: 520,
     bedrooms: 2,
     amenities: ["Quiet street", "Furnished", "Parking", "Backup generator"],
     verified: true,
@@ -43,8 +44,8 @@ export const DEMO_LISTINGS: MockListing[] = [
     title: "Modern 2-bedroom with compound pool access",
     location: "Nyarutarama, Kigali",
     matchLocations: ["kigali", "nyarutarama"],
-    currency: "RWF",
-    price: 950_000,
+    currency: "USD",
+    price: 660,
     bedrooms: 2,
     amenities: ["Pool access", "Gym", "Secure compound"],
     verified: true,
@@ -54,8 +55,8 @@ export const DEMO_LISTINGS: MockListing[] = [
     title: "3-bedroom family home with garden",
     location: "Remera, Kigali",
     matchLocations: ["kigali", "remera"],
-    currency: "RWF",
-    price: 780_000,
+    currency: "USD",
+    price: 540,
     bedrooms: 3,
     amenities: ["Quiet compound", "Garden", "Parking"],
     verified: true,
@@ -65,8 +66,8 @@ export const DEMO_LISTINGS: MockListing[] = [
     title: "Furnished 1-bedroom close to the city centre",
     location: "Wuse II, Abuja",
     matchLocations: ["abuja", "wuse"],
-    currency: "NGN",
-    price: 950_000,
+    currency: "USD",
+    price: 600,
     bedrooms: 1,
     amenities: ["Furnished", "24/7 power", "Secure compound"],
     verified: true,
@@ -76,8 +77,8 @@ export const DEMO_LISTINGS: MockListing[] = [
     title: "2-bedroom apartment with private parking",
     location: "Lekki Phase 1, Lagos",
     matchLocations: ["lagos", "lekki"],
-    currency: "NGN",
-    price: 1_800_000,
+    currency: "USD",
+    price: 1_100,
     bedrooms: 2,
     amenities: ["Parking", "Furnished", "Gym"],
     verified: true,
@@ -87,8 +88,8 @@ export const DEMO_LISTINGS: MockListing[] = [
     title: "Quiet waterfront 3-bedroom apartment",
     location: "Ikoyi, Lagos",
     matchLocations: ["lagos", "ikoyi"],
-    currency: "NGN",
-    price: 3_200_000,
+    currency: "USD",
+    price: 1_900,
     bedrooms: 3,
     amenities: ["Quiet waterfront", "Garden", "24/7 power", "Parking"],
     verified: false,
@@ -98,8 +99,8 @@ export const DEMO_LISTINGS: MockListing[] = [
     title: "Modern family home",
     location: "Kibagabaga, Kigali",
     matchLocations: ["kigali", "kibagabaga"],
-    currency: "RWF",
-    price: 1_200_000,
+    currency: "USD",
+    price: 830,
     bedrooms: 3,
     amenities: ["Quiet street", "Furnished", "Parking", "Garden"],
     verified: true,
@@ -109,8 +110,8 @@ export const DEMO_LISTINGS: MockListing[] = [
     title: "Contemporary duplex",
     location: "Lekki Phase 1, Lagos",
     matchLocations: ["lagos", "lekki"],
-    currency: "NGN",
-    price: 3_500_000,
+    currency: "USD",
+    price: 2_100,
     bedrooms: 4,
     amenities: ["Secure compound", "Parking", "Balcony"],
     verified: true,
@@ -120,8 +121,8 @@ export const DEMO_LISTINGS: MockListing[] = [
     title: "Lakefront residence",
     location: "Gisenyi, Rwanda",
     matchLocations: ["gisenyi"],
-    currency: "RWF",
-    price: 850_000,
+    currency: "USD",
+    price: 590,
     bedrooms: 2,
     amenities: ["Lake view", "Furnished", "Parking"],
     verified: true,
@@ -131,8 +132,8 @@ export const DEMO_LISTINGS: MockListing[] = [
     title: "Garden penthouse",
     location: "Nyarutarama, Kigali",
     matchLocations: ["kigali", "nyarutarama"],
-    currency: "RWF",
-    price: 1_650_000,
+    currency: "USD",
+    price: 1_140,
     bedrooms: 3,
     amenities: ["Garden", "Furnished", "Secure compound", "Gym"],
     verified: true,
@@ -142,8 +143,8 @@ export const DEMO_LISTINGS: MockListing[] = [
     title: "Quiet city villa",
     location: "Maitama, Abuja",
     matchLocations: ["abuja", "maitama"],
-    currency: "NGN",
-    price: 4_200_000,
+    currency: "USD",
+    price: 2_500,
     bedrooms: 5,
     amenities: ["Quiet street", "Garden", "Parking", "24/7 power"],
     verified: true,
@@ -153,8 +154,8 @@ export const DEMO_LISTINGS: MockListing[] = [
     title: "Waterfront apartment",
     location: "Ikoyi, Lagos",
     matchLocations: ["lagos", "ikoyi"],
-    currency: "NGN",
-    price: 2_800_000,
+    currency: "USD",
+    price: 1_700,
     bedrooms: 3,
     amenities: ["Waterfront", "Furnished", "Parking", "Gym"],
     verified: true,
@@ -164,8 +165,8 @@ export const DEMO_LISTINGS: MockListing[] = [
     title: "Hillside family house",
     location: "Karongi, Rwanda",
     matchLocations: ["karongi"],
-    currency: "RWF",
-    price: 720_000,
+    currency: "USD",
+    price: 500,
     bedrooms: 3,
     amenities: ["Quiet area", "Garden", "Parking"],
     verified: true,
@@ -175,10 +176,46 @@ export const DEMO_LISTINGS: MockListing[] = [
     title: "Lake-view apartment",
     location: "Gisenyi, Rwanda",
     matchLocations: ["gisenyi"],
-    currency: "RWF",
-    price: 640_000,
+    currency: "USD",
+    price: 445,
     bedrooms: 2,
     amenities: ["Lake view", "Furnished", "Balcony"],
+    verified: true,
+  },
+  {
+    id: "kibagabaga-family-home-sale",
+    title: "Modern family home for sale",
+    location: "Kibagabaga, Kigali",
+    matchLocations: ["kigali", "kibagabaga"],
+    currency: "USD",
+    price: 128_000,
+    purpose: "sale",
+    bedrooms: 4,
+    amenities: ["Quiet street", "Parking", "Garden", "Secure compound"],
+    verified: true,
+  },
+  {
+    id: "remera-garden-house-sale",
+    title: "Garden house for sale",
+    location: "Remera, Kigali",
+    matchLocations: ["kigali", "remera"],
+    currency: "USD",
+    price: 98_000,
+    purpose: "sale",
+    bedrooms: 3,
+    amenities: ["Garden", "Parking", "Quiet compound"],
+    verified: true,
+  },
+  {
+    id: "gisenyi-lake-residence-sale",
+    title: "Lake-view residence for sale",
+    location: "Gisenyi, Rwanda",
+    matchLocations: ["gisenyi"],
+    currency: "USD",
+    price: 87_000,
+    purpose: "sale",
+    bedrooms: 3,
+    amenities: ["Lake view", "Garden", "Parking"],
     verified: true,
   },
 ];
@@ -249,6 +286,7 @@ const STOPWORDS = new Set([
   "rwf",
   "frw",
   "ngn",
+  "usd",
   "now",
   "move-in",
   "available",
@@ -272,6 +310,17 @@ export function parseQuery(rawQuery: string): ParsedFilter[] {
   const filters: ParsedFilter[] = [];
   const consumed: string[] = [];
 
+  const purposeMatch = lower.match(/\b(?:for\s+)?(rent|sale|buy)\b/);
+  if (purposeMatch) {
+    const purpose = purposeMatch[1] === "rent" ? "rent" : "sale";
+    filters.push({
+      id: nextId("purpose"),
+      kind: "purpose",
+      label: purpose === "rent" ? "For rent" : "For sale",
+    });
+    consumed.push(purposeMatch[0]);
+  }
+
   const bedroomMatch = lower.match(/(\d+)\s*[-\s]?\s*bed(?:room)?s?/);
   if (bedroomMatch) {
     filters.push({
@@ -283,15 +332,11 @@ export function parseQuery(rawQuery: string): ParsedFilter[] {
   }
 
   const priceMatch = lower.match(
-    /(?:under|below|less than|max(?:imum)?)\s*(?:rwf|frw|ngn|₦)?\s*([\d,]+)/,
+    /(?:under|below|less than|max(?:imum)?)\s*(?:usd|\$)?\s*([\d,]+)/,
   );
   if (priceMatch) {
     const amount = priceMatch[1];
-    const currency: CurrencyCode = /ngn|₦|lagos|lekki|ikoyi|abuja|wuse/.test(
-      lower,
-    )
-      ? "NGN"
-      : "RWF";
+    const currency: CurrencyCode = "USD";
     filters.push({
       id: nextId("maxPrice"),
       kind: "maxPrice",
@@ -376,6 +421,7 @@ export function matchListings(filters: ParsedFilter[]): PropertyPreview[] {
   const location = filters.find((f) => f.kind === "location" && !f.unclear);
   const bedrooms = filters.find((f) => f.kind === "bedrooms" && !f.unclear);
   const maxPrice = filters.find((f) => f.kind === "maxPrice" && !f.unclear);
+  const purpose = filters.find((f) => f.kind === "purpose" && !f.unclear);
   const amenities = filters.filter((f) => f.kind === "amenity" && !f.unclear);
 
   const bedroomCount = bedrooms
@@ -384,7 +430,7 @@ export function matchListings(filters: ParsedFilter[]): PropertyPreview[] {
   const maxPriceAmount = maxPrice
     ? Number(maxPrice.label.replace(/[^\d]/g, ""))
     : undefined;
-  const maxPriceCurrency = maxPrice?.label.match(/RWF|NGN/)?.[0] as
+  const maxPriceCurrency = maxPrice?.label.match(/USD/)?.[0] as
     CurrencyCode | undefined;
 
   const totalPossible =
@@ -447,6 +493,13 @@ export function matchListings(filters: ParsedFilter[]): PropertyPreview[] {
   // name, however honest the accompanying explanation is. Falls back to the
   // full set if nothing matches, so the workspace never dead-ends.
   const pool = scored.filter(({ listing }) => {
+    const listingPurpose = listing.purpose ?? "rent";
+    if (purpose) {
+      const requestedPurpose = purpose.label.toLowerCase().includes("sale")
+        ? "sale"
+        : "rent";
+      if (listingPurpose !== requestedPurpose) return false;
+    }
     if (
       location &&
       !listing.matchLocations.includes(location.label.toLowerCase())
@@ -475,6 +528,7 @@ export function matchListings(filters: ParsedFilter[]): PropertyPreview[] {
     location: listing.location,
     currency: listing.currency,
     price: listing.price,
+    purpose: listing.purpose ?? "rent",
     bedrooms: listing.bedrooms,
     amenities: listing.amenities,
     verified: listing.verified,

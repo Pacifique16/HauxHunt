@@ -29,6 +29,9 @@ const RESULT_IMAGES: Record<string, StaticImageData> = {
   "ikoyi-waterfront-apartment": house6,
   "karongi-hillside-family-house": house2,
   "gisenyi-lake-view-apartment": house3,
+  "kibagabaga-family-home-sale": house1,
+  "remera-garden-house-sale": house3,
+  "gisenyi-lake-residence-sale": house2,
 };
 
 const CATEGORY_RESULTS: Record<
@@ -75,9 +78,9 @@ const CATEGORY_RESULTS: Record<
   "houses-for-sale": {
     label: "Houses for sale",
     propertyIds: [
-      "kibagabaga-modern-family-home",
-      "remera-3br",
-      "gisenyi-lakefront-residence",
+      "kibagabaga-family-home-sale",
+      "remera-garden-house-sale",
+      "gisenyi-lake-residence-sale",
     ],
   },
 };
@@ -137,7 +140,7 @@ async function SearchResults({ searchParams }: SearchPageProps) {
               <input
                 name="q"
                 defaultValue={query}
-                placeholder="2 bedrooms in Kigali under 800,000"
+                placeholder="2 bedrooms in Kigali under USD 800"
                 className="text-carbon-900 placeholder:text-carbon-400 min-w-0 flex-1 bg-transparent text-base outline-none"
               />
             </span>
@@ -152,9 +155,9 @@ async function SearchResults({ searchParams }: SearchPageProps) {
             name="price"
             options={[
               "Any price",
-              "Under 500,000",
-              "Under 1,000,000",
-              "1,000,000+",
+              "Under USD 500",
+              "Under USD 1,000",
+              "USD 1,000+",
             ]}
           />
           <SearchSelect
@@ -252,7 +255,9 @@ function ResultsGrid({
                 title={property.title}
                 location={property.location}
                 price={`${property.currency} ${property.price.toLocaleString()}`}
-                period="per month"
+                period={
+                  property.purpose === "sale" ? "total price" : "per month"
+                }
                 bedrooms={property.bedrooms}
                 bathrooms={Math.max(1, property.bedrooms - 1)}
                 area={62 + index * 18}

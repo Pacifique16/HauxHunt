@@ -690,9 +690,18 @@
   outline: none;
 }
 
+.hero-search-control:focus-visible {
+  outline: none;
+}
+
 /* Contact fields show focus through the border of the complete input box.
    This avoids drawing a second outline around the native control inside it. */
 .contact-field-control:focus-visible {
+  outline: none;
+}
+
+/* Catalogue filters expose focus through their existing control boundary. */
+.catalogue-filter-control:focus-visible {
   outline: none;
 }
 

@@ -137,6 +137,27 @@ const DETAILS: Record<
     type: "Apartment",
     coordinates: { latitude: -1.7028, longitude: 29.2564 },
   },
+  "kibagabaga-family-home-sale": {
+    bathrooms: 3,
+    area: 224,
+    furnished: false,
+    type: "House",
+    coordinates: { latitude: -1.953, longitude: 30.127 },
+  },
+  "remera-garden-house-sale": {
+    bathrooms: 2,
+    area: 182,
+    furnished: false,
+    type: "House",
+    coordinates: { latitude: -1.958, longitude: 30.107 },
+  },
+  "gisenyi-lake-residence-sale": {
+    bathrooms: 3,
+    area: 205,
+    furnished: false,
+    type: "House",
+    coordinates: { latitude: -1.7028, longitude: 29.2564 },
+  },
 };
 
 type PropertyPageProps = {
@@ -152,7 +173,19 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
   const property = DEMO_LISTINGS.find((listing) => listing.id === id);
   if (!property) notFound();
 
-  const detail = DETAILS[id];
+  const detail = DETAILS[id] ?? {
+    bathrooms: Math.max(1, property.bedrooms - 1),
+    area: Math.max(60, property.bedrooms * 55),
+    furnished: property.amenities.includes("Furnished"),
+    type: "House",
+    coordinates: property.matchLocations.some((location) =>
+      ["lagos", "lekki", "ikoyi", "abuja", "wuse", "maitama"].includes(
+        location,
+      ),
+    )
+      ? { latitude: 6.5244, longitude: 3.3792 }
+      : { latitude: -1.9441, longitude: 30.0619 },
+  };
   const startIndex = DEMO_LISTINGS.findIndex((listing) => listing.id === id);
   const gallery = Array.from(
     { length: 4 },
@@ -191,7 +224,7 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
                 <div>
                   <div className="flex flex-wrap items-center gap-3">
                     <span className="rounded-full bg-black px-3 py-1 text-xs font-medium text-white">
-                      For rent
+                      {property.purpose === "sale" ? "For sale" : "For rent"}
                     </span>
                     <span className="text-carbon-600 inline-flex items-center gap-1.5 text-sm">
                       <BadgeCheck aria-hidden="true" className="size-4" />
@@ -209,7 +242,7 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
                 <p className="font-bricolage text-carbon-900 shrink-0 text-3xl font-medium">
                   {property.currency} {property.price.toLocaleString()}
                   <span className="text-carbon-500 mt-1 block text-right text-sm font-normal">
-                    per month
+                    {property.purpose === "sale" ? "total price" : "per month"}
                   </span>
                 </p>
               </div>
@@ -245,7 +278,9 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
                   A thoughtfully presented long-term home in {property.location}
                   , offering comfortable living spaces, practical finishes, and
                   a calm residential setting. The property is ready for serious
-                  renters looking for a clear, dependable move-in experience.
+                  {property.purpose === "sale"
+                    ? "buyers looking for a clear, dependable purchase experience."
+                    : "renters looking for a clear, dependable move-in experience."}
                 </p>
               </section>
 

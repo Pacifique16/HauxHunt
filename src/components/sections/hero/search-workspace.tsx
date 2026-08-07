@@ -44,12 +44,12 @@ const PROPERTY_TYPES = [
 const CRITERIA = ["For rent", "For sale"] as const;
 
 const PRICE_RANGES = [
-  "$50 – $100",
-  "$100 – $150",
-  "$150 – $250",
-  "$250 – $500",
-  "$500 – $1,000",
-  "$1,000+",
+  "USD 50 – 100",
+  "USD 100 – 150",
+  "USD 150 – 250",
+  "USD 250 – 500",
+  "USD 500 – 1,000",
+  "USD 1,000+",
 ] as const;
 
 const reveal = {
@@ -199,7 +199,7 @@ export function SearchWorkspace() {
               type="text"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="A quiet 2-bedroom in Lagos, under 900,000…"
+              placeholder="A quiet 2-bedroom in Lagos, under USD 900…"
               autoComplete="off"
               className="search-query-input text-body-l text-fg placeholder:text-fg-muted min-w-0 flex-1 bg-transparent px-1 py-1.5"
             />
@@ -207,7 +207,7 @@ export function SearchWorkspace() {
           <button
             type="submit"
             disabled={!hasSearchInput}
-            className="bg-action-primary text-fg-on-brand text-body-s hover:bg-action-primary-hover active:bg-action-primary-active inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg px-5 font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] transition-colors duration-150 disabled:pointer-events-none disabled:opacity-35"
+            className="bg-action-primary text-fg-on-brand text-body-s hover:bg-action-primary-hover active:bg-action-primary-active inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full px-5 font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] transition-colors duration-150 disabled:pointer-events-none disabled:opacity-35"
           >
             <Search aria-hidden="true" className="size-4" />
             Search
@@ -358,14 +358,14 @@ function SearchSelect({
   return (
     <label
       htmlFor={id}
-      className="border-border-interactive bg-canvas flex min-w-0 flex-col gap-1 rounded-lg border px-3 py-2"
+      className="border-border-interactive focus-within:border-fg bg-canvas flex min-w-0 flex-col gap-1 rounded-lg border px-3 py-2"
     >
       <span className="text-caption text-fg-muted">{label}</span>
       <select
         id={id}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="text-body-s text-fg min-w-0 cursor-pointer bg-transparent font-medium"
+        className="hero-search-control text-body-s text-fg min-w-0 cursor-pointer bg-transparent font-medium"
       >
         <option value="">{placeholder}</option>
         {options.map((option) => (
@@ -432,7 +432,7 @@ function AddFilter({ onAdd }: AddFilterProps) {
         }}
         placeholder="e.g. balcony"
         aria-label="Add a criterion"
-        className="text-body-s text-fg placeholder:text-fg-muted w-28 bg-transparent"
+        className="hero-search-control text-body-s text-fg placeholder:text-fg-muted w-28 bg-transparent"
       />
       <button
         type="submit"

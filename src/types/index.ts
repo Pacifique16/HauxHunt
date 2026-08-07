@@ -12,7 +12,7 @@ export type NavItem = {
 };
 
 /** Currency codes for HauxHunt's launch markets (UIUX Brief §3). */
-export type CurrencyCode = "RWF" | "NGN";
+export type CurrencyCode = "USD";
 
 /**
  * One parsed criterion from a natural-language search query, shown as an
@@ -25,6 +25,7 @@ export type ParsedFilter = {
     | "location"
     | "bedrooms"
     | "maxPrice"
+    | "purpose"
     | "amenity"
     | "availability"
     | "custom";
@@ -39,6 +40,7 @@ export type PropertyPreview = {
   location: string;
   currency: CurrencyCode;
   price: number;
+  purpose: "rent" | "sale";
   bedrooms: number;
   amenities: string[];
   verified: boolean;
