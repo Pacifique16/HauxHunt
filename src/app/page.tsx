@@ -1,3 +1,4 @@
+import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { ExploreCategories } from "@/components/sections/explore-categories/explore-categories";
 import { FeaturedListings } from "@/components/sections/featured-listings/featured-listings";
@@ -16,6 +17,7 @@ export default function Home() {
         <FeaturedListings />
         <HowItWorks />
       </main>
+      <Footer />
     </>
   );
 }

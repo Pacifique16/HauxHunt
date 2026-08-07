@@ -2,13 +2,14 @@
 
 import { useId, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus, Search } from "lucide-react";
 
 import { FilterToken } from "./filter-token";
 import { MatchRow } from "./match-row";
 import { heroEase } from "./hero-motion";
-import { matchListings, parseQuery } from "@/data/hero-search-demo";
+import { matchListings } from "@/data/hero-search-demo";
 import type { ParsedFilter, PropertyPreview } from "@/types";
 
 type Stage = "idle" | "parsed" | "results";
@@ -71,10 +72,12 @@ const reveal = {
  * form is new.
  */
 export function SearchWorkspace() {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [stage, setStage] = useState<Stage>("idle");
   const [filters, setFilters] = useState<ParsedFilter[]>([]);
   const [results, setResults] = useState<PropertyPreview[]>([]);
+  const [directResults, setDirectResults] = useState(false);
   const [location, setLocation] = useState("");
   const [propertyType, setPropertyType] = useState("");
   const [criteria, setCriteria] = useState("");
@@ -86,11 +89,7 @@ export function SearchWorkspace() {
   function runParse(text: string) {
     const trimmed = text.trim();
     if (!trimmed) return;
-    setQuery(trimmed);
-    setFilters(parseQuery(trimmed));
-    setResults([]);
-    setStage("parsed");
-    requestAnimationFrame(() => understoodRef.current?.focus());
+    router.push(`/search?q=${encodeURIComponent(trimmed)}`);
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -116,10 +115,11 @@ export function SearchWorkspace() {
     ].filter((filter): filter is ParsedFilter => filter !== null);
 
     if (structuredFilters.length === 0) return;
-    setFilters(structuredFilters);
-    setResults([]);
-    setStage("parsed");
-    requestAnimationFrame(() => understoodRef.current?.focus());
+    router.push(
+      `/search?q=${encodeURIComponent(
+        structuredFilters.map((filter) => filter.label).join(" "),
+      )}`,
+    );
   }
 
   function handleRemoveFilter(id: string) {
@@ -154,6 +154,7 @@ export function SearchWorkspace() {
     setPropertyType("");
     setCriteria("");
     setPricing("");
+    setDirectResults(false);
     setStage("idle");
     requestAnimationFrame(() => inputRef.current?.focus());
   }
@@ -182,8 +183,8 @@ export function SearchWorkspace() {
       className="workspace-surface scroll-mt-28 overflow-hidden rounded-[1.5rem]"
     >
       {/* --- The sentence ------------------------------------------------ */}
-      <form onSubmit={handleSubmit} className="p-4 sm:p-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+      <form onSubmit={handleSubmit} className="p-3 sm:p-4">
+        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-3">
           <div className="focus-within:border-border-interactive flex min-w-0 flex-1 items-center gap-3 border-b border-transparent transition-colors duration-150">
             <Search
               aria-hidden="true"
@@ -200,13 +201,13 @@ export function SearchWorkspace() {
               onChange={(event) => setQuery(event.target.value)}
               placeholder="A quiet 2-bedroom in Lagos, under 900,000…"
               autoComplete="off"
-              className="search-query-input text-body-l text-fg placeholder:text-fg-muted min-w-0 flex-1 bg-transparent px-1 py-2"
+              className="search-query-input text-body-l text-fg placeholder:text-fg-muted min-w-0 flex-1 bg-transparent px-1 py-1.5"
             />
           </div>
           <button
             type="submit"
             disabled={!hasSearchInput}
-            className="bg-action-primary text-fg-on-brand text-body-s hover:bg-action-primary-hover active:bg-action-primary-active inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-lg px-6 font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] transition-colors duration-150 disabled:pointer-events-none disabled:opacity-35"
+            className="bg-action-primary text-fg-on-brand text-body-s hover:bg-action-primary-hover active:bg-action-primary-active inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg px-5 font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] transition-colors duration-150 disabled:pointer-events-none disabled:opacity-35"
           >
             <Search aria-hidden="true" className="size-4" />
             Search
@@ -214,7 +215,7 @@ export function SearchWorkspace() {
         </div>
 
         {stage === "idle" ? (
-          <div className="border-border-subtle mt-4 grid gap-3 border-t pt-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="border-border-subtle mt-3 grid gap-2.5 border-t pt-3 sm:grid-cols-2 lg:grid-cols-4">
             <SearchSelect
               label="Location"
               value={location}
@@ -264,45 +265,69 @@ export function SearchWorkspace() {
               tabIndex={-1}
               className="text-label text-fg-muted uppercase"
             >
-              What we understood
+              {directResults ? "Matching homes" : "What we understood"}
             </h3>
 
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              {filters.map((filter) => (
-                <FilterToken
-                  key={filter.id}
-                  filter={filter}
-                  onRemove={handleRemoveFilter}
-                  onUpdate={handleUpdateFilter}
-                />
-              ))}
-              <AddFilter onAdd={handleAddFilter} />
-            </div>
+            {!directResults ? (
+              <>
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                  {filters.map((filter) => (
+                    <FilterToken
+                      key={filter.id}
+                      filter={filter}
+                      onRemove={handleRemoveFilter}
+                      onUpdate={handleUpdateFilter}
+                    />
+                  ))}
+                  <AddFilter onAdd={handleAddFilter} />
+                </div>
 
-            <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
-              <button
-                type="button"
-                onClick={handleShowMatches}
-                className="border-border-interactive text-body-s text-fg hover:bg-subtle inline-flex h-11 items-center rounded-lg border px-5 font-medium transition-colors duration-150"
-              >
-                {stage === "results" ? "Update matches" : "Show matches"}
-              </button>
-              <button
-                type="button"
-                onClick={handleStartOver}
-                className="text-body-s text-fg-muted hover:text-fg rounded transition-colors duration-150"
-              >
-                Start over
-              </button>
-            </div>
+                <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
+                  <button
+                    type="button"
+                    onClick={handleShowMatches}
+                    className="border-border-interactive text-body-s text-fg hover:bg-subtle inline-flex h-11 items-center rounded-lg border px-5 font-medium transition-colors duration-150"
+                  >
+                    {stage === "results" ? "Update matches" : "Show matches"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleStartOver}
+                    className="text-body-s text-fg-muted hover:text-fg rounded transition-colors duration-150"
+                  >
+                    Start over
+                  </button>
+                </div>
+              </>
+            ) : null}
 
             {/* --- Matches ----------------------------------------------- */}
             <AnimatePresence initial={false}>
               {stage === "results" ? (
-                <motion.div key="results" {...reveal} className="mt-6">
-                  {results.map((property) => (
-                    <MatchRow key={property.id} property={property} />
-                  ))}
+                <motion.div
+                  key="results"
+                  {...reveal}
+                  className={directResults ? "mt-3" : "mt-6"}
+                >
+                  {results.length > 0 ? (
+                    results.map((property) => (
+                      <MatchRow key={property.id} property={property} />
+                    ))
+                  ) : (
+                    <p className="text-body-s text-fg-muted border-border-subtle border-t py-5">
+                      No exact matches yet. Try widening your location or
+                      budget.
+                    </p>
+                  )}
+                  {directResults ? (
+                    <button
+                      type="button"
+                      onClick={handleStartOver}
+                      className="text-body-s text-fg-muted hover:text-fg mt-3 rounded transition-colors duration-150"
+                    >
+                      Start over
+                    </button>
+                  ) : null}
                 </motion.div>
               ) : null}
             </AnimatePresence>
@@ -333,7 +358,7 @@ function SearchSelect({
   return (
     <label
       htmlFor={id}
-      className="border-border-interactive bg-canvas flex min-w-0 flex-col gap-2 rounded-lg border px-4 py-3"
+      className="border-border-interactive bg-canvas flex min-w-0 flex-col gap-1 rounded-lg border px-3 py-2"
     >
       <span className="text-caption text-fg-muted">{label}</span>
       <select

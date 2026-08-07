@@ -27,6 +27,7 @@ export function Navbar() {
   const { scrolled, sentinelRef, threshold } = useScrolled(40);
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
+  const solidNav = pathname !== "/" || scrolled || menuOpen;
 
   // The panel closes from the links' own click handlers rather than from an
   // effect watching the pathname: navigation is the event, so handling it at
@@ -57,7 +58,7 @@ export function Navbar() {
       <header
         className={[
           "fixed inset-x-0 top-0 z-50 border-b transition-[background-color,border-color,height] duration-300 ease-out",
-          scrolled || menuOpen
+          solidNav
             ? "nav-surface border-border-subtle h-16"
             : "h-20 border-transparent bg-transparent lg:h-24",
         ].join(" ")}
@@ -68,7 +69,10 @@ export function Navbar() {
         >
           <Link
             href="/"
-            className="flex items-center justify-self-start rounded-sm"
+            className={[
+              "flex items-center justify-self-start rounded-sm transition-[filter] duration-300",
+              solidNav ? "" : "invert",
+            ].join(" ")}
             aria-label="HauxHunt — home"
           >
             {/* Shrinks with the bar so the lockup keeps its breathing room in
@@ -85,9 +89,13 @@ export function Navbar() {
                   aria-current={isCurrent(item.href) ? "page" : undefined}
                   className={[
                     "font-bricolage text-body-m rounded-sm transition-colors duration-150",
-                    isCurrent(item.href)
-                      ? "text-fg font-medium"
-                      : "text-fg-tertiary hover:text-fg",
+                    solidNav
+                      ? isCurrent(item.href)
+                        ? "text-fg font-medium"
+                        : "text-fg-tertiary hover:text-fg"
+                      : isCurrent(item.href)
+                        ? "font-medium text-white"
+                        : "text-white/75 hover:text-white",
                   ].join(" ")}
                 >
                   {item.label}
@@ -100,13 +108,23 @@ export function Navbar() {
           <div className="flex items-center gap-2 justify-self-end lg:gap-4 xl:gap-5">
             <Link
               href={authConfig.register.href}
-              className="font-bricolage text-body-m text-fg-tertiary hover:text-fg hidden h-10 items-center rounded-sm px-2 font-medium transition-colors duration-150 sm:inline-flex"
+              className={[
+                "font-bricolage text-body-m hidden h-10 items-center rounded-sm px-2 font-medium transition-colors duration-150 sm:inline-flex",
+                solidNav
+                  ? "text-fg-tertiary hover:text-fg"
+                  : "text-white/75 hover:text-white",
+              ].join(" ")}
             >
               {authConfig.register.label}
             </Link>
             <Link
               href={authConfig.login.href}
-              className="font-bricolage bg-carbon-900 text-carbon-0 text-body-m hover:bg-carbon-800 active:bg-carbon-950 inline-flex h-10 items-center rounded-full px-5 font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] transition-colors duration-150"
+              className={[
+                "font-bricolage text-body-m inline-flex h-10 items-center rounded-full px-5 font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] transition-colors duration-150",
+                solidNav
+                  ? "bg-carbon-900 text-carbon-0 hover:bg-carbon-800 active:bg-carbon-950"
+                  : "bg-white text-black hover:bg-white/85",
+              ].join(" ")}
             >
               {authConfig.login.label}
             </Link>
@@ -117,7 +135,12 @@ export function Navbar() {
               aria-expanded={menuOpen}
               aria-controls="primary-menu"
               aria-label={menuOpen ? "Close menu" : "Open menu"}
-              className="text-fg hover:bg-subtle -mr-2 flex size-10 items-center justify-center rounded-full transition-colors duration-150 lg:hidden"
+              className={[
+                "-mr-2 flex size-10 items-center justify-center rounded-full transition-colors duration-150 lg:hidden",
+                solidNav
+                  ? "text-fg hover:bg-subtle"
+                  : "text-white hover:bg-white/10",
+              ].join(" ")}
             >
               {menuOpen ? (
                 <X aria-hidden="true" className="size-5" />

@@ -11,7 +11,7 @@ import {
 
 import houseImage from "../../../../landing.png";
 
-/** A portrait architectural crop with restrained scroll depth on desktop. */
+/** A cinematic property film with restrained scroll depth on desktop. */
 export function HeroAtmosphere() {
   const containerRef = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion();
@@ -33,6 +33,18 @@ export function HeroAtmosphere() {
         }
         className="hero-photo-motion absolute inset-x-0 -inset-y-[4%] overflow-hidden"
       >
+        <video
+          aria-hidden="true"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          poster={houseImage.src}
+          className="hero-photo absolute inset-0 h-full w-full object-cover object-center motion-reduce:hidden"
+        >
+          <source src="/videos/hauxhunt-hero.mp4" type="video/mp4" />
+        </video>
         <Image
           src={houseImage}
           alt="A contemporary long-term rental home at dusk"
@@ -40,8 +52,8 @@ export function HeroAtmosphere() {
           loading="eager"
           fetchPriority="high"
           placeholder="blur"
-          sizes="(min-width: 1280px) 48vw, (min-width: 1024px) 54vw, 100vw"
-          className="hero-photo object-cover object-center"
+          sizes="100vw"
+          className="hero-photo hidden object-cover object-center motion-reduce:block"
         />
       </motion.div>
 

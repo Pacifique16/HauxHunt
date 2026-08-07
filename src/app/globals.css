@@ -690,6 +690,12 @@
   outline: none;
 }
 
+/* Contact fields show focus through the border of the complete input box.
+   This avoids drawing a second outline around the native control inside it. */
+.contact-field-control:focus-visible {
+  outline: none;
+}
+
 .font-bricolage {
   font-family: "Bricolage Grotesque", sans-serif;
   font-optical-sizing: auto;
@@ -1105,4 +1111,20 @@
   --action-primary-active: var(--carbon-200);
   --action-primary-fg: var(--carbon-900);
   --focus-ring: #ffffff;
+}
+
+/* The search sits directly over moving photography. Keep enough Paper in the
+   surface for black controls to remain legible while allowing the film to show
+   through as a restrained frosted layer. */
+.hero-search-glass .workspace-surface {
+  background-color: rgb(255 255 255 / 0.38);
+  -webkit-backdrop-filter: blur(26px) saturate(1.08);
+  backdrop-filter: blur(26px) saturate(1.08);
+  border: 1px solid rgb(255 255 255 / 0.46);
+}
+
+.hero-search-glass .bg-canvas {
+  background-color: rgb(255 255 255 / 0.48);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
 }

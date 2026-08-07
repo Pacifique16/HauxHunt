@@ -82,7 +82,7 @@ export function TrendingLocations() {
           </div>
 
           <Link
-            href="/rent"
+            href="/search?category=houses-for-rent"
             className="font-bricolage border-carbon-900 text-carbon-900 hover:bg-muted inline-flex h-11 shrink-0 items-center justify-center gap-2 self-start rounded-full border bg-transparent px-5 text-base font-medium transition-colors duration-150 sm:self-auto"
           >
             Explore more
@@ -95,7 +95,7 @@ export function TrendingLocations() {
             <LocationCard
               key={`${location.country}-${location.name}`}
               {...location}
-              href={`/rent?location=${location.name.toLowerCase()}`}
+              href={`/search?q=${encodeURIComponent(`homes in ${location.name}`)}`}
             />
           ))}
         </div>

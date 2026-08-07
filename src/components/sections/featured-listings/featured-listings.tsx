@@ -23,7 +23,7 @@ const LISTINGS = [
     furnished: true,
     saves: 62,
     image: houseOne,
-    href: "/rent/kibagabaga-modern-family-home",
+    href: "/properties/kibagabaga-modern-family-home",
     focalPoint: "50% 52%",
   },
   {
@@ -37,7 +37,7 @@ const LISTINGS = [
     furnished: false,
     saves: 12,
     image: houseTwo,
-    href: "/rent/lekki-contemporary-duplex",
+    href: "/properties/lekki-contemporary-duplex",
     focalPoint: "50% 46%",
   },
   {
@@ -51,7 +51,7 @@ const LISTINGS = [
     furnished: true,
     saves: 45,
     image: houseThree,
-    href: "/rent/gisenyi-lakefront-residence",
+    href: "/properties/gisenyi-lakefront-residence",
     focalPoint: "50% 50%",
   },
   {
@@ -65,7 +65,7 @@ const LISTINGS = [
     furnished: true,
     saves: 27,
     image: houseFour,
-    href: "/rent/nyarutarama-garden-penthouse",
+    href: "/properties/nyarutarama-garden-penthouse",
     focalPoint: "50% 48%",
   },
   {
@@ -79,7 +79,7 @@ const LISTINGS = [
     furnished: false,
     saves: 81,
     image: houseFive,
-    href: "/rent/maitama-quiet-city-villa",
+    href: "/properties/maitama-quiet-city-villa",
     focalPoint: "50% 58%",
   },
   {
@@ -93,7 +93,7 @@ const LISTINGS = [
     furnished: true,
     saves: 34,
     image: houseSix,
-    href: "/rent/ikoyi-waterfront-apartment",
+    href: "/properties/ikoyi-waterfront-apartment",
     focalPoint: "50% 55%",
   },
   {
@@ -107,7 +107,7 @@ const LISTINGS = [
     furnished: false,
     saves: 19,
     image: heroHome,
-    href: "/rent/karongi-hillside-family-house",
+    href: "/properties/karongi-hillside-family-house",
     focalPoint: "50% 56%",
   },
   {
@@ -121,7 +121,7 @@ const LISTINGS = [
     furnished: true,
     saves: 56,
     image: cityHome,
-    href: "/rent/gisenyi-lake-view-apartment",
+    href: "/properties/gisenyi-lake-view-apartment",
     focalPoint: "50% 58%",
   },
 ] as const;
@@ -161,8 +161,35 @@ export function FeaturedListings() {
           ))}
         </div>
 
-        <div className="listing-request-glass mt-12 flex flex-col gap-7 rounded-2xl p-6 sm:mt-16 sm:p-8 lg:flex-row lg:items-center lg:justify-between lg:p-10">
-          <div>
+        <div className="listing-request-glass relative mt-12 flex flex-col gap-7 overflow-hidden rounded-2xl p-6 sm:mt-16 sm:p-8 lg:flex-row lg:items-center lg:justify-between lg:p-10">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 1400 280"
+            preserveAspectRatio="none"
+            className="pointer-events-none absolute inset-0 h-full w-full text-white opacity-[0.12]"
+          >
+            <defs>
+              <path
+                id="request-wave"
+                d="M-100 35 C230 -55 410 30 625 155 S1010 310 1500 75"
+              />
+            </defs>
+            <g fill="none" stroke="currentColor" strokeWidth="1">
+              {Array.from({ length: 12 }, (_, index) => (
+                <use
+                  key={`request-wave-${index}`}
+                  href="#request-wave"
+                  transform={`translate(0 ${index * 13})`}
+                />
+              ))}
+            </g>
+          </svg>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/60 via-black/35 to-black/50"
+          />
+
+          <div className="relative z-10">
             <h3 className="font-bricolage text-[clamp(1.75rem,3vw,2.5rem)] leading-tight font-normal tracking-[-0.035em] text-white">
               Can&apos;t find what you&apos;re looking for?
             </h3>
@@ -174,7 +201,7 @@ export function FeaturedListings() {
 
           <Link
             href="/property-request"
-            className="font-bricolage bg-carbon-0 text-carbon-900 hover:bg-carbon-100 inline-flex h-12 shrink-0 items-center justify-center gap-2 self-start rounded-full px-6 text-base font-medium transition-colors duration-150 lg:self-auto"
+            className="font-bricolage bg-carbon-0 text-carbon-900 hover:bg-carbon-100 relative z-10 inline-flex h-12 shrink-0 items-center justify-center gap-2 self-start rounded-full px-6 text-base font-medium transition-colors duration-150 lg:self-auto"
           >
             Request property
             <ArrowUpRight aria-hidden="true" className="size-4" />

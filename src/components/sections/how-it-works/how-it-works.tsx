@@ -1,14 +1,16 @@
+import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
-  Apple,
   Building2,
   Download,
-  Play,
   Search,
   SlidersHorizontal,
   UsersRound,
 } from "lucide-react";
+
+import appleStoreBadge from "../../../../Apple store badge.png";
+import googlePlayBadge from "../../../../google play store badge.png";
 
 const STEPS = [
   {
@@ -116,44 +118,30 @@ export function HowItWorks() {
               Save listings, receive new-match alerts, and contact property
               professionals wherever you are with the HauxHunt app.
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link
-                href="/download/ios"
-                aria-label="Download HauxHunt on the App Store"
-                className="hover:bg-carbon-950 inline-flex h-16 min-w-[210px] items-center gap-3 rounded-xl border border-white/25 bg-black px-4 text-white shadow-sm transition-colors duration-150"
-              >
-                <Apple
-                  aria-hidden="true"
-                  className="size-8 shrink-0"
-                  fill="currentColor"
-                />
-                <span className="text-left">
-                  <span className="block text-[10px] leading-none tracking-wide text-white/75">
-                    Download on the
-                  </span>
-                  <span className="font-bricolage mt-1 block text-xl leading-none font-medium">
-                    App Store
-                  </span>
-                </span>
-              </Link>
+            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link
                 href="/download/android"
                 aria-label="Get HauxHunt on Google Play"
-                className="hover:bg-carbon-950 order-first inline-flex h-16 min-w-[210px] items-center gap-3 rounded-xl border border-white/25 bg-black px-4 text-white shadow-sm transition-colors duration-150"
+                className="relative h-11 w-40 overflow-hidden rounded-lg transition-transform duration-150 hover:-translate-y-0.5"
               >
-                <Play
-                  aria-hidden="true"
-                  className="size-8 shrink-0"
-                  fill="currentColor"
+                <Image
+                  src={googlePlayBadge}
+                  alt="Get it on Google Play"
+                  placeholder="blur"
+                  className="absolute top-[-59px] left-[-48px] h-[171px] w-64 max-w-none"
                 />
-                <span className="text-left">
-                  <span className="block text-[10px] leading-none tracking-wide text-white/75">
-                    GET IT ON
-                  </span>
-                  <span className="font-bricolage mt-1 block text-xl leading-none font-medium">
-                    Google Play
-                  </span>
-                </span>
+              </Link>
+              <Link
+                href="/download/ios"
+                aria-label="Download HauxHunt on the App Store"
+                className="relative h-[46px] w-40 overflow-hidden rounded-lg transition-transform duration-150 hover:-translate-y-0.5"
+              >
+                <Image
+                  src={appleStoreBadge}
+                  alt="Download on the App Store"
+                  placeholder="blur"
+                  className="absolute top-[-40px] left-[-19px] h-[132px] w-[198px] max-w-none"
+                />
               </Link>
             </div>
           </div>

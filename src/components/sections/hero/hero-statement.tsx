@@ -34,14 +34,6 @@ export function HeroStatement() {
           </motion.span>
         ))}
       </h1>
-
-      <motion.p
-        variants={heroRise}
-        className="text-body-l text-fg-secondary mt-6 max-w-[48ch] text-balance"
-      >
-        Find the right home with ease. Search naturally, choose what matters,
-        and discover places that fit your needs.
-      </motion.p>
     </motion.div>
   );
 }

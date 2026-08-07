@@ -30,6 +30,7 @@ export type SiteConfig = typeof siteConfig;
  * later. They will 404 until those pages are built.
  */
 export const navConfig: { label: string; href: string }[] = [
+  { label: "Home", href: "/" },
   { label: "Rent", href: "/rent" },
   { label: "Buy", href: "/buy" },
   { label: "List", href: "/landlords" },

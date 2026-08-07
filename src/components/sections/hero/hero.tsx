@@ -10,18 +10,22 @@ import { SearchWorkspace } from "./search-workspace";
  */
 export function Hero() {
   return (
-    <section className="bg-canvas px-5 pt-28 pb-8 sm:px-6 sm:pt-32 lg:px-11 lg:pt-32 lg:pb-12 xl:px-[52px]">
-      <div className="hero-dark bg-canvas relative isolate mx-auto min-h-[560px] max-w-[1562px] overflow-hidden rounded-[1.25rem] px-4 py-10 sm:px-8 lg:min-h-[520px] lg:rounded-[1.5rem] lg:px-12">
+    <section className="bg-carbon-950 relative">
+      <div className="hero-dark bg-canvas relative isolate min-h-svh w-full overflow-hidden px-5 pt-32 pb-10 sm:px-6 sm:pt-36 lg:px-11 lg:pt-40 lg:pb-12 xl:px-[52px]">
         <HeroAtmosphere />
 
-        <div className="relative z-10 flex min-h-[480px] flex-col items-center lg:min-h-[440px]">
-          <div className="w-full text-center">
+        <div className="pointer-events-none absolute inset-0 z-10 hidden items-center justify-center px-11 text-center lg:flex">
+          <HeroStatement />
+        </div>
+
+        <div className="relative z-10 mx-auto flex min-h-[calc(100svh-10.5rem)] w-full max-w-[1562px] flex-col items-center lg:min-h-[calc(100svh-13rem)]">
+          <div className="w-full text-center lg:hidden">
             <HeroStatement />
           </div>
 
           <div className="mt-auto w-full max-w-[1120px] pt-8 lg:pt-10">
             <HeroReveal delay={0.38}>
-              <div className="theme-paper rounded-[1.5rem]">
+              <div className="theme-paper hero-search-glass rounded-[1.5rem]">
                 <SearchWorkspace />
               </div>
             </HeroReveal>

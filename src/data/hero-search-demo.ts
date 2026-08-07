@@ -14,7 +14,7 @@ export const SUGGESTED_QUERIES = [
   "3-bedroom near Lekki with parking and a garden",
 ];
 
-type MockListing = {
+export type MockListing = {
   id: string;
   title: string;
   location: string;
@@ -26,14 +26,14 @@ type MockListing = {
   verified: boolean;
 };
 
-const LISTINGS: MockListing[] = [
+export const DEMO_LISTINGS: MockListing[] = [
   {
     id: "kacyiru-2br",
     title: "Garden-level 2-bedroom apartment",
     location: "Kacyiru, Kigali",
     matchLocations: ["kigali", "kacyiru"],
     currency: "RWF",
-    price: 850_000,
+    price: 750_000,
     bedrooms: 2,
     amenities: ["Quiet street", "Furnished", "Parking", "Backup generator"],
     verified: true,
@@ -93,6 +93,94 @@ const LISTINGS: MockListing[] = [
     amenities: ["Quiet waterfront", "Garden", "24/7 power", "Parking"],
     verified: false,
   },
+  {
+    id: "kibagabaga-modern-family-home",
+    title: "Modern family home",
+    location: "Kibagabaga, Kigali",
+    matchLocations: ["kigali", "kibagabaga"],
+    currency: "RWF",
+    price: 1_200_000,
+    bedrooms: 3,
+    amenities: ["Quiet street", "Furnished", "Parking", "Garden"],
+    verified: true,
+  },
+  {
+    id: "lekki-contemporary-duplex",
+    title: "Contemporary duplex",
+    location: "Lekki Phase 1, Lagos",
+    matchLocations: ["lagos", "lekki"],
+    currency: "NGN",
+    price: 3_500_000,
+    bedrooms: 4,
+    amenities: ["Secure compound", "Parking", "Balcony"],
+    verified: true,
+  },
+  {
+    id: "gisenyi-lakefront-residence",
+    title: "Lakefront residence",
+    location: "Gisenyi, Rwanda",
+    matchLocations: ["gisenyi"],
+    currency: "RWF",
+    price: 850_000,
+    bedrooms: 2,
+    amenities: ["Lake view", "Furnished", "Parking"],
+    verified: true,
+  },
+  {
+    id: "nyarutarama-garden-penthouse",
+    title: "Garden penthouse",
+    location: "Nyarutarama, Kigali",
+    matchLocations: ["kigali", "nyarutarama"],
+    currency: "RWF",
+    price: 1_650_000,
+    bedrooms: 3,
+    amenities: ["Garden", "Furnished", "Secure compound", "Gym"],
+    verified: true,
+  },
+  {
+    id: "maitama-quiet-city-villa",
+    title: "Quiet city villa",
+    location: "Maitama, Abuja",
+    matchLocations: ["abuja", "maitama"],
+    currency: "NGN",
+    price: 4_200_000,
+    bedrooms: 5,
+    amenities: ["Quiet street", "Garden", "Parking", "24/7 power"],
+    verified: true,
+  },
+  {
+    id: "ikoyi-waterfront-apartment",
+    title: "Waterfront apartment",
+    location: "Ikoyi, Lagos",
+    matchLocations: ["lagos", "ikoyi"],
+    currency: "NGN",
+    price: 2_800_000,
+    bedrooms: 3,
+    amenities: ["Waterfront", "Furnished", "Parking", "Gym"],
+    verified: true,
+  },
+  {
+    id: "karongi-hillside-family-house",
+    title: "Hillside family house",
+    location: "Karongi, Rwanda",
+    matchLocations: ["karongi"],
+    currency: "RWF",
+    price: 720_000,
+    bedrooms: 3,
+    amenities: ["Quiet area", "Garden", "Parking"],
+    verified: true,
+  },
+  {
+    id: "gisenyi-lake-view-apartment",
+    title: "Lake-view apartment",
+    location: "Gisenyi, Rwanda",
+    matchLocations: ["gisenyi"],
+    currency: "RWF",
+    price: 640_000,
+    bedrooms: 2,
+    amenities: ["Lake view", "Furnished", "Balcony"],
+    verified: true,
+  },
 ];
 
 const KNOWN_LOCATIONS = [
@@ -100,11 +188,15 @@ const KNOWN_LOCATIONS = [
   "kacyiru",
   "nyarutarama",
   "remera",
+  "kibagabaga",
+  "gisenyi",
+  "karongi",
   "lagos",
   "lekki",
   "ikoyi",
   "abuja",
   "wuse",
+  "maitama",
 ];
 
 const AMENITY_KEYWORDS: Record<string, string> = {
@@ -195,7 +287,11 @@ export function parseQuery(rawQuery: string): ParsedFilter[] {
   );
   if (priceMatch) {
     const amount = priceMatch[1];
-    const currency: CurrencyCode = /ngn|₦/.test(priceMatch[0]) ? "NGN" : "RWF";
+    const currency: CurrencyCode = /ngn|₦|lagos|lekki|ikoyi|abuja|wuse/.test(
+      lower,
+    )
+      ? "NGN"
+      : "RWF";
     filters.push({
       id: nextId("maxPrice"),
       kind: "maxPrice",
@@ -204,12 +300,24 @@ export function parseQuery(rawQuery: string): ParsedFilter[] {
     consumed.push(priceMatch[0]);
   }
 
-  const foundLocation = KNOWN_LOCATIONS.find((loc) => lower.includes(loc));
+  const knownLocation = KNOWN_LOCATIONS.find((loc) => lower.includes(loc));
+  const locationAfterPreposition = lower
+    .match(
+      /\b(?:in|at|near)\s+([a-z][a-z\s-]*?)(?=\s+(?:under|below|with|for|and|max(?:imum)?)\b|[,.;!?]|$)/,
+    )?.[1]
+    ?.trim();
+  const isPlainLocation =
+    /^[a-z][a-z\s-]{1,40}$/.test(lower) &&
+    !/\b(?:apartment|house|home|villa|studio|duplex|penthouse|rent|sale|bedroom)\b/.test(
+      lower,
+    );
+  const foundLocation =
+    knownLocation || locationAfterPreposition || (isPlainLocation ? lower : "");
   if (foundLocation) {
     filters.push({
       id: nextId("location"),
       kind: "location",
-      label: foundLocation[0].toUpperCase() + foundLocation.slice(1),
+      label: foundLocation.replace(/\b\w/g, (letter) => letter.toUpperCase()),
     });
     consumed.push(foundLocation);
   }
@@ -285,7 +393,7 @@ export function matchListings(filters: ParsedFilter[]): PropertyPreview[] {
     (maxPrice ? WEIGHTS.maxPrice : 0) +
     amenities.length * WEIGHTS.amenity;
 
-  const scored = LISTINGS.map((listing) => {
+  const scored = DEMO_LISTINGS.map((listing) => {
     const matchedReasons: string[] = [];
     let weight = 0;
 
@@ -338,17 +446,28 @@ export function matchListings(filters: ParsedFilter[]): PropertyPreview[] {
   // correct-city one — which reads as broken to anyone who searched a place by
   // name, however honest the accompanying explanation is. Falls back to the
   // full set if nothing matches, so the workspace never dead-ends.
-  const inLocation = location
-    ? scored.filter(({ listing }) =>
-        listing.matchLocations.includes(location.label.toLowerCase()),
-      )
-    : scored;
-  const pool = inLocation.length > 0 ? inLocation : scored;
+  const pool = scored.filter(({ listing }) => {
+    if (
+      location &&
+      !listing.matchLocations.includes(location.label.toLowerCase())
+    ) {
+      return false;
+    }
+    if (bedroomCount && listing.bedrooms !== bedroomCount) return false;
+    if (
+      maxPriceAmount &&
+      maxPriceCurrency &&
+      (listing.currency !== maxPriceCurrency || listing.price > maxPriceAmount)
+    ) {
+      return false;
+    }
+    return true;
+  });
 
   pool.sort(
     (a, b) => b.weight - a.weight || b.matchPercentage - a.matchPercentage,
   );
-  const top = pool.slice(0, 2);
+  const top = pool;
 
   return top.map(({ listing, matchPercentage, whyItMatches }) => ({
     id: listing.id,
