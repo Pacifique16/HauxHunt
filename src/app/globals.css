@@ -725,6 +725,29 @@
     inset 0 1px 0 rgb(255 255 255 / 0.95);
 }
 
+.verification-glass {
+  background-color: rgb(0 0 0 / 0.82);
+  background-image:
+    radial-gradient(
+      circle at 15% 0%,
+      rgb(255 255 255 / 0.16) 0%,
+      transparent 38%
+    ),
+    linear-gradient(
+      135deg,
+      rgb(255 255 255 / 0.08) 0%,
+      rgb(255 255 255 / 0.015) 45%,
+      rgb(0 0 0 / 0.16) 100%
+    );
+  -webkit-backdrop-filter: blur(20px) saturate(1.15);
+  backdrop-filter: blur(20px) saturate(1.15);
+  border: 1px solid rgb(255 255 255 / 0.2);
+  box-shadow:
+    0 20px 52px rgb(0 0 0 / 0.18),
+    inset 0 1px 0 rgb(255 255 255 / 0.22),
+    inset 0 -1px 0 rgb(255 255 255 / 0.06);
+}
+
 .category-atmosphere {
   background-color: var(--carbon-100);
   background-image:

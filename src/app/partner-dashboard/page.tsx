@@ -11,7 +11,6 @@ import {
   Inbox,
   MessageSquare,
   Plus,
-  ShieldCheck,
   TrendingUp,
   UserRound,
   Users,
@@ -19,6 +18,7 @@ import {
 
 import { DashboardShell } from "@/components/partner/dashboard-shell";
 import { ListingOptionsMenu } from "@/components/partner/listing-options-menu";
+import { VerificationProgressCard } from "@/components/partner/verification-progress-card";
 
 export const metadata: Metadata = {
   title: "Partner dashboard | HauxHunt",
@@ -153,7 +153,7 @@ export default function PartnerDashboardPage() {
                       className="grid gap-5 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_auto_auto_auto] lg:items-center"
                     >
                       <div className="flex min-w-0 items-center gap-4">
-                        <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-black text-white">
+                        <div className="flex size-14 shrink-0 items-center justify-center text-black">
                           <Building2 aria-hidden="true" className="size-5" />
                         </div>
                         <div className="min-w-0">
@@ -270,43 +270,7 @@ export default function PartnerDashboardPage() {
             </div>
 
             <aside className="space-y-8">
-              <section
-                id="verification"
-                className="relative overflow-hidden rounded-[1.75rem] bg-black p-7 text-white shadow-[0_18px_48px_rgba(0,0,0,0.14)]"
-              >
-                <div
-                  aria-hidden="true"
-                  className="absolute inset-0 [background-image:radial-gradient(circle_at_center,white_1px,transparent_1px)] [background-size:18px_18px] opacity-15"
-                />
-                <div className="relative z-10">
-                  <span className="flex size-11 items-center justify-center rounded-full border border-white/20 bg-white/10">
-                    <ShieldCheck aria-hidden="true" className="size-5" />
-                  </span>
-                  <p className="mt-7 text-xs font-medium tracking-[0.12em] text-white/50 uppercase">
-                    Partner verification
-                  </p>
-                  <h2 className="font-bricolage mt-3 text-3xl font-medium tracking-[-0.04em]">
-                    Almost verified
-                  </h2>
-                  <p className="mt-4 text-sm leading-6 text-white/65">
-                    Complete one final identity check to publish listings and
-                    respond to every matched request.
-                  </p>
-                  <div className="mt-6 h-1.5 overflow-hidden rounded-full bg-white/15">
-                    <div className="h-full w-4/5 rounded-full bg-white" />
-                  </div>
-                  <div className="mt-2 flex justify-between text-xs text-white/45">
-                    <span>4 of 5 steps</span>
-                    <span>80%</span>
-                  </div>
-                  <button
-                    type="button"
-                    className="font-bricolage mt-7 inline-flex h-11 w-full items-center justify-center rounded-full bg-white px-5 text-sm font-medium text-black transition-colors hover:bg-white/85"
-                  >
-                    Continue verification
-                  </button>
-                </div>
-              </section>
+              <VerificationProgressCard />
 
               <section
                 id="performance"

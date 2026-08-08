@@ -127,7 +127,7 @@ function DashboardTopBar({
       <div className="relative mx-auto flex h-full w-full max-w-[1360px] items-center justify-end gap-2 border-b border-black/8">
         <div
           id="dashboard-topbar-status"
-          className="pointer-events-none absolute top-1/2 left-1/2 z-40 -translate-x-1/2 -translate-y-1/2"
+          className="pointer-events-none absolute top-0 left-1/2 z-40 -translate-x-1/2"
         />
         <label className="relative mr-auto block w-full max-w-sm">
           <span className="sr-only">Search dashboard</span>

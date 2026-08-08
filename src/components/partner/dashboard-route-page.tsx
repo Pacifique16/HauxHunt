@@ -376,13 +376,13 @@ export function DashboardRoutePage({ section }: { section: DashboardSection }) {
         <div className="mx-auto max-w-[1360px]">
           <header className="flex flex-col gap-6 border-b border-black/10 pb-9 sm:flex-row sm:items-end sm:justify-between">
             <div className="w-full">
-              {section !== "listings" ? (
+              {section !== "listings" && section !== "verification" ? (
                 <span className="flex size-12 items-center justify-center rounded-full bg-black text-white">
                   <Icon aria-hidden="true" className="size-5" />
                 </span>
               ) : null}
               <h1
-                className={`font-bricolage text-carbon-900 text-[clamp(2.75rem,5vw,4.75rem)] leading-[0.92] font-medium tracking-[-0.055em] ${section !== "listings" ? "mt-6" : ""}`}
+                className={`font-bricolage text-carbon-900 text-[clamp(2.75rem,5vw,4.75rem)] leading-[0.92] font-medium tracking-[-0.055em] ${section !== "listings" && section !== "verification" ? "mt-6" : ""}`}
               >
                 {content.title}
               </h1>
@@ -548,8 +548,7 @@ function AllListings() {
 
   useEffect(() => {
     const connectHost = window.setTimeout(
-      () =>
-        setTopBarStatusHost(document.getElementById("dashboard-topbar-status")),
+      () => setTopBarStatusHost(document.body),
       0,
     );
     return () => window.clearTimeout(connectHost);
@@ -579,17 +578,20 @@ function AllListings() {
                 <motion.div
                   key={actionFeedback}
                   role="status"
-                  initial={{ opacity: 0, y: -10, scale: 0.96 }}
+                  initial={{ opacity: 0, y: 22, scale: 0.97 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -7, scale: 0.98 }}
-                  transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-                  className="flex h-11 items-center gap-2 rounded-full bg-black px-5 text-sm font-medium whitespace-nowrap text-white shadow-[0_14px_35px_rgba(0,0,0,0.2)]"
+                  exit={{ opacity: 0, y: 14, scale: 0.98 }}
+                  transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                  className="fixed bottom-6 left-1/2 z-[120] min-w-72 -translate-x-1/2 overflow-hidden rounded-2xl border border-white/10 bg-black px-5 py-4 text-center text-sm font-medium whitespace-nowrap text-white shadow-[0_18px_50px_rgba(0,0,0,0.24)]"
                 >
-                  <CheckCircle2
+                  {actionFeedback}
+                  <motion.span
                     aria-hidden="true"
-                    className="size-4 shrink-0"
+                    initial={{ scaleX: 1 }}
+                    animate={{ scaleX: 0 }}
+                    transition={{ duration: 3, ease: "linear" }}
+                    className="absolute inset-x-0 bottom-0 h-0.5 origin-left bg-white"
                   />
-                  <span>{actionFeedback}</span>
                 </motion.div>
               ) : null}
             </AnimatePresence>,
