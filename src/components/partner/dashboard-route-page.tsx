@@ -774,7 +774,20 @@ function AllListings() {
             {paginatedListings.map((listing) => (
               <article
                 key={listing.title}
-                className="grid gap-4 py-5 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center"
+                role="button"
+                tabIndex={0}
+                aria-label={`View ${listing.title}`}
+                onClick={() => setPreviewListing(listing)}
+                onKeyDown={(event) => {
+                  if (
+                    event.currentTarget === event.target &&
+                    (event.key === "Enter" || event.key === " ")
+                  ) {
+                    event.preventDefault();
+                    setPreviewListing(listing);
+                  }
+                }}
+                className="grid cursor-pointer gap-4 py-5 transition-colors hover:bg-black/[0.025] focus-visible:bg-black/[0.035] focus-visible:outline-none sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center"
               >
                 <div className="min-w-0">
                   <h3 className="font-bricolage text-carbon-900 truncate font-medium">
@@ -798,14 +811,19 @@ function AllListings() {
                 >
                   {listing.status}
                 </span>
-                <ListingOptionsMenu
-                  title={listing.title}
-                  status={listing.status}
-                  onView={() => setPreviewListing(listing)}
-                  onDelete={() => deleteListing(listing.title)}
-                  onUnarchive={() => unarchiveListing(listing.title)}
-                  onArchive={() => archiveListing(listing.title)}
-                />
+                <div
+                  onClick={(event) => event.stopPropagation()}
+                  onKeyDown={(event) => event.stopPropagation()}
+                >
+                  <ListingOptionsMenu
+                    title={listing.title}
+                    status={listing.status}
+                    onView={() => setPreviewListing(listing)}
+                    onDelete={() => deleteListing(listing.title)}
+                    onUnarchive={() => unarchiveListing(listing.title)}
+                    onArchive={() => archiveListing(listing.title)}
+                  />
+                </div>
               </article>
             ))}
           </div>

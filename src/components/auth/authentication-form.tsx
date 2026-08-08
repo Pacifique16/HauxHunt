@@ -84,8 +84,13 @@ export function AuthenticationForm({
       .trim()
       .toLowerCase();
 
-    if (!isRegister && email === "partner@gmail.com") {
-      router.replace("/partner-dashboard");
+    if (!isRegister) {
+      if (email === "partner@gmail.com") {
+        router.replace("/partner-dashboard");
+        return;
+      }
+
+      setError("Wrong email or password.");
       return;
     }
 
@@ -103,23 +108,20 @@ export function AuthenticationForm({
         <h2
           className={`font-bricolage mt-7 text-4xl font-medium tracking-[-0.04em] ${isDark ? "text-white" : "text-carbon-900"}`}
         >
-          {isRegister ? "Your account is ready" : "Login details received"}
+          Your account is ready
         </h2>
         <p
           className={`mx-auto mt-4 max-w-md leading-7 ${isDark ? "text-white/50" : "text-carbon-600"}`}
         >
-          {isRegister
-            ? "Your account has been created successfully. You can now log in and start using HauxHunt."
-            : "This login interface is ready to connect to the HauxHunt authentication service."}
+          Your account has been created successfully. You can now log in and
+          start using HauxHunt.
         </p>
         <button
           type="button"
-          onClick={() =>
-            isRegister ? router.push("/login") : setComplete(false)
-          }
+          onClick={() => router.push("/login")}
           className={`font-bricolage mt-8 h-12 rounded-full px-7 font-medium transition-colors ${isDark ? "bg-white text-black hover:bg-white/85" : "bg-black text-white hover:bg-black/80"}`}
         >
-          {isRegister ? "Go to login" : "Back to login"}
+          Go to login
         </button>
       </div>
     );

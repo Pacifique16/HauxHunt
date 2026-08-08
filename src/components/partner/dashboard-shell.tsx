@@ -394,7 +394,7 @@ function NavItem({
         {"badge" in item &&
           (!collapsed ? (
             <span
-              className={`flex min-w-6 items-center justify-center rounded-full px-1.5 py-0.5 text-[0.65rem] font-medium ${active ? "bg-black text-white" : "bg-white/10 text-white/65"}`}
+              className={`flex size-6 shrink-0 items-center justify-center rounded-full text-[0.65rem] font-medium ${active ? "bg-black text-white" : "bg-white/10 text-white/65"}`}
             >
               {item.badge}
             </span>
