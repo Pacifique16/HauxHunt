@@ -1,4 +1,18 @@
-import { DashboardRoutePage } from "@/components/partner/dashboard-route-page";
-export default function Page() {
-  return <DashboardRoutePage section="performance" />;
+import type { Metadata } from "next";
+
+import { DashboardShell } from "@/components/partner/dashboard-shell";
+import { PerformanceDashboard } from "@/components/partner/performance-dashboard";
+
+export const metadata: Metadata = {
+  title: "Listing performance | Partner dashboard | HauxHunt",
+  description:
+    "Understand how property seekers discover and respond to your listings.",
+};
+
+export default function PartnerPerformancePage() {
+  return (
+    <DashboardShell initialSection="performance">
+      <PerformanceDashboard />
+    </DashboardShell>
+  );
 }

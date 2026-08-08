@@ -71,14 +71,27 @@ export function PartnerVerificationForm() {
     partnerType === "Property manager" || partnerType === "Real estate agency";
 
   useEffect(() => {
+    const navigationEntry = window.performance.getEntriesByType(
+      "navigation",
+    )[0] as PerformanceNavigationTiming | undefined;
+    const isPageRefresh = navigationEntry?.type === "reload";
+    if (isPageRefresh) {
+      window.localStorage.removeItem("hauxhunt-partner-verification-step");
+      window.localStorage.removeItem("hauxhunt-partner-verification-status");
+    }
     const savedStep = Number(
-      window.localStorage.getItem("hauxhunt-partner-verification-step") ?? 1,
+      isPageRefresh
+        ? 1
+        : (window.localStorage.getItem("hauxhunt-partner-verification-step") ??
+            1),
     );
     const timer = window.setTimeout(() => {
       setStep(Math.min(Math.max(savedStep - 1, 0), STEPS.length - 1));
       setSubmitted(
-        window.localStorage.getItem("hauxhunt-partner-verification-status") ===
-          "submitted",
+        !isPageRefresh &&
+          window.localStorage.getItem(
+            "hauxhunt-partner-verification-status",
+          ) === "submitted",
       );
       setProgressLoaded(true);
     }, 0);

@@ -75,6 +75,8 @@ const ACCOUNT_NAV = [
   },
 ] as const;
 
+let rememberedSidebarCollapsed = false;
+
 export function DashboardShell({
   children,
   initialSection = "overview",
@@ -82,7 +84,7 @@ export function DashboardShell({
   children: ReactNode;
   initialSection?: string;
 }) {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(rememberedSidebarCollapsed);
   const [activeSection, setActiveSection] = useState(initialSection);
 
   useEffect(() => {
@@ -98,7 +100,12 @@ export function DashboardShell({
       <DashboardSidebar
         collapsed={collapsed}
         activeSection={activeSection}
-        onCollapse={() => setCollapsed((value) => !value)}
+        onCollapse={() =>
+          setCollapsed((value) => {
+            rememberedSidebarCollapsed = !value;
+            return !value;
+          })
+        }
         onNavigate={setActiveSection}
       />
       <div
@@ -244,14 +251,13 @@ function DashboardSidebar({
 }) {
   return (
     <aside
-      className={`sticky top-0 hidden h-full min-h-0 shrink-0 flex-col overflow-hidden bg-black py-6 text-white transition-[width,padding] duration-300 lg:flex ${collapsed ? "w-[84px] px-3" : "w-[280px] px-5"}`}
+      className={`sticky top-0 z-30 hidden h-full min-h-0 shrink-0 flex-col bg-black py-6 text-white transition-[width,padding] duration-300 lg:flex ${collapsed ? "w-[84px] overflow-visible px-3" : "w-[280px] overflow-hidden px-5"}`}
     >
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
         <div className="absolute inset-0 [background-image:radial-gradient(circle_at_center,white_1px,transparent_1px)] [background-size:20px_20px] opacity-[0.07]" />
-        <div className="absolute top-1/3 -left-28 size-64 rounded-full bg-[#00f58a]/10 blur-3xl" />
       </div>
       <div
-        className={`relative z-10 flex items-center ${collapsed ? "flex-col justify-center gap-4" : "justify-between"}`}
+        className={`relative z-20 flex items-center ${collapsed ? "flex-col justify-center gap-4" : "justify-between"}`}
       >
         <Link
           href="/"
@@ -264,14 +270,22 @@ function DashboardSidebar({
           type="button"
           onClick={onCollapse}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="flex size-9 shrink-0 items-center justify-center rounded-full border border-white/10 text-white/65 transition-colors hover:bg-white/10 hover:text-white"
+          className="group relative flex size-9 shrink-0 items-center justify-center rounded-full border border-white/10 text-white/65 transition-colors hover:bg-white/10 hover:text-white"
         >
           {collapsed ? (
             <PanelLeftOpen className="size-4" />
           ) : (
             <ChevronLeft className="size-4" />
           )}
+          <span
+            className={`pointer-events-none absolute z-50 rounded-full border border-white/10 bg-[#242424] px-4 py-2 text-xs font-medium whitespace-nowrap text-white opacity-0 shadow-[0_10px_30px_rgba(0,0,0,0.28)] transition-[opacity,transform] duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 ${
+              collapsed
+                ? "top-1/2 left-[calc(100%+1.6rem)] -translate-x-1 -translate-y-1/2 group-hover:translate-x-0 group-focus-visible:translate-x-0"
+                : "top-[calc(100%+0.65rem)] right-0 -translate-y-1 group-hover:translate-y-0 group-focus-visible:translate-y-0"
+            }`}
+          >
+            {collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          </span>
         </button>
       </div>
 
@@ -359,17 +373,24 @@ function NavItem({
         onClick={() => onNavigate(item.section)}
         aria-current={active ? "page" : undefined}
         aria-label={collapsed ? item.label : undefined}
-        title={collapsed ? item.label : undefined}
-        className={`relative flex h-11 items-center text-sm ${collapsed ? "justify-center px-0" : "gap-3 px-3"} ${
+        className={`group relative flex h-11 items-center text-sm ${collapsed ? "justify-center px-0" : "gap-3 px-3"} ${
           active
-            ? `bg-carbon-50 rounded-l-full rounded-r-none text-black before:absolute before:-top-5 before:right-0 before:size-5 before:rounded-br-full before:shadow-[7px_7px_0_7px_var(--color-carbon-50)] after:absolute after:right-0 after:-bottom-5 after:size-5 after:rounded-tr-full after:shadow-[7px_-7px_0_7px_var(--color-carbon-50)] ${collapsed ? "w-[calc(100%+0.75rem)] pl-0" : "w-[calc(100%+1.25rem)] pr-8"}`
-            : "rounded-xl text-white/58 hover:bg-white/[0.07] hover:text-white"
+            ? `bg-carbon-50 rounded-l-full rounded-r-none text-black before:absolute before:-top-5 before:right-0 before:size-5 before:rounded-br-full before:shadow-[7px_7px_0_7px_var(--color-carbon-50)] after:absolute after:right-0 after:-bottom-5 after:size-5 after:rounded-tr-full after:shadow-[7px_-7px_0_7px_var(--color-carbon-50)] ${collapsed ? "w-[calc(100%+0.75rem)] pr-3 pl-0" : "w-[calc(100%+1.25rem)] pr-8"}`
+            : `text-white/58 hover:bg-white/[0.1] hover:text-white ${collapsed ? "rounded-[1rem]" : "rounded-xl"}`
         }`}
       >
-        <item.icon aria-hidden="true" className="size-[18px] shrink-0" />
+        <item.icon
+          aria-hidden="true"
+          className={`size-[18px] shrink-0 transition-transform duration-200 ${collapsed && !active ? "group-hover:scale-110" : ""}`}
+        />
         {!collapsed && (
           <span className="flex-1 whitespace-nowrap">{item.label}</span>
         )}
+        {collapsed ? (
+          <span className="pointer-events-none absolute top-1/2 left-[calc(100%+0.85rem)] z-50 -translate-x-1 -translate-y-1/2 rounded-full border border-white/10 bg-[#242424] px-4 py-2 text-xs font-medium whitespace-nowrap text-white opacity-0 shadow-[0_10px_30px_rgba(0,0,0,0.28)] transition-[opacity,transform] duration-200 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100">
+            {item.label}
+          </span>
+        ) : null}
         {"badge" in item &&
           (!collapsed ? (
             <span
