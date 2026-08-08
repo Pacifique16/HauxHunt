@@ -2,11 +2,13 @@
 
 import { useRef, useState } from "react";
 import type { FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   ArrowRight,
   Building2,
   Check,
+  ChevronDown,
   ImagePlus,
   KeyRound,
   UserRound,
@@ -20,10 +22,107 @@ const STEPS = [
   { label: "Review", icon: Check },
 ] as const;
 
-export function ListPropertyForm() {
-  const [step, setStep] = useState(0);
+const AMENITY_GROUPS = [
+  {
+    label: "Essentials & utilities",
+    amenities: [
+      "Wi-Fi",
+      "Air conditioning",
+      "Backup power",
+      "Water tank",
+      "Generator",
+      "Solar power",
+      "Borehole",
+      "Hot water",
+      "Fibre internet",
+      "Satellite TV",
+    ],
+  },
+  {
+    label: "Security & safety",
+    amenities: [
+      "Security",
+      "CCTV",
+      "Gated compound",
+      "Security guard",
+      "Video intercom",
+      "Fire alarms",
+      "Fire extinguisher",
+      "Sprinkler system",
+      "Soundproofing",
+    ],
+  },
+  {
+    label: "Kitchen & appliances",
+    amenities: [
+      "Fitted kitchen",
+      "Refrigerator",
+      "Cooker",
+      "Microwave",
+      "Washing machine",
+      "Dryer",
+      "Dishwasher",
+      "Outdoor kitchen",
+    ],
+  },
+  {
+    label: "Rooms & convenience",
+    amenities: [
+      "Lift",
+      "Storage room",
+      "Built-in wardrobes",
+      "En-suite bedrooms",
+      "Guest toilet",
+      "Staff quarters",
+      "Study room",
+      "Reception",
+      "Concierge",
+    ],
+  },
+  {
+    label: "Outdoor & lifestyle",
+    amenities: [
+      "Balcony",
+      "Garden",
+      "Swimming pool",
+      "Gym",
+      "Terrace",
+      "Rooftop access",
+      "Children's playground",
+      "Clubhouse",
+      "Beach access",
+      "Pet friendly",
+    ],
+  },
+  {
+    label: "Access & transport",
+    amenities: [
+      "Parking",
+      "Wheelchair access",
+      "EV charging",
+      "Bicycle storage",
+    ],
+  },
+] as const;
+
+export const PROPERTY_AMENITIES = AMENITY_GROUPS.flatMap(
+  (group) => group.amenities,
+);
+
+export function ListPropertyForm({
+  authenticatedPartner = false,
+}: {
+  authenticatedPartner?: boolean;
+}) {
+  const router = useRouter();
+  const firstStep = authenticatedPartner ? 1 : 0;
+  const visibleSteps = STEPS.slice(firstStep);
+  const today = new Date().toISOString().slice(0, 10);
+  const [step, setStep] = useState(firstStep);
   const [photoNames, setPhotoNames] = useState<string[]>([]);
+  const [amenities, setAmenities] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
+  const [draftSaved, setDraftSaved] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
   function nextStep() {
@@ -41,6 +140,7 @@ export function ListPropertyForm() {
       invalid.focus();
       return;
     }
+    setDraftSaved(false);
     setStep((current) => Math.min(current + 1, STEPS.length - 1));
   }
 
@@ -54,6 +154,11 @@ export function ListPropertyForm() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  function saveDraft() {
+    setDraftSaved(true);
+    window.setTimeout(() => router.push("/partner-dashboard/listings"), 900);
+  }
+
   if (submitted) {
     return (
       <div className="rounded-[2rem] border border-black/10 bg-white px-6 py-20 text-center shadow-[0_24px_70px_rgba(0,0,0,0.08)] sm:px-12">
@@ -61,19 +166,21 @@ export function ListPropertyForm() {
           <Check aria-hidden="true" className="size-7" />
         </span>
         <h2 className="font-bricolage text-carbon-900 mt-7 text-4xl font-medium tracking-[-0.04em]">
-          Your property draft is ready
+          Your property is under review
         </h2>
         <p className="text-carbon-600 mx-auto mt-4 max-w-xl leading-7">
-          The listing information has been captured for review. Once account
-          verification and publishing are connected, this is where the property
-          will be submitted to the HauxHunt team.
+          Your listing has been submitted to the HauxHunt team and is now under
+          review. We will notify you when it is approved or if any changes are
+          needed.
         </p>
         <button
           type="button"
           onClick={() => {
             setSubmitted(false);
-            setStep(0);
+            setStep(firstStep);
             setPhotoNames([]);
+            setAmenities([]);
+            setDraftSaved(false);
             requestAnimationFrame(() => formRef.current?.reset());
           }}
           className="font-bricolage mt-8 h-12 rounded-full bg-black px-7 font-medium text-white transition-colors hover:bg-black/80"
@@ -86,16 +193,23 @@ export function ListPropertyForm() {
 
   return (
     <form ref={formRef} onSubmit={handleSubmit} noValidate>
-      <ol aria-label="Listing progress" className="mb-6 grid grid-cols-5 gap-2">
-        {STEPS.map(({ label, icon: Icon }, index) => {
-          const complete = index < step;
-          const active = index === step;
+      <ol
+        aria-label="Listing progress"
+        className="mb-6 grid gap-2"
+        style={{
+          gridTemplateColumns: `repeat(${visibleSteps.length}, minmax(0, 1fr))`,
+        }}
+      >
+        {visibleSteps.map(({ label, icon: Icon }, index) => {
+          const stepIndex = index + firstStep;
+          const complete = stepIndex < step;
+          const active = stepIndex === step;
           return (
             <li key={label} aria-current={active ? "step" : undefined}>
               <button
                 type="button"
-                onClick={() => index <= step && setStep(index)}
-                disabled={index > step}
+                onClick={() => stepIndex <= step && setStep(stepIndex)}
+                disabled={stepIndex > step}
                 className="group flex w-full flex-col items-center gap-2 text-center disabled:cursor-default"
               >
                 <span
@@ -123,30 +237,38 @@ export function ListPropertyForm() {
       </ol>
 
       <div className="rounded-[2rem] border border-black/10 bg-white p-6 shadow-[0_24px_70px_rgba(0,0,0,0.08)] sm:p-10 lg:p-12">
-        <StepPanel step={0} currentStep={step} title="Tell us who is listing">
-          <p className="text-carbon-600 -mt-4 mb-8 max-w-xl">
-            We verify every representative before a property goes live.
-          </p>
-          <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Full name" name="fullName" required />
-            <SelectField
-              label="I am a"
-              name="representativeType"
-              options={["Landlord", "Broker", "Real estate agency"]}
-              required
-            />
-            <Field label="Email address" name="email" type="email" required />
-            <Field label="Phone number" name="phone" type="tel" required />
-            <Field
-              label="Agency name"
-              name="agencyName"
-              hint="Optional for landlords and independent brokers"
-              className="sm:col-span-2"
-            />
-          </div>
-        </StepPanel>
+        {!authenticatedPartner ? (
+          <StepPanel step={0} currentStep={step} title="Tell us who is listing">
+            <p className="text-carbon-600 -mt-4 mb-8 max-w-xl">
+              We verify every representative before a property goes live.
+            </p>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field label="Full name" name="fullName" required />
+              <SelectField
+                label="I am a"
+                name="representativeType"
+                options={["Landlord", "Broker", "Real estate agency"]}
+                required
+              />
+              <Field label="Email address" name="email" type="email" required />
+              <Field label="Phone number" name="phone" type="tel" required />
+              <Field
+                label="Agency name"
+                name="agencyName"
+                hint="Optional for landlords and independent brokers"
+                className="sm:col-span-2"
+              />
+            </div>
+          </StepPanel>
+        ) : null}
 
-        <StepPanel step={1} currentStep={step} title="Describe the property">
+        <StepPanel
+          step={1}
+          currentStep={step}
+          firstStep={firstStep}
+          totalSteps={visibleSteps.length}
+          title="Describe the property"
+        >
           <div className="grid gap-5 sm:grid-cols-2">
             <Field
               label="Listing title"
@@ -155,29 +277,46 @@ export function ListPropertyForm() {
               className="sm:col-span-2"
               required
             />
-            <SelectField
-              label="Property type"
-              name="propertyType"
-              options={[
-                "House",
-                "Apartment",
-                "Duplex",
-                "Studio apartment",
-                "Penthouse",
-                "Villa",
-                "Mansion",
-                "Shared apartment",
-              ]}
-              required
-            />
+            <PropertyTypeField />
             <SelectField
               label="Country"
               name="country"
-              options={["Rwanda", "Nigeria"]}
+              options={["Rwanda", "Nigeria", "Kenya"]}
               required
             />
             <Field label="City" name="city" required />
             <Field label="Neighbourhood" name="neighbourhood" required />
+            <Field
+              label="Exact street address"
+              name="streetAddress"
+              placeholder="Street, building or house number"
+              className="sm:col-span-2"
+              required
+            />
+            <Field
+              label="Latitude"
+              name="latitude"
+              type="number"
+              placeholder="For example, -1.9441"
+              min="-90"
+              max="90"
+              step="any"
+              required
+            />
+            <Field
+              label="Longitude"
+              name="longitude"
+              type="number"
+              placeholder="For example, 30.0619"
+              min="-180"
+              max="180"
+              step="any"
+              required
+            />
+            <p className="text-carbon-500 -mt-2 text-xs sm:col-span-2">
+              Enter the map coordinates for the property entrance so viewing
+              directions are accurate.
+            </p>
             <Field
               label="Bedrooms"
               name="bedrooms"
@@ -199,6 +338,75 @@ export function ListPropertyForm() {
               options={["Furnished", "Unfurnished", "Partly furnished"]}
               required
             />
+            <div
+              role="group"
+              aria-labelledby="amenities-label"
+              className="max-w-full min-w-0 overflow-hidden sm:col-span-2"
+            >
+              <div className="mb-3 flex items-center justify-between gap-4">
+                <span
+                  id="amenities-label"
+                  className="text-carbon-900 text-sm font-medium"
+                >
+                  Amenities
+                </span>
+                <span className="text-carbon-500 text-xs">
+                  {amenities.length} selected
+                </span>
+              </div>
+              <div className="grid w-full max-w-full min-w-0 touch-pan-x snap-x auto-cols-[210px] grid-flow-col grid-rows-3 gap-2 overflow-x-auto overscroll-x-contain pb-3 [contain:inline-size]">
+                {PROPERTY_AMENITIES.map((amenity) => {
+                  const selected = amenities.includes(amenity);
+                  return (
+                    <button
+                      key={amenity}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() =>
+                        setAmenities((current) =>
+                          current.includes(amenity)
+                            ? current.filter((item) => item !== amenity)
+                            : [...current, amenity],
+                        )
+                      }
+                      className={`flex min-h-12 cursor-pointer snap-start items-center gap-3 rounded-xl px-4 py-3 text-sm whitespace-nowrap transition-colors ${
+                        selected
+                          ? "bg-black text-white"
+                          : "bg-black/[0.035] text-black hover:bg-black/[0.07]"
+                      }`}
+                    >
+                      <span
+                        aria-hidden="true"
+                        className={`flex size-5 shrink-0 items-center justify-center rounded-full ${
+                          selected ? "bg-white text-black" : "bg-black/10"
+                        }`}
+                      >
+                        {selected ? <Check className="size-3" /> : null}
+                      </span>
+                      {amenity}
+                    </button>
+                  );
+                })}
+              </div>
+              {amenities.map((amenity) => (
+                <input
+                  key={amenity}
+                  type="hidden"
+                  name="amenities"
+                  value={amenity}
+                />
+              ))}
+              <p className="text-carbon-500 mt-2 text-xs leading-5">
+                Only select amenities that are currently available and working.
+                Scroll sideways to see all options.
+                {amenities.length > 25 ? (
+                  <strong className="ml-1 font-medium text-black">
+                    You selected many amenities—please confirm each one is
+                    accurate.
+                  </strong>
+                ) : null}
+              </p>
+            </div>
             <label className="sm:col-span-2">
               <span className="text-carbon-900 mb-2 block text-sm font-medium">
                 Property description
@@ -208,7 +416,7 @@ export function ListPropertyForm() {
                 rows={5}
                 required
                 placeholder="Describe the rooms, condition, surroundings, and what makes the property a good home."
-                className="w-full resize-y rounded-xl border border-black/20 bg-white px-4 py-3 transition-colors outline-none focus:border-black"
+                className="w-full resize-y rounded-xl border-0 bg-black/[0.035] px-4 py-3 ring-0 outline-none focus:bg-black/[0.055] focus:ring-0"
               />
             </label>
           </div>
@@ -217,6 +425,8 @@ export function ListPropertyForm() {
         <StepPanel
           step={2}
           currentStep={step}
+          firstStep={firstStep}
+          totalSteps={visibleSteps.length}
           title="Set pricing and availability"
         >
           <div className="grid gap-5 sm:grid-cols-2">
@@ -243,6 +453,7 @@ export function ListPropertyForm() {
               label="Available from"
               name="availableFrom"
               type="date"
+              min={today}
               required
             />
             <Field
@@ -255,7 +466,13 @@ export function ListPropertyForm() {
           </div>
         </StepPanel>
 
-        <StepPanel step={3} currentStep={step} title="Add property photos">
+        <StepPanel
+          step={3}
+          currentStep={step}
+          firstStep={firstStep}
+          totalSteps={visibleSteps.length}
+          title="Add property photos"
+        >
           <p className="text-carbon-600 -mt-4 mb-7 max-w-xl">
             Add clear, recent photos of the exterior, living areas, bedrooms,
             bathrooms, and kitchen. You can select multiple images.
@@ -301,11 +518,21 @@ export function ListPropertyForm() {
           )}
         </StepPanel>
 
-        <StepPanel step={4} currentStep={step} title="Review and submit">
-          <div className="grid gap-4 sm:grid-cols-3">
+        <StepPanel
+          step={4}
+          currentStep={step}
+          firstStep={firstStep}
+          totalSteps={visibleSteps.length}
+          title="Review and submit"
+        >
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
               ["Identity", "Your representative details will be reviewed."],
               ["Property", "Property information and pricing will be checked."],
+              [
+                "Location & amenities",
+                `Exact coordinates and ${amenities.length} selected ${amenities.length === 1 ? "amenity" : "amenities"} are ready for review.`,
+              ],
               ["Photos", `${photoNames.length} photos are ready for review.`],
             ].map(([title, body]) => (
               <div
@@ -337,22 +564,36 @@ export function ListPropertyForm() {
         <div className="mt-10 flex items-center justify-between gap-4 border-t border-black/10 pt-6">
           <button
             type="button"
-            onClick={() => setStep((current) => Math.max(0, current - 1))}
-            disabled={step === 0}
+            onClick={() =>
+              setStep((current) => Math.max(firstStep, current - 1))
+            }
+            disabled={step === firstStep}
             className="font-bricolage inline-flex h-12 items-center gap-2 rounded-full border border-black/20 px-6 font-medium transition-colors hover:bg-black hover:text-white disabled:pointer-events-none disabled:opacity-0"
           >
             <ArrowLeft aria-hidden="true" className="size-4" />
             Back
           </button>
           {step < STEPS.length - 1 ? (
-            <button
-              type="button"
-              onClick={nextStep}
-              className="font-bricolage inline-flex h-12 items-center gap-2 rounded-full bg-black px-7 font-medium text-white transition-colors hover:bg-black/80"
-            >
-              Continue
-              <ArrowRight aria-hidden="true" className="size-4" />
-            </button>
+            <div className="flex items-center gap-3">
+              {authenticatedPartner ? (
+                <button
+                  type="button"
+                  onClick={saveDraft}
+                  disabled={draftSaved}
+                  className="font-bricolage inline-flex h-12 items-center justify-center px-2 font-medium text-black/65 transition-colors hover:text-black disabled:cursor-default"
+                >
+                  {draftSaved ? "Draft saved" : "Save as draft"}
+                </button>
+              ) : null}
+              <button
+                type="button"
+                onClick={nextStep}
+                className="font-bricolage inline-flex h-12 items-center gap-2 rounded-full bg-black px-7 font-medium text-white transition-colors hover:bg-black/80"
+              >
+                Continue
+                <ArrowRight aria-hidden="true" className="size-4" />
+              </button>
+            </div>
           ) : (
             <button
               type="submit"
@@ -371,14 +612,25 @@ export function ListPropertyForm() {
 type StepPanelProps = {
   step: number;
   currentStep: number;
+  firstStep?: number;
+  totalSteps?: number;
   title: string;
   children: React.ReactNode;
 };
 
-function StepPanel({ step, currentStep, title, children }: StepPanelProps) {
+function StepPanel({
+  step,
+  currentStep,
+  firstStep = 0,
+  totalSteps = 5,
+  title,
+  children,
+}: StepPanelProps) {
   return (
     <section data-step={step} hidden={step !== currentStep}>
-      <p className="text-carbon-500 mb-3 text-sm">Step {step + 1} of 5</p>
+      <p className="text-carbon-500 mb-3 text-sm">
+        Step {step - firstStep + 1} of {totalSteps}
+      </p>
       <h2 className="font-bricolage text-carbon-900 mb-7 text-3xl font-medium tracking-[-0.035em] sm:text-4xl">
         {title}
       </h2>
@@ -396,6 +648,8 @@ type FieldProps = {
   className?: string;
   required?: boolean;
   min?: string;
+  max?: string;
+  step?: string;
 };
 
 function Field({
@@ -407,6 +661,8 @@ function Field({
   className,
   required,
   min,
+  max,
+  step,
 }: FieldProps) {
   return (
     <label className={className}>
@@ -419,7 +675,9 @@ function Field({
         placeholder={placeholder}
         required={required}
         min={min}
-        className="h-12 w-full rounded-xl border border-black/20 bg-white px-4 transition-colors outline-none focus:border-black"
+        max={max}
+        step={step}
+        className="h-12 w-full rounded-xl border-0 bg-black/[0.035] px-4 ring-0 transition-colors outline-none focus:bg-black/[0.055] focus:ring-0"
       />
       {hint && (
         <span className="text-carbon-500 mt-1.5 block text-xs">{hint}</span>
@@ -441,19 +699,84 @@ function SelectField({ label, name, options, required }: SelectFieldProps) {
       <span className="text-carbon-900 mb-2 block text-sm font-medium">
         {label}
       </span>
-      <select
-        name={name}
-        required={required}
-        defaultValue=""
-        className="h-12 w-full rounded-xl border border-black/20 bg-white px-4 transition-colors outline-none focus:border-black"
-      >
-        <option value="" disabled>
-          Choose {label.toLowerCase()}
-        </option>
-        {options.map((option) => (
-          <option key={option}>{option}</option>
-        ))}
-      </select>
+      <span className="relative block">
+        <select
+          name={name}
+          required={required}
+          defaultValue=""
+          className="h-12 w-full appearance-none rounded-xl border-0 bg-black/[0.035] pr-11 pl-4 ring-0 transition-colors outline-none focus:bg-black/[0.055] focus:ring-0"
+        >
+          <option value="" disabled>
+            Choose {label.toLowerCase()}
+          </option>
+          {options.map((option) => (
+            <option key={option}>{option}</option>
+          ))}
+        </select>
+        <ChevronDown
+          aria-hidden="true"
+          className="pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2"
+        />
+      </span>
     </label>
+  );
+}
+
+function PropertyTypeField() {
+  const [propertyType, setPropertyType] = useState("");
+
+  return (
+    <div className={propertyType === "Other" ? "sm:col-span-2" : undefined}>
+      <div
+        className={
+          propertyType === "Other" ? "grid gap-5 sm:grid-cols-2" : undefined
+        }
+      >
+        <label>
+          <span className="text-carbon-900 mb-2 block text-sm font-medium">
+            Property type
+          </span>
+          <span className="relative block">
+            <select
+              name="propertyType"
+              required
+              value={propertyType}
+              onChange={(event) => setPropertyType(event.target.value)}
+              className="h-12 w-full appearance-none rounded-xl border-0 bg-black/[0.035] pr-11 pl-4 ring-0 transition-colors outline-none focus:bg-black/[0.055] focus:ring-0"
+            >
+              <option value="" disabled>
+                Choose property type
+              </option>
+              {[
+                "House",
+                "Apartment",
+                "Duplex",
+                "Studio apartment",
+                "Penthouse",
+                "Villa",
+                "Mansion",
+                "Shared apartment",
+                "Other",
+              ].map((option) => (
+                <option key={option}>{option}</option>
+              ))}
+            </select>
+            <ChevronDown
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2"
+            />
+          </span>
+        </label>
+
+        {propertyType === "Other" ? (
+          <Field
+            label="Describe the property type"
+            name="customPropertyType"
+            placeholder="For example, townhouse or serviced residence"
+            required
+          />
+        ) : null}
+      </div>
+    </div>
   );
 }

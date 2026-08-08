@@ -29,6 +29,19 @@ import { DEMO_LISTINGS } from "@/data/hero-search-demo";
 
 const HOUSE_IMAGES = [house1, house2, house3, house4, house5, house6];
 
+const FEATURED_AMENITY_PRIORITY = [
+  "Backup power",
+  "Solar power",
+  "Borehole",
+  "Swimming pool",
+  "Security",
+  "CCTV",
+  "Wheelchair access",
+  "EV charging",
+  "Beach access",
+  "Gym",
+];
+
 const DETAILS: Record<
   string,
   {
@@ -194,6 +207,16 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
   const { latitude, longitude } = detail.coordinates;
   const mapDelta = 0.018;
   const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${longitude - mapDelta}%2C${latitude - mapDelta}%2C${longitude + mapDelta}%2C${latitude + mapDelta}&layer=mapnik&marker=${latitude}%2C${longitude}`;
+  const orderedAmenities = [...property.amenities].sort((first, second) => {
+    const firstRank = FEATURED_AMENITY_PRIORITY.indexOf(first);
+    const secondRank = FEATURED_AMENITY_PRIORITY.indexOf(second);
+    return (
+      (firstRank === -1 ? Number.MAX_SAFE_INTEGER : firstRank) -
+      (secondRank === -1 ? Number.MAX_SAFE_INTEGER : secondRank)
+    );
+  });
+  const highlightedAmenities = orderedAmenities.slice(0, 8);
+  const remainingAmenities = orderedAmenities.slice(8);
 
   return (
     <>
@@ -295,7 +318,7 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
                   What this home offers
                 </h2>
                 <ul className="mt-6 grid gap-4 sm:grid-cols-2">
-                  {property.amenities.map((amenity) => (
+                  {highlightedAmenities.map((amenity) => (
                     <li
                       key={amenity}
                       className="text-carbon-700 flex items-center gap-3"
@@ -307,6 +330,26 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
                     </li>
                   ))}
                 </ul>
+                {remainingAmenities.length > 0 ? (
+                  <details className="mt-6 rounded-2xl bg-black/[0.035] px-5 py-4">
+                    <summary className="font-bricolage cursor-pointer list-none font-medium marker:hidden">
+                      Show all {property.amenities.length} amenities
+                    </summary>
+                    <ul className="mt-5 grid gap-4 border-t border-black/10 pt-5 sm:grid-cols-2">
+                      {remainingAmenities.map((amenity) => (
+                        <li
+                          key={amenity}
+                          className="text-carbon-700 flex items-center gap-3"
+                        >
+                          <span className="flex size-8 items-center justify-center rounded-full bg-black text-white">
+                            <Check aria-hidden="true" className="size-4" />
+                          </span>
+                          {amenity}
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                ) : null}
               </section>
 
               <section className="border-t border-black/10 py-9">

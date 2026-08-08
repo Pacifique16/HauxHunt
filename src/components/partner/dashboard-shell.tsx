@@ -1,0 +1,455 @@
+"use client";
+
+import Link from "next/link";
+import Image from "next/image";
+import { useEffect, useState, type ReactNode } from "react";
+import {
+  BarChart3,
+  Bell,
+  Building2,
+  CalendarDays,
+  ChevronLeft,
+  ClipboardCheck,
+  LayoutDashboard,
+  LogOut,
+  MessageSquare,
+  PanelLeftOpen,
+  Search,
+  Settings,
+  ShieldCheck,
+  UserRound,
+} from "lucide-react";
+
+import { Wordmark } from "@/components/layout/wordmark";
+import appIllustration from "../../../illustrated-black-man-using-mobile-phone.png";
+import julienProfile from "../../../julien.jpg";
+
+const DASHBOARD_NAV = [
+  {
+    label: "Overview",
+    href: "/partner-dashboard",
+    section: "overview",
+    icon: LayoutDashboard,
+  },
+  {
+    label: "Portfolio & listings",
+    href: "/partner-dashboard/listings",
+    section: "listings",
+    icon: Building2,
+  },
+  {
+    label: "Performance",
+    href: "/partner-dashboard/performance",
+    section: "performance",
+    icon: BarChart3,
+  },
+  {
+    label: "Enquiries & calendar",
+    href: "/partner-dashboard/enquiries",
+    section: "enquiries",
+    icon: CalendarDays,
+    badge: "7",
+  },
+  {
+    label: "Applications",
+    href: "/partner-dashboard/applications",
+    section: "applications",
+    icon: ClipboardCheck,
+    badge: "8",
+  },
+  {
+    label: "Messages",
+    href: "/partner-dashboard/messages",
+    section: "messages",
+    icon: MessageSquare,
+    badge: "4",
+  },
+] as const;
+
+const ACCOUNT_NAV = [
+  {
+    label: "Verification",
+    href: "/partner-dashboard/verification",
+    section: "verification",
+    icon: ShieldCheck,
+  },
+] as const;
+
+export function DashboardShell({
+  children,
+  initialSection = "overview",
+}: {
+  children: ReactNode;
+  initialSection?: string;
+}) {
+  const [collapsed, setCollapsed] = useState(false);
+  const [activeSection, setActiveSection] = useState(initialSection);
+
+  useEffect(() => {
+    const syncHash = () =>
+      setActiveSection(window.location.hash.slice(1) || initialSection);
+    syncHash();
+    window.addEventListener("hashchange", syncHash);
+    return () => window.removeEventListener("hashchange", syncHash);
+  }, [initialSection]);
+
+  return (
+    <main className="bg-carbon-50 min-h-svh lg:fixed lg:inset-0 lg:block lg:min-h-0 lg:overflow-hidden lg:bg-black">
+      <DashboardSidebar
+        collapsed={collapsed}
+        activeSection={activeSection}
+        onCollapse={() => setCollapsed((value) => !value)}
+        onNavigate={setActiveSection}
+      />
+      <div
+        className={`bg-carbon-50 min-h-svh min-w-0 lg:absolute lg:inset-y-0 lg:right-0 lg:min-h-0 lg:overflow-x-clip lg:overflow-y-auto lg:overscroll-contain lg:rounded-tl-[2rem] lg:rounded-bl-[2rem] lg:transition-[left] lg:duration-300 ${collapsed ? "lg:left-[84px]" : "lg:left-[280px]"}`}
+      >
+        <MobileDashboardNav
+          activeSection={activeSection}
+          onNavigate={setActiveSection}
+        />
+        <DashboardTopBar onNavigate={setActiveSection} />
+        {children}
+      </div>
+    </main>
+  );
+}
+
+function DashboardTopBar({
+  onNavigate,
+}: {
+  onNavigate: (section: string) => void;
+}) {
+  const [profileOpen, setProfileOpen] = useState(false);
+
+  return (
+    <header className="bg-carbon-50/95 sticky top-0 z-30 hidden h-20 px-6 backdrop-blur-md lg:block lg:px-10 xl:px-12">
+      <div className="relative mx-auto flex h-full w-full max-w-[1360px] items-center justify-end gap-2 border-b border-black/8">
+        <div
+          id="dashboard-topbar-status"
+          className="pointer-events-none absolute top-1/2 left-1/2 z-40 -translate-x-1/2 -translate-y-1/2"
+        />
+        <label className="relative mr-auto block w-full max-w-sm">
+          <span className="sr-only">Search dashboard</span>
+          <Search
+            aria-hidden="true"
+            className="text-carbon-500 pointer-events-none absolute top-1/2 right-4 size-[18px] -translate-y-1/2"
+          />
+          <input
+            type="search"
+            placeholder="Search"
+            className="h-11 w-full rounded-full bg-white pr-11 pl-4 text-sm text-black outline-none placeholder:text-black/35"
+          />
+        </label>
+        <Link
+          href="/partner-dashboard/notifications"
+          onClick={() => onNavigate("notifications")}
+          aria-label="Notifications"
+          className="relative mr-4 flex size-11 items-center justify-center rounded-full bg-transparent text-black"
+        >
+          <Bell aria-hidden="true" className="size-5" />
+          <span className="absolute -top-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full bg-black text-[0.6rem] font-medium text-white ring-2 ring-white">
+            6
+          </span>
+        </Link>
+        <div className="relative ml-1">
+          <button
+            type="button"
+            onClick={() => setProfileOpen((open) => !open)}
+            aria-expanded={profileOpen}
+            aria-haspopup="menu"
+            className="flex size-12 items-center justify-center rounded-full shadow-[0_4px_14px_rgba(0,0,0,0.14)] transition-shadow hover:shadow-[0_6px_18px_rgba(0,0,0,0.2)]"
+          >
+            <Image
+              src={julienProfile}
+              alt=""
+              className="size-12 rounded-full object-cover"
+            />
+          </button>
+
+          {profileOpen ? (
+            <div
+              role="menu"
+              className="absolute top-[calc(100%+0.75rem)] right-0 w-[min(360px,calc(100vw-3rem))] overflow-hidden rounded-2xl border border-black/10 bg-white text-black shadow-[0_20px_55px_rgba(0,0,0,0.16)]"
+            >
+              <div className="flex items-center gap-4 border-b border-black/10 p-5">
+                <Image
+                  src={julienProfile}
+                  alt=""
+                  className="size-12 shrink-0 rounded-full object-cover shadow-[0_4px_14px_rgba(0,0,0,0.14)]"
+                />
+                <div className="min-w-0">
+                  <p className="font-bricolage truncate text-lg font-medium">
+                    Alex Partner
+                  </p>
+                  <p className="text-carbon-500 truncate text-sm">
+                    partner@gmail.com
+                  </p>
+                </div>
+              </div>
+
+              <div className="border-b border-black/10 p-2">
+                <Link
+                  href="/partner-dashboard/settings"
+                  role="menuitem"
+                  onClick={() => {
+                    onNavigate("settings");
+                    setProfileOpen(false);
+                  }}
+                  className="flex h-12 items-center rounded-xl bg-black/[0.045] px-3 font-medium transition-colors hover:bg-black/[0.08]"
+                >
+                  Account settings
+                </Link>
+                <Link
+                  href="#terms"
+                  role="menuitem"
+                  onClick={() => setProfileOpen(false)}
+                  className="flex h-12 items-center rounded-xl px-3 font-medium transition-colors hover:bg-black/[0.045]"
+                >
+                  Terms &amp; conditions
+                </Link>
+              </div>
+
+              <div className="p-2">
+                <Link
+                  href="/login"
+                  role="menuitem"
+                  className="flex h-12 items-center justify-between rounded-xl px-3 font-medium transition-colors hover:bg-black/[0.045]"
+                >
+                  Log out
+                  <LogOut
+                    aria-hidden="true"
+                    className="text-carbon-500 size-4"
+                  />
+                </Link>
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function DashboardSidebar({
+  collapsed,
+  activeSection,
+  onCollapse,
+  onNavigate,
+}: {
+  collapsed: boolean;
+  activeSection: string;
+  onCollapse: () => void;
+  onNavigate: (section: string) => void;
+}) {
+  return (
+    <aside
+      className={`sticky top-0 hidden h-full min-h-0 shrink-0 flex-col overflow-hidden bg-black py-6 text-white transition-[width,padding] duration-300 lg:flex ${collapsed ? "w-[84px] px-3" : "w-[280px] px-5"}`}
+    >
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-0 [background-image:radial-gradient(circle_at_center,white_1px,transparent_1px)] [background-size:20px_20px] opacity-[0.07]" />
+        <div className="absolute top-1/3 -left-28 size-64 rounded-full bg-[#00f58a]/10 blur-3xl" />
+      </div>
+      <div
+        className={`relative z-10 flex items-center ${collapsed ? "flex-col justify-center gap-4" : "justify-between"}`}
+      >
+        <Link
+          href="/"
+          aria-label="HauxHunt home"
+          className={`shrink-0 invert transition-all ${collapsed ? "w-10 overflow-hidden" : "w-auto"}`}
+        >
+          <Wordmark height={42} />
+        </Link>
+        <button
+          type="button"
+          onClick={onCollapse}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          className="flex size-9 shrink-0 items-center justify-center rounded-full border border-white/10 text-white/65 transition-colors hover:bg-white/10 hover:text-white"
+        >
+          {collapsed ? (
+            <PanelLeftOpen className="size-4" />
+          ) : (
+            <ChevronLeft className="size-4" />
+          )}
+        </button>
+      </div>
+
+      <nav aria-label="Partner dashboard" className="relative z-10 mt-7 flex-1">
+        <ul className={`${collapsed ? "space-y-2" : "mt-2 space-y-1"}`}>
+          {DASHBOARD_NAV.map((item) => (
+            <NavItem
+              key={item.label}
+              item={item}
+              collapsed={collapsed}
+              active={activeSection === item.section}
+              onNavigate={onNavigate}
+            />
+          ))}
+        </ul>
+        <ul className="mt-2 space-y-2">
+          {ACCOUNT_NAV.map((item) => (
+            <NavItem
+              key={item.label}
+              item={item}
+              collapsed={collapsed}
+              active={activeSection === item.section}
+              onNavigate={onNavigate}
+            />
+          ))}
+        </ul>
+      </nav>
+
+      {!collapsed ? (
+        <section className="relative z-10 mt-5 min-h-56 shrink-0 overflow-hidden rounded-[1.5rem] bg-[#00f58a] p-5 text-black">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 240 224"
+            className="pointer-events-none absolute inset-0 z-0 size-full translate-y-4 opacity-25"
+            fill="none"
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M-24 116C33 73 73 164 134 126C178 98 205 73 264 96M-24 176C33 133 73 224 134 186C178 158 205 133 264 156"
+              stroke="black"
+              strokeWidth="1.5"
+              strokeDasharray="4 5"
+            />
+          </svg>
+          <div className="relative z-10 max-w-[135px]">
+            <p className="font-bricolage text-lg leading-5 font-medium tracking-[-0.025em]">
+              HauxHunt on the go.
+            </p>
+            <p className="mt-2 text-xs leading-4 text-black/55">
+              Manage listings and enquiries anywhere.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="font-bricolage absolute bottom-5 left-5 z-10 inline-flex h-9 items-center justify-center rounded-full bg-black px-4 text-xs font-medium text-white"
+          >
+            Download App
+          </button>
+          <Image
+            src={appIllustration}
+            alt="Person using the HauxHunt mobile app"
+            className="absolute -right-32 -bottom-32 z-10 h-96 w-auto max-w-none object-contain"
+          />
+        </section>
+      ) : null}
+    </aside>
+  );
+}
+
+function NavItem({
+  item,
+  collapsed,
+  active,
+  onNavigate,
+}: {
+  item: (typeof DASHBOARD_NAV)[number] | (typeof ACCOUNT_NAV)[number];
+  collapsed: boolean;
+  active: boolean;
+  onNavigate: (section: string) => void;
+}) {
+  return (
+    <li>
+      <Link
+        href={item.href}
+        onClick={() => onNavigate(item.section)}
+        aria-current={active ? "page" : undefined}
+        aria-label={collapsed ? item.label : undefined}
+        title={collapsed ? item.label : undefined}
+        className={`relative flex h-11 items-center text-sm ${collapsed ? "justify-center px-0" : "gap-3 px-3"} ${
+          active
+            ? `bg-carbon-50 rounded-l-full rounded-r-none text-black before:absolute before:-top-5 before:right-0 before:size-5 before:rounded-br-full before:shadow-[7px_7px_0_7px_var(--color-carbon-50)] after:absolute after:right-0 after:-bottom-5 after:size-5 after:rounded-tr-full after:shadow-[7px_-7px_0_7px_var(--color-carbon-50)] ${collapsed ? "w-[calc(100%+0.75rem)] pl-0" : "w-[calc(100%+1.25rem)] pr-8"}`
+            : "rounded-xl text-white/58 hover:bg-white/[0.07] hover:text-white"
+        }`}
+      >
+        <item.icon aria-hidden="true" className="size-[18px] shrink-0" />
+        {!collapsed && (
+          <span className="flex-1 whitespace-nowrap">{item.label}</span>
+        )}
+        {"badge" in item &&
+          (!collapsed ? (
+            <span
+              className={`flex min-w-6 items-center justify-center rounded-full px-1.5 py-0.5 text-[0.65rem] font-medium ${active ? "bg-black text-white" : "bg-white/10 text-white/65"}`}
+            >
+              {item.badge}
+            </span>
+          ) : (
+            <span
+              className={`absolute top-1 right-1 size-2 rounded-full ${active ? "bg-black" : "bg-white"}`}
+            />
+          ))}
+      </Link>
+    </li>
+  );
+}
+
+function MobileDashboardNav({
+  activeSection,
+  onNavigate,
+}: {
+  activeSection: string;
+  onNavigate: (section: string) => void;
+}) {
+  return (
+    <div className="border-b border-black/10 bg-white lg:hidden">
+      <div className="flex items-center justify-between px-5 py-4 sm:px-6">
+        <Link href="/" aria-label="HauxHunt home">
+          <Wordmark height={36} />
+        </Link>
+        <div className="flex items-center gap-1.5">
+          <Link
+            href="/partner-dashboard/notifications"
+            onClick={() => onNavigate("notifications")}
+            aria-label="Notifications"
+            className="relative flex size-9 items-center justify-center rounded-full border border-black/10"
+          >
+            <Bell aria-hidden="true" className="size-4" />
+            <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-black ring-2 ring-white" />
+          </Link>
+          <Link
+            href="/partner-dashboard/settings"
+            onClick={() => onNavigate("settings")}
+            aria-label="Settings"
+            className="flex size-9 items-center justify-center rounded-full border border-black/10"
+          >
+            <Settings aria-hidden="true" className="size-4" />
+          </Link>
+          <Link
+            href="#profile"
+            onClick={() => onNavigate("profile")}
+            aria-label="Profile"
+            className="flex size-9 items-center justify-center rounded-full bg-black text-white"
+          >
+            <UserRound aria-hidden="true" className="size-4" />
+          </Link>
+        </div>
+      </div>
+      <nav
+        aria-label="Partner dashboard"
+        className="overflow-x-auto px-5 pb-3 sm:px-6"
+      >
+        <ul className="flex min-w-max gap-2">
+          {DASHBOARD_NAV.map((item) => (
+            <li key={item.label}>
+              <Link
+                href={item.href}
+                onClick={() => onNavigate(item.section)}
+                aria-current={
+                  activeSection === item.section ? "page" : undefined
+                }
+                className={`inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-medium ${activeSection === item.section ? "bg-black text-white" : "border border-black/10 bg-white text-black"}`}
+              >
+                <item.icon className="size-4" />
+                {item.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </div>
+  );
+}
