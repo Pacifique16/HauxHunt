@@ -302,7 +302,10 @@ export function AuthenticationForm({
       )}
 
       {error && (
-        <p role="alert" className="mt-5 text-sm font-medium text-red-700">
+        <p
+          role="alert"
+          className={`mt-5 text-sm font-medium ${isDark ? "text-red-300" : "text-red-700"}`}
+        >
           {error}
         </p>
       )}

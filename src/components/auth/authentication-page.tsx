@@ -20,7 +20,7 @@ export function AuthenticationPage({ mode }: AuthenticationPageProps) {
       <main className="min-h-svh bg-[#0a0a0a] p-3 text-white sm:p-5 lg:h-svh lg:overflow-hidden">
         <div className="mx-auto grid min-h-[calc(100svh-1.5rem)] max-w-[1600px] gap-3 lg:h-[calc(100svh-2.5rem)] lg:min-h-0 lg:grid-cols-[minmax(360px,0.68fr)_minmax(0,1.32fr)]">
           <section className="flex min-h-[720px] flex-col p-6 sm:p-9 lg:min-h-0 lg:p-10 xl:p-14">
-            <div className="flex items-center justify-between gap-5">
+            <div className="flex -translate-y-3 items-center justify-between gap-5">
               <Link
                 href="/"
                 aria-label="HauxHunt home"
@@ -37,7 +37,7 @@ export function AuthenticationPage({ mode }: AuthenticationPageProps) {
               </Link>
             </div>
 
-            <div className="my-auto w-full max-w-md self-center py-14">
+            <div className="my-auto w-full max-w-md -translate-y-6 self-center py-10">
               <h1 className="font-bricolage text-[clamp(2.7rem,5vw,4.7rem)] leading-[0.92] font-medium tracking-[-0.055em]">
                 Welcome back.
               </h1>
@@ -49,7 +49,6 @@ export function AuthenticationPage({ mode }: AuthenticationPageProps) {
                 <AuthenticationForm mode="login" variant="dark" />
               </div>
             </div>
-
           </section>
 
           <LoginMosaic />
