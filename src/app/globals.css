@@ -1203,13 +1203,13 @@
    through as a restrained frosted layer. */
 .hero-search-glass .workspace-surface {
   background-color: rgb(255 255 255 / 0.38);
-  -webkit-backdrop-filter: blur(26px) saturate(1.08);
-  backdrop-filter: blur(26px) saturate(1.08);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
   border: 1px solid rgb(255 255 255 / 0.46);
 }
 
 .hero-search-glass .bg-canvas {
   background-color: rgb(255 255 255 / 0.48);
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
