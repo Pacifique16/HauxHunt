@@ -1,0 +1,32 @@
+
+> hauxhunt@0.1.0 dev
+> next dev
+
+▲ Next.js 16.3.0 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.56.1:3000
+✓ Ready in 8.5s
+✓ Running next.config.ts took 568ms
+Creating turbopack project {
+  dir: 'C:\\Users\\Pacifique Harerimana\\OneDrive\\Desktop\\Projects\\HauxHunt',
+  testMode: true
+}
+
+ GET / 200 in 3.5s (next.js: 2.1s, application-code: 1340ms)
+ GET / 200 in 522ms (next.js: 12ms, application-code: 510ms)
+ GET / 200 in 41ms (next.js: 15ms, application-code: 25ms)
+ GET / 200 in 192ms (next.js: 21ms, application-code: 171ms)
+ GET /flatmates 200 in 279ms (next.js: 121ms, application-code: 158ms)
+ GET /rent 200 in 304ms (next.js: 117ms, application-code: 188ms)
+ GET / 200 in 172ms (next.js: 10ms, application-code: 163ms)
+ GET /rent 200 in 154ms (next.js: 11ms, application-code: 143ms)
+ GET /flatmates 200 in 185ms (next.js: 11ms, application-code: 175ms)
+ GET /landlords 200 in 202ms (next.js: 125ms, application-code: 77ms)
+ GET /login 200 in 213ms (next.js: 127ms, application-code: 85ms)
+ GET /partner-dashboard 200 in 167ms (next.js: 100ms, application-code: 67ms)
+ GET /partner-dashboard/listings 200 in 182ms (next.js: 103ms, application-code: 79ms)
+ GET /partner-dashboard/performance 200 in 196ms (next.js: 123ms, application-code: 73ms)
+ GET /partner-dashboard/enquiries 200 in 193ms (next.js: 104ms, application-code: 89ms)
+ GET /partner-dashboard/applications 200 in 193ms (next.js: 110ms, application-code: 83ms)
+ GET /partner-dashboard/messages 200 in 170ms (next.js: 107ms, application-code: 64ms)
+ GET /partner-dashboard/verification 200 in 220ms (next.js: 129ms, application-code: 91ms)
