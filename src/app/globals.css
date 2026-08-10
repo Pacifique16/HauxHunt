@@ -1216,7 +1216,8 @@
 
 /* Shared title scale for authenticated dashboard pages. */
 .dashboard-page-title {
-  font-family: var(--font-bricolage), sans-serif;
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-optical-sizing: auto;
   font-size: clamp(2.25rem, 4vw, 3.75rem);
   line-height: 0.95;
   font-weight: 500;
