@@ -111,7 +111,7 @@ const LISTINGS = [
     focalPoint: "50% 56%",
   },
   {
-    title: "Lake-view apartment",
+    title: "Beach Front Apartments",
     location: "Gisenyi, Rwanda",
     price: "USD 445",
     period: "per month",
@@ -142,12 +142,13 @@ export function FeaturedListings() {
               Featured Listings
             </h2>
             <p className="text-body-m text-carbon-600 mt-4 max-w-[52ch]">
-              A closer look at homes available across Rwanda and Nigeria.
+              A closer look at homes available across Rwanda, Nigeria, and
+              Kenya.
             </p>
           </div>
 
           <Link
-            href="/rent"
+            href="/properties?mapHidden=1"
             className="font-bricolage border-carbon-900 text-carbon-900 hover:bg-muted inline-flex h-11 shrink-0 items-center justify-center gap-2 self-start rounded-full border px-5 text-base font-medium transition-colors duration-150 sm:self-auto"
           >
             View all listings
@@ -157,7 +158,7 @@ export function FeaturedListings() {
 
         <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
           {LISTINGS.map((listing) => (
-            <ListingCard key={listing.href} {...listing} />
+            <ListingCard key={listing.href} {...listing} requiresLogin />
           ))}
         </div>
 
@@ -194,7 +195,7 @@ export function FeaturedListings() {
               Can&apos;t find what you&apos;re looking for?
             </h3>
             <p className="text-body-m mt-3 max-w-[68ch] text-white/65">
-              Post a property request and real estate agents with properties
+              Post a property request and verified property managers or agents
               that meet your criteria will get in touch with you.
             </p>
           </div>

@@ -14,6 +14,7 @@ import {
 
 export function PropertyRequestForm() {
   const [submitted, setSubmitted] = useState(false);
+  const [propertyType, setPropertyType] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -37,13 +38,14 @@ export function PropertyRequestForm() {
         </h2>
         <p className="text-carbon-600 mx-auto mt-4 max-w-xl leading-7">
           Your requirements have been captured. Once request publishing is
-          connected, verified landlords and property partners with suitable
-          houses will be able to contact you.
+          connected, verified property managers and agents with suitable houses
+          will be able to contact you.
         </p>
         <button
           type="button"
           onClick={() => {
             setSubmitted(false);
+            setPropertyType("");
             requestAnimationFrame(() => formRef.current?.reset());
           }}
           className="font-bricolage mt-8 h-12 rounded-full bg-black px-7 font-medium text-white transition-colors hover:bg-black/80"
@@ -99,15 +101,15 @@ export function PropertyRequestForm() {
             <SelectField
               label="I want to"
               name="purpose"
-              placeholder="Choose rent or buy"
-              options={["Rent a house", "Buy a house"]}
+              placeholder="Choose your rental need"
+              options={["Rent a house"]}
               required
             />
             <SelectField
               label="Country"
               name="country"
               placeholder="Choose country"
-              options={["Rwanda", "Nigeria"]}
+              options={["Rwanda", "Nigeria", "Kenya"]}
               required
             />
             <Field
@@ -121,24 +123,39 @@ export function PropertyRequestForm() {
               name="neighbourhood"
               placeholder="Optional"
             />
-            <SelectField
-              label="Property type"
-              name="propertyType"
-              placeholder="Any property type"
-              options={[
-                "House",
-                "Apartment",
-                "Duplex",
-                "Single room",
-                "Penthouse",
-                "Shared apartment",
-                "Studio apartment",
-                "Mansion",
-                "Villa",
-                "Hotel",
-              ]}
-              required
-            />
+            <div>
+              <SelectField
+                label="Property type"
+                name="propertyType"
+                placeholder="Any property type"
+                options={[
+                  "House",
+                  "Apartment",
+                  "Duplex",
+                  "Single room",
+                  "Penthouse",
+                  "Shared apartment",
+                  "Studio apartment",
+                  "Mansion",
+                  "Villa",
+                  "Hotel",
+                  "Other",
+                ]}
+                value={propertyType}
+                onChange={setPropertyType}
+                required
+              />
+              {propertyType === "Other" ? (
+                <div className="mt-4">
+                  <Field
+                    label="Specify property type"
+                    name="otherPropertyType"
+                    placeholder="Enter the property type you need"
+                    required
+                  />
+                </div>
+              ) : null}
+            </div>
             <SelectField
               label="Bedrooms"
               name="bedrooms"
@@ -293,6 +310,8 @@ type SelectFieldProps = {
   placeholder: string;
   options: string[];
   required?: boolean;
+  value?: string;
+  onChange?: (value: string) => void;
 };
 
 function SelectField({
@@ -301,6 +320,8 @@ function SelectField({
   placeholder,
   options,
   required,
+  value,
+  onChange,
 }: SelectFieldProps) {
   return (
     <label>
@@ -311,7 +332,9 @@ function SelectField({
         <select
           name={name}
           required={required}
-          defaultValue=""
+          value={value}
+          defaultValue={value === undefined ? "" : undefined}
+          onChange={(event) => onChange?.(event.target.value)}
           className="contact-field-control h-12 w-full appearance-none rounded-xl border border-black/20 bg-white pr-11 pl-4 transition-colors outline-none focus:border-black"
         >
           <option value="" disabled={required}>

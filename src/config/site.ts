@@ -9,7 +9,7 @@ export const siteConfig = {
   name: "HauxHunt",
   title: "HauxHunt — Find a home you can trust",
   description:
-    "Search in plain language, see verified listings, and understand exactly why each match fits — in Rwanda and Nigeria.",
+    "Search in plain language, see verified listings, and understand exactly why each match fits — in Rwanda, Nigeria, and Kenya.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://hauxhunt.com",
   ogImage: "/images/og.png",
   links: {
@@ -32,7 +32,7 @@ export type SiteConfig = typeof siteConfig;
 export const navConfig: { label: string; href: string }[] = [
   { label: "Home", href: "/" },
   { label: "Rent", href: "/rent" },
-  { label: "Buy", href: "/buy" },
+  { label: "Flatmates", href: "/flatmates" },
   { label: "List", href: "/landlords" },
 ];
 

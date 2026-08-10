@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
-  ArrowRight,
+  ArrowUpRight,
   Building2,
   Download,
   Search,
@@ -31,7 +31,7 @@ const STEPS = [
     number: "03",
     title: "Connect and move forward",
     description:
-      "Contact the landlord, broker, or agency behind the property and arrange your next step with confidence.",
+      "Contact the property manager or agent behind the property and arrange your next step with confidence.",
     icon: UsersRound,
   },
 ] as const;
@@ -92,16 +92,15 @@ export function HowItWorks() {
               Grow your property business with HauxHunt
             </h3>
             <p className="text-body-m mt-4 max-w-[54ch] text-white/65">
-              Brokers, real estate agencies, and landlords can reach serious
-              home seekers, manage listings, and respond to property requests in
-              one place.
+              Property managers and agents can reach serious home seekers,
+              manage listings, and respond to property requests in one place.
             </p>
             <Link
-              href="/partners"
+              href="/register"
               className="font-bricolage bg-carbon-0 text-carbon-900 hover:bg-carbon-100 mt-8 inline-flex h-12 items-center gap-2 rounded-full px-6 text-base font-medium transition-colors duration-150"
             >
-              Join as a partner
-              <ArrowRight aria-hidden="true" className="size-4" />
+              Join us now
+              <ArrowUpRight aria-hidden="true" className="size-4" />
             </Link>
           </div>
 

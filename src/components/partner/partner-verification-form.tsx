@@ -34,12 +34,7 @@ const STEPS = [
   { short: "Review and submit", title: "Review and submit" },
 ] as const;
 
-const PARTNER_TYPES = [
-  "Individual landlord",
-  "Broker",
-  "Property manager",
-  "Real estate agency",
-] as const;
+const PARTNER_TYPES = ["Property manager", "Agent"] as const;
 
 const COUNTRIES = [
   { name: "Rwanda", code: "+250", short: "RW" },
@@ -48,6 +43,8 @@ const COUNTRIES = [
 ] as const;
 
 type PartnerType = (typeof PARTNER_TYPES)[number];
+type WorkArrangement = "Independent" | "Agency";
+type PropertyRelationship = "Owner" | "Appointed manager" | "Both";
 
 type BeneficialOwner = {
   name: string;
@@ -62,13 +59,16 @@ export function PartnerVerificationForm() {
   const [progressLoaded, setProgressLoaded] = useState(false);
   const [partnerType, setPartnerType] =
     useState<PartnerType>("Property manager");
+  const [workArrangement, setWorkArrangement] =
+    useState<WorkArrangement>("Independent");
+  const [propertyRelationship, setPropertyRelationship] =
+    useState<PropertyRelationship>("Appointed manager");
   const [phoneCountry, setPhoneCountry] = useState("+250");
   const [submitted, setSubmitted] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
 
-  const showsBusiness = partnerType !== "Individual landlord";
-  const needsCompanyRegistration =
-    partnerType === "Property manager" || partnerType === "Real estate agency";
+  const showsBusiness = workArrangement === "Agency";
+  const needsCompanyRegistration = showsBusiness;
 
   useEffect(() => {
     const navigationEntry = window.performance.getEntriesByType(
@@ -149,7 +149,7 @@ export function PartnerVerificationForm() {
       <div className="mx-auto max-w-[1120px]">
         <header className="flex flex-col gap-6 border-b border-black/10 pb-8 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="font-bricolage text-carbon-900 text-[clamp(2.75rem,5vw,4.75rem)] leading-[0.92] font-medium tracking-[-0.055em]">
+            <h1 className="dashboard-page-title text-carbon-900">
               Get verified.
             </h1>
             <p className="text-carbon-600 mt-5 max-w-2xl text-base leading-7 sm:text-lg">
@@ -217,6 +217,10 @@ export function PartnerVerificationForm() {
               <PartnerStep
                 partnerType={partnerType}
                 setPartnerType={setPartnerType}
+                workArrangement={workArrangement}
+                setWorkArrangement={setWorkArrangement}
+                propertyRelationship={propertyRelationship}
+                setPropertyRelationship={setPropertyRelationship}
                 showsBusiness={showsBusiness}
                 needsCompanyRegistration={needsCompanyRegistration}
               />
@@ -230,6 +234,7 @@ export function PartnerVerificationForm() {
             <div hidden={step !== 3}>
               <DocumentsStep
                 partnerType={partnerType}
+                propertyRelationship={propertyRelationship}
                 needsCompanyRegistration={needsCompanyRegistration}
               />
             </div>
@@ -301,7 +306,7 @@ const STEP_SUPPORT = [
     label: "Partner check",
     title: "Tell us who you represent.",
     description:
-      "Requirements adapt for landlords, brokers, property managers, and agencies.",
+      "Requirements adapt to property managers, agents, and agency-affiliated professionals.",
     checks: [
       "Legal business details",
       "Authority to act",
@@ -526,11 +531,19 @@ function IdentityStep() {
 function PartnerStep({
   partnerType,
   setPartnerType,
+  workArrangement,
+  setWorkArrangement,
+  propertyRelationship,
+  setPropertyRelationship,
   showsBusiness,
   needsCompanyRegistration,
 }: {
   partnerType: PartnerType;
   setPartnerType: (value: PartnerType) => void;
+  workArrangement: WorkArrangement;
+  setWorkArrangement: (value: WorkArrangement) => void;
+  propertyRelationship: PropertyRelationship;
+  setPropertyRelationship: (value: PropertyRelationship) => void;
   showsBusiness: boolean;
   needsCompanyRegistration: boolean;
 }) {
@@ -593,14 +606,39 @@ function PartnerStep({
             <option key={type}>{type}</option>
           ))}
         </SelectField>
+        <SelectField
+          label="Work arrangement"
+          name="workArrangement"
+          value={workArrangement}
+          onChange={(event) =>
+            setWorkArrangement(event.target.value as WorkArrangement)
+          }
+        >
+          <option>Independent</option>
+          <option>Agency</option>
+        </SelectField>
+        {partnerType === "Property manager" ? (
+          <SelectField
+            label="Property relationship"
+            name="propertyRelationship"
+            value={propertyRelationship}
+            onChange={(event) =>
+              setPropertyRelationship(
+                event.target.value as PropertyRelationship,
+              )
+            }
+          >
+            <option value="Owner">I own the properties I manage</option>
+            <option value="Appointed manager">
+              I manage properties for owners
+            </option>
+            <option value="Both">Both</option>
+          </SelectField>
+        ) : null}
         {showsBusiness ? (
           <>
             <Field
-              label={
-                partnerType === "Property manager"
-                  ? "Company name"
-                  : "Agency or business name"
-              }
+              label="Agency name"
               name="businessName"
               defaultValue="Kigali Homes Ltd."
               required={needsCompanyRegistration}
@@ -872,7 +910,7 @@ function PartnerStep({
               </p>
               <p className="text-carbon-500 mt-1 text-xs leading-5">
                 Complete this when your role or operating country requires a
-                real-estate or brokerage licence.
+                real-estate or agent licence.
               </p>
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <Field
@@ -895,8 +933,8 @@ function PartnerStep({
           </>
         ) : (
           <div className="rounded-2xl bg-black/[0.035] p-5 text-sm leading-6 text-black/65 sm:col-span-2">
-            As an individual landlord, you will need to show that you own or are
-            legally permitted to list each property.
+            Independent professionals must show that they own, manage, or are
+            legally authorized to represent every property they list.
           </div>
         )}
       </div>
@@ -978,17 +1016,21 @@ function AddressStep({
 
 function DocumentsStep({
   partnerType,
+  propertyRelationship,
   needsCompanyRegistration,
 }: {
   partnerType: PartnerType;
+  propertyRelationship: PropertyRelationship;
   needsCompanyRegistration: boolean;
 }) {
   const authorityTitle =
-    partnerType === "Individual landlord"
-      ? "Proof of ownership"
-      : partnerType === "Broker"
-        ? "Owner authorization or broker mandate"
-        : "Property management agreement or owner authorization";
+    partnerType === "Agent"
+      ? "Owner authorization or agent mandate"
+      : propertyRelationship === "Owner"
+        ? "Proof of ownership"
+        : propertyRelationship === "Appointed manager"
+          ? "Property management agreement"
+          : "Ownership or management authority";
   return (
     <div>
       <StepHeading eyebrow="Step 4" title="Upload supporting documents">
@@ -1030,16 +1072,17 @@ function DocumentsStep({
             description="Board resolution or signed authorization if you are submitting on behalf of the business."
           />
         ) : null}
-        {partnerType !== "Individual landlord" ? (
+        {partnerType === "Agent" ? (
           <UploadField
             title="Professional licence"
-            description="Brokerage or real-estate licence where one is required in your operating country."
+            description="Real-estate agent licence where one is required in your operating country."
           />
         ) : null}
         <UploadField
           title={authorityTitle}
           description={
-            partnerType === "Individual landlord"
+            partnerType === "Property manager" &&
+            propertyRelationship === "Owner"
               ? "Title deed, purchase document, lease, or another valid ownership record."
               : "A signed document confirming you are permitted to advertise and manage the property."
           }
@@ -1056,8 +1099,8 @@ function DocumentsStep({
         <p className="text-carbon-500 mt-1 text-xs leading-5">
           Verification confirms your partner account. Each property will still
           need ownership evidence, an owner authorization, management agreement,
-          or brokerage mandate whose property address and owner details match
-          the listing.
+          or agent mandate whose property address and owner details match the
+          listing.
         </p>
       </div>
       <p className="text-carbon-500 mt-5 text-xs">
@@ -1090,9 +1133,7 @@ function ReviewStep({
           label="Partner type"
           value={partnerType}
           detail={
-            showsBusiness
-              ? "Business details added"
-              : "Ownership evidence added"
+            showsBusiness ? "Agency details added" : "Independent professional"
           }
         />
         <ReviewCard
@@ -1115,8 +1156,8 @@ function ReviewStep({
           value={showsBusiness ? "Ready to validate" : "Not applicable"}
           detail={
             showsBusiness
-              ? "Business, TIN, directors and ownership"
-              : "Individual landlord account"
+              ? "Agency registration, TIN, directors and ownership"
+              : `Independent ${partnerType.toLowerCase()} account`
           }
         />
       </div>

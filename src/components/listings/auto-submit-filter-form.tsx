@@ -29,6 +29,19 @@ export function AutoSubmitFilterForm({
 
     if (timerRef.current) clearTimeout(timerRef.current);
 
+    const fieldToClear = target.dataset.clearField;
+    if (fieldToClear) {
+      const field = form.elements.namedItem(fieldToClear);
+      if (field instanceof HTMLInputElement) field.value = "";
+    }
+
+    if (target.dataset.noAutoSubmit === "true") {
+      if (target.dataset.submitWhenEmpty === "true" && !target.value.trim()) {
+        form.requestSubmit();
+      }
+      return;
+    }
+
     if (target.tagName === "INPUT") {
       timerRef.current = setTimeout(() => form.requestSubmit(), 450);
       return;

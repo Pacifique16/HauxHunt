@@ -147,7 +147,7 @@ export function EditListingForm({ listingTitle }: { listingTitle: string }) {
               label="Listing purpose"
               name="purpose"
               defaultValue="For rent"
-              options={["For rent", "For sale"]}
+              options={["For rent"]}
             />
             <EditSelect
               label="Currency"
@@ -166,7 +166,7 @@ export function EditListingForm({ listingTitle }: { listingTitle: string }) {
               label="Payment period"
               name="paymentPeriod"
               defaultValue="Per month"
-              options={["Per month", "Per year", "Total sale price"]}
+              options={["Per month", "Per year"]}
             />
             <EditField
               label="Available from"

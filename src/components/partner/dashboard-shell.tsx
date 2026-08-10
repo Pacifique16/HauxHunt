@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState, type ReactNode } from "react";
+import type { LucideIcon } from "lucide-react";
 import {
   BarChart3,
   Bell,
@@ -23,8 +24,17 @@ import {
 import { Wordmark } from "@/components/layout/wordmark";
 import appIllustration from "../../../illustrated-black-man-using-mobile-phone.png";
 import julienProfile from "../../../julien.jpg";
+import { usePartnerRole } from "@/components/partner/use-partner-role";
 
-const DASHBOARD_NAV = [
+type DashboardNavItem = {
+  label: string;
+  href: string;
+  section: string;
+  icon: LucideIcon;
+  badge?: string;
+};
+
+const PROPERTY_MANAGER_NAV: DashboardNavItem[] = [
   {
     label: "Overview",
     href: "/partner-dashboard",
@@ -66,6 +76,48 @@ const DASHBOARD_NAV = [
   },
 ] as const;
 
+const AGENT_NAV: DashboardNavItem[] = [
+  {
+    label: "Overview",
+    href: "/partner-dashboard",
+    section: "overview",
+    icon: LayoutDashboard,
+  },
+  {
+    label: "Listings & mandates",
+    href: "/partner-dashboard/listings",
+    section: "listings",
+    icon: Building2,
+  },
+  {
+    label: "Performance",
+    href: "/partner-dashboard/performance",
+    section: "performance",
+    icon: BarChart3,
+  },
+  {
+    label: "Leads & calendar",
+    href: "/partner-dashboard/enquiries",
+    section: "enquiries",
+    icon: CalendarDays,
+    badge: "7",
+  },
+  {
+    label: "Deals",
+    href: "/partner-dashboard/applications",
+    section: "applications",
+    icon: ClipboardCheck,
+    badge: "8",
+  },
+  {
+    label: "Messages",
+    href: "/partner-dashboard/messages",
+    section: "messages",
+    icon: MessageSquare,
+    badge: "4",
+  },
+];
+
 const ACCOUNT_NAV = [
   {
     label: "Verification",
@@ -86,6 +138,8 @@ export function DashboardShell({
 }) {
   const [collapsed, setCollapsed] = useState(rememberedSidebarCollapsed);
   const [activeSection, setActiveSection] = useState(initialSection);
+  const role = usePartnerRole();
+  const dashboardNav = role === "agent" ? AGENT_NAV : PROPERTY_MANAGER_NAV;
 
   useEffect(() => {
     const syncHash = () =>
@@ -98,6 +152,7 @@ export function DashboardShell({
   return (
     <main className="bg-carbon-50 min-h-svh lg:fixed lg:inset-0 lg:block lg:min-h-0 lg:overflow-hidden lg:bg-black">
       <DashboardSidebar
+        dashboardNav={dashboardNav}
         collapsed={collapsed}
         activeSection={activeSection}
         onCollapse={() =>
@@ -112,10 +167,11 @@ export function DashboardShell({
         className={`bg-carbon-50 min-h-svh min-w-0 lg:absolute lg:inset-y-0 lg:right-0 lg:min-h-0 lg:overflow-x-clip lg:overflow-y-auto lg:overscroll-contain lg:rounded-tl-[2rem] lg:rounded-bl-[2rem] lg:transition-[left] lg:duration-300 ${collapsed ? "lg:left-[84px]" : "lg:left-[280px]"}`}
       >
         <MobileDashboardNav
+          dashboardNav={dashboardNav}
           activeSection={activeSection}
           onNavigate={setActiveSection}
         />
-        <DashboardTopBar onNavigate={setActiveSection} />
+        <DashboardTopBar role={role} onNavigate={setActiveSection} />
         {children}
       </div>
     </main>
@@ -123,8 +179,10 @@ export function DashboardShell({
 }
 
 function DashboardTopBar({
+  role,
   onNavigate,
 }: {
+  role: "property_manager" | "agent";
   onNavigate: (section: string) => void;
 }) {
   const [profileOpen, setProfileOpen] = useState(false);
@@ -187,10 +245,13 @@ function DashboardTopBar({
                 />
                 <div className="min-w-0">
                   <p className="font-bricolage truncate text-lg font-medium">
-                    Alex Partner
+                    {role === "agent" ? "Alex Agent" : "Alex Partner"}
                   </p>
                   <p className="text-carbon-500 truncate text-sm">
-                    partner@gmail.com
+                    {role === "agent" ? "agent@gmail.com" : "partner@gmail.com"}
+                  </p>
+                  <p className="text-carbon-400 mt-0.5 text-xs">
+                    {role === "agent" ? "Agent" : "Property manager"}
                   </p>
                 </div>
               </div>
@@ -221,6 +282,11 @@ function DashboardTopBar({
                 <Link
                   href="/login"
                   role="menuitem"
+                  onClick={() => {
+                    window.sessionStorage.removeItem(
+                      "hauxhunt-authenticated-role",
+                    );
+                  }}
                   className="flex h-12 items-center justify-between rounded-xl px-3 font-medium transition-colors hover:bg-black/[0.045]"
                 >
                   Log out
@@ -239,11 +305,13 @@ function DashboardTopBar({
 }
 
 function DashboardSidebar({
+  dashboardNav,
   collapsed,
   activeSection,
   onCollapse,
   onNavigate,
 }: {
+  dashboardNav: DashboardNavItem[];
   collapsed: boolean;
   activeSection: string;
   onCollapse: () => void;
@@ -291,7 +359,7 @@ function DashboardSidebar({
 
       <nav aria-label="Partner dashboard" className="relative z-10 mt-7 flex-1">
         <ul className={`${collapsed ? "space-y-2" : "mt-2 space-y-1"}`}>
-          {DASHBOARD_NAV.map((item) => (
+          {dashboardNav.map((item) => (
             <NavItem
               key={item.label}
               item={item}
@@ -361,7 +429,7 @@ function NavItem({
   active,
   onNavigate,
 }: {
-  item: (typeof DASHBOARD_NAV)[number] | (typeof ACCOUNT_NAV)[number];
+  item: DashboardNavItem;
   collapsed: boolean;
   active: boolean;
   onNavigate: (section: string) => void;
@@ -409,9 +477,11 @@ function NavItem({
 }
 
 function MobileDashboardNav({
+  dashboardNav,
   activeSection,
   onNavigate,
 }: {
+  dashboardNav: DashboardNavItem[];
   activeSection: string;
   onNavigate: (section: string) => void;
 }) {
@@ -454,7 +524,7 @@ function MobileDashboardNav({
         className="overflow-x-auto px-5 pb-3 sm:px-6"
       >
         <ul className="flex min-w-max gap-2">
-          {DASHBOARD_NAV.map((item) => (
+          {dashboardNav.map((item) => (
             <li key={item.label}>
               <Link
                 href={item.href}

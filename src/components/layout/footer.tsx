@@ -9,18 +9,18 @@ const FOOTER_GROUPS = [
     title: "Find a home",
     links: [
       { label: "Rent", href: "/rent" },
-      { label: "Buy", href: "/buy" },
-      { label: "Trending locations", href: "#trending-locations" },
+      { label: "Find a flatmate", href: "/flatmates" },
+      { label: "Trending locations", href: "/#trending-locations" },
       { label: "How it works", href: "#how-it-works" },
     ],
   },
   {
     title: "For property partners",
     links: [
-      { label: "List a property", href: "/list" },
-      { label: "For landlords", href: "/partners/landlords" },
-      { label: "For brokers", href: "/partners/brokers" },
-      { label: "For agencies", href: "/partners/agencies" },
+      { label: "List a property", href: "/landlords" },
+      { label: "For property managers", href: "/landlords" },
+      { label: "For agents", href: "/landlords" },
+      { label: "For agency teams", href: "/landlords" },
     ],
   },
   {
@@ -85,8 +85,8 @@ export function Footer() {
               />
             </Link>
             <p className="text-body-m mt-6 max-w-[38ch] text-white/60">
-              A simpler, trusted way to discover homes across Rwanda and
-              Nigeria.
+              A simpler, trusted way to discover homes across Rwanda, Nigeria,
+              and Kenya.
             </p>
           </div>
 
@@ -102,12 +102,23 @@ export function Footer() {
                 <ul className="mt-5 space-y-3">
                   {group.links.map((link) => (
                     <li key={link.label}>
-                      <Link
-                        href={link.href}
-                        className="text-body-m rounded-sm text-white/55 transition-colors hover:text-white"
-                      >
-                        {link.label}
-                      </Link>
+                      {link.label === "Trending locations" ? (
+                        // Native navigation guarantees cross-page hash scrolling after the home document loads.
+                        // eslint-disable-next-line @next/next/no-html-link-for-pages
+                        <a
+                          href="/#trending-locations"
+                          className="text-body-m rounded-sm text-white/55 transition-colors hover:text-white"
+                        >
+                          {link.label}
+                        </a>
+                      ) : (
+                        <Link
+                          href={link.href}
+                          className="text-body-m rounded-sm text-white/55 transition-colors hover:text-white"
+                        >
+                          {link.label}
+                        </Link>
+                      )}
                     </li>
                   ))}
                 </ul>

@@ -1,50 +1,51 @@
 import {
   Building2,
   Castle,
-  DoorOpen,
   House,
-  KeyRound,
+  PanelsTopLeft,
   UsersRound,
+  Waves,
 } from "lucide-react";
 
 import { CategoryCard } from "./category-card";
 
 const CATEGORIES = [
   {
-    title: "Houses for rent",
-    count: 286,
-    href: "/search?category=houses-for-rent",
-    icon: KeyRound,
+    title: "Beach Front Apartments",
+    count: 86,
+    href: "/search?type=Beach+Front+Apartments",
+    icon: Waves,
   },
   {
     title: "Apartments",
     count: 341,
-    href: "/search?category=apartments",
+    href: "/search?type=Apartment",
     icon: Building2,
   },
   {
-    title: "Studio apartments",
+    title: "Houses",
     count: 128,
-    href: "/search?category=studios",
-    icon: DoorOpen,
+    href: "/search?type=House",
+    icon: House,
   },
   {
-    title: "Shared apartments",
+    title: "Duplexes",
     count: 94,
-    href: "/search?category=shared-apartments",
-    icon: UsersRound,
+    href: "/search?type=Duplex",
+    icon: PanelsTopLeft,
   },
   {
-    title: "Villas & mansions",
+    title: "Villas",
     count: 67,
-    href: "/search?category=villas-and-mansions",
+    href: "/search?type=Villa",
     icon: Castle,
   },
   {
-    title: "Houses for sale",
-    count: 152,
-    href: "/search?category=houses-for-sale",
-    icon: House,
+    title: "Find a flatmate",
+    count: 118,
+    href: "/flatmates",
+    icon: UsersRound,
+    countLabel: "people and shared homes",
   },
 ] as const;
 

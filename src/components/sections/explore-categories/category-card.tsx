@@ -6,6 +6,7 @@ type CategoryCardProps = {
   count: number;
   href: string;
   icon: LucideIcon;
+  countLabel?: string;
 };
 
 export function CategoryCard({
@@ -13,11 +14,12 @@ export function CategoryCard({
   count,
   href,
   icon: Icon,
+  countLabel = "properties available",
 }: CategoryCardProps) {
   return (
     <Link
       href={href}
-      aria-label={`Explore ${count}+ available properties in ${title}`}
+      aria-label={`Explore ${count}+ ${countLabel} in ${title}`}
       className="category-glass hover:border-carbon-900 group flex min-h-[170px] flex-col rounded-2xl p-6 transition-[border-color,transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-lg sm:p-7"
     >
       <Icon
@@ -32,7 +34,7 @@ export function CategoryCard({
 
       <div className="mt-auto flex items-center justify-between gap-4 pt-3">
         <p className="text-body-s text-carbon-600">
-          {count.toLocaleString()}+ properties available
+          {count.toLocaleString()}+ {countLabel}
         </p>
         <ArrowRight
           aria-hidden="true"

@@ -1,6 +1,7 @@
 import { BadgeCheck } from "lucide-react";
 
 import type { PropertyPreview } from "@/types";
+import { CurrencyAmount } from "@/components/currency/currency-selector";
 
 type MatchRowProps = {
   property: PropertyPreview;
@@ -20,8 +21,6 @@ type MatchRowProps = {
  * the brand is built against.
  */
 export function MatchRow({ property }: MatchRowProps) {
-  const price = `${property.currency} ${property.price.toLocaleString()}`;
-
   return (
     <article className="border-border-subtle grid gap-x-6 gap-y-2 border-t py-5 sm:grid-cols-[1fr_auto]">
       <div className="min-w-0">
@@ -36,7 +35,8 @@ export function MatchRow({ property }: MatchRowProps) {
         </div>
 
         <p className="text-body-s text-fg-muted mt-1">
-          {property.location} · {property.bedrooms} bed · {price}/month
+          {property.location} · {property.bedrooms} bed ·{" "}
+          <CurrencyAmount usdAmount={property.price} />/month
         </p>
 
         <p className="text-body-s text-fg-tertiary mt-3 max-w-[54ch]">

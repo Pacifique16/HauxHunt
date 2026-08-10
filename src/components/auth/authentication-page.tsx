@@ -5,6 +5,7 @@ import { ChevronLeft } from "lucide-react";
 import { AuthenticationForm } from "@/components/auth/authentication-form";
 import { LoginMosaic } from "@/components/auth/login-mosaic";
 import { Wordmark } from "@/components/layout/wordmark";
+import { HistoryBackButton } from "@/components/navigation/history-back-button";
 
 import registrationImage from "../../../interior.jpg";
 
@@ -28,13 +29,13 @@ export function AuthenticationPage({ mode }: AuthenticationPageProps) {
               >
                 <Wordmark height={42} />
               </Link>
-              <Link
-                href="/"
+              <HistoryBackButton
+                fallbackHref="/"
                 className="font-bricolage inline-flex h-10 items-center gap-0.5 text-sm font-medium text-white/60 transition-colors hover:text-white"
               >
                 <ChevronLeft aria-hidden="true" className="size-4" />
                 Back
-              </Link>
+              </HistoryBackButton>
             </div>
 
             <div className="my-auto w-full max-w-md -translate-y-6 self-center py-10">
@@ -79,13 +80,13 @@ export function AuthenticationPage({ mode }: AuthenticationPageProps) {
               >
                 <Wordmark height={42} />
               </Link>
-              <Link
-                href="/"
+              <HistoryBackButton
+                fallbackHref="/"
                 className="font-bricolage inline-flex h-10 items-center gap-0.5 text-sm font-medium text-white/70 transition-colors hover:text-white"
               >
                 <ChevronLeft aria-hidden="true" className="size-4" />
                 Back
-              </Link>
+              </HistoryBackButton>
             </div>
 
             <div className="mt-auto max-w-xl pb-5">
@@ -102,13 +103,13 @@ export function AuthenticationPage({ mode }: AuthenticationPageProps) {
 
         <section className="relative z-10 min-h-svh bg-white px-5 py-5 sm:px-8 sm:py-6 lg:-ml-12 lg:h-full lg:min-h-0 lg:overflow-hidden lg:rounded-tl-[5.5rem] lg:px-12 xl:px-16">
           <div className="mx-auto flex min-h-[calc(100svh-2.5rem)] max-w-xl flex-col justify-center lg:h-full lg:min-h-0">
-            <Link
-              href="/"
+            <HistoryBackButton
+              fallbackHref="/"
               className="font-bricolage mb-5 inline-flex h-10 w-fit items-center gap-0.5 text-sm font-medium text-black/60 transition-colors hover:text-black lg:hidden"
             >
               <ChevronLeft aria-hidden="true" className="size-4" />
               Back
-            </Link>
+            </HistoryBackButton>
             <AuthenticationForm mode="register" compact />
           </div>
         </section>

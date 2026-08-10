@@ -2,24 +2,22 @@
 
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
+import {
+  setPartnerRole,
+  usePartnerRole,
+} from "@/components/partner/use-partner-role";
 
-const PARTNER_TYPES = [
-  "Individual landlord",
-  "Broker",
-  "Property manager",
-  "Real estate agency",
-] as const;
+const PARTNER_TYPES = ["Property manager", "Agent"] as const;
+const WORK_ARRANGEMENTS = ["Independent", "Agency"] as const;
 
 type PartnerType = (typeof PARTNER_TYPES)[number];
 
 export function PartnerDetailsFields() {
-  const [partnerType, setPartnerType] =
-    useState<PartnerType>("Property manager");
+  const savedRole = usePartnerRole();
+  const partnerType: PartnerType =
+    savedRole === "agent" ? "Agent" : "Property manager";
+  const [workArrangement, setWorkArrangement] = useState("Independent");
   const [phoneCountry, setPhoneCountry] = useState("+250");
-  const showsBusiness = partnerType !== "Individual landlord";
-  const isCompany = partnerType === "Property manager";
-  const businessRequired =
-    partnerType === "Property manager" || partnerType === "Real estate agency";
 
   return (
     <div className="grid gap-5 sm:grid-cols-2">
@@ -80,9 +78,12 @@ export function PartnerDetailsFields() {
           <select
             name="partnerType"
             value={partnerType}
-            onChange={(event) =>
-              setPartnerType(event.target.value as PartnerType)
-            }
+            onChange={(event) => {
+              const nextType = event.target.value as PartnerType;
+              setPartnerRole(
+                nextType === "Agent" ? "agent" : "property_manager",
+              );
+            }}
             className="h-12 w-full appearance-none rounded-xl border-0 bg-black/[0.035] pr-11 pl-4 ring-0 transition-colors outline-none focus:bg-black/[0.055] focus:ring-0"
           >
             {PARTNER_TYPES.map((option) => (
@@ -95,14 +96,47 @@ export function PartnerDetailsFields() {
           />
         </span>
       </label>
-
-      {showsBusiness ? (
+      <label>
+        <span className="text-carbon-900 mb-2 block text-sm font-medium">
+          Work arrangement
+        </span>
+        <span className="relative block">
+          <select
+            name="workArrangement"
+            value={workArrangement}
+            onChange={(event) => setWorkArrangement(event.target.value)}
+            className="h-12 w-full appearance-none rounded-xl border-0 bg-black/[0.035] pr-11 pl-4 ring-0 outline-none focus:bg-black/[0.055] focus:ring-0"
+          >
+            {WORK_ARRANGEMENTS.map((option) => (
+              <option key={option}>{option}</option>
+            ))}
+          </select>
+          <ChevronDown className="pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2" />
+        </span>
+      </label>
+      {partnerType === "Property manager" ? (
+        <label>
+          <span className="text-carbon-900 mb-2 block text-sm font-medium">
+            Property relationship
+          </span>
+          <span className="relative block">
+            <select
+              name="propertyRelationship"
+              className="h-12 w-full appearance-none rounded-xl border-0 bg-black/[0.035] pr-11 pl-4 ring-0 outline-none focus:bg-black/[0.055] focus:ring-0"
+            >
+              <option>I own the properties I manage</option>
+              <option>I manage properties for owners</option>
+              <option>Both</option>
+            </select>
+            <ChevronDown className="pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2" />
+          </span>
+        </label>
+      ) : null}
+      {workArrangement === "Agency" ? (
         <SettingsField
-          key={partnerType}
-          label={`${isCompany ? "Company" : "Agency"} name${businessRequired ? "" : " (optional)"}`}
-          name="company"
-          defaultValue={isCompany ? "Kigali Homes Ltd." : ""}
-          required={businessRequired}
+          label="Agency name"
+          name="agencyName"
+          required
           className="sm:col-span-2"
         />
       ) : null}

@@ -1,17 +1,15 @@
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  ArrowLeft,
   BadgeCheck,
   Bath,
   BedDouble,
   Check,
-  Heart,
+  ChevronLeft,
   House,
+  MapPinned,
   MapPin,
   Ruler,
-  Share2,
 } from "lucide-react";
 
 import house1 from "../../../../house1.jpg";
@@ -23,8 +21,12 @@ import house6 from "../../../../house6.jpeg";
 import julienProfile from "../../../../julien.jpg";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
-import { ContactLandlordForm } from "@/components/properties/contact-landlord-form";
+import { ContactPropertyManagerForm } from "@/components/properties/contact-landlord-form";
 import { PropertyGallery } from "@/components/properties/property-gallery";
+import { SavePropertyButton } from "@/components/properties/save-property-button";
+import { CurrencyAmount } from "@/components/currency/currency-selector";
+import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
+import { HistoryBackButton } from "@/components/navigation/history-back-button";
 import { DEMO_LISTINGS } from "@/data/hero-search-demo";
 
 const HOUSE_IMAGES = [house1, house2, house3, house4, house5, house6];
@@ -91,7 +93,7 @@ const DETAILS: Record<
     bathrooms: 3,
     area: 186,
     furnished: true,
-    type: "Apartment",
+    type: "Beach Front Apartments",
     coordinates: { latitude: 6.4541, longitude: 3.424 },
   },
   "kibagabaga-modern-family-home": {
@@ -112,7 +114,7 @@ const DETAILS: Record<
     bathrooms: 2,
     area: 120,
     furnished: true,
-    type: "House",
+    type: "Beach Front Apartments",
     coordinates: { latitude: -1.7028, longitude: 29.2564 },
   },
   "nyarutarama-garden-penthouse": {
@@ -133,7 +135,7 @@ const DETAILS: Record<
     bathrooms: 3,
     area: 184,
     furnished: true,
-    type: "Apartment",
+    type: "Beach Front Apartments",
     coordinates: { latitude: 6.4541, longitude: 3.424 },
   },
   "karongi-hillside-family-house": {
@@ -147,7 +149,7 @@ const DETAILS: Record<
     bathrooms: 1,
     area: 98,
     furnished: true,
-    type: "Apartment",
+    type: "Beach Front Apartments",
     coordinates: { latitude: -1.7028, longitude: 29.2564 },
   },
   "kibagabaga-family-home-sale": {
@@ -175,14 +177,19 @@ const DETAILS: Record<
 
 type PropertyPageProps = {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ from?: string }>;
 };
 
 export function generateStaticParams() {
   return DEMO_LISTINGS.map((listing) => ({ id: listing.id }));
 }
 
-export default async function PropertyPage({ params }: PropertyPageProps) {
+export default async function PropertyPage({
+  params,
+  searchParams,
+}: PropertyPageProps) {
   const { id } = await params;
+  const renterView = (await searchParams).from === "renter";
   const property = DEMO_LISTINGS.find((listing) => listing.id === id);
   if (!property) notFound();
 
@@ -220,20 +227,33 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
 
   return (
     <>
-      <Navbar />
+      {renterView ? <RenterCatalogueTopBar /> : <Navbar />}
       <main className="bg-canvas pt-24">
         <div className="mx-auto max-w-[1562px] px-5 pt-7 pb-20 sm:px-6 lg:px-11 xl:px-[52px]">
           <div className="flex items-center justify-between gap-4">
-            <Link
-              href="/search"
+            <HistoryBackButton
+              fallbackHref={
+                renterView ? "/renter-dashboard/properties" : "/search"
+              }
               className="text-carbon-600 hover:text-carbon-900 inline-flex items-center gap-2 rounded-sm text-sm"
             >
-              <ArrowLeft aria-hidden="true" className="size-4" />
-              Back to search
-            </Link>
+              <ChevronLeft aria-hidden="true" className="size-4" />
+              Back
+            </HistoryBackButton>
             <div className="flex gap-2">
-              <ActionButton label="Share property" icon={Share2} />
-              <ActionButton label="Save property" icon={Heart} />
+              <a
+                href={`${renterView ? "/renter-dashboard/properties" : "/properties"}?focus=${encodeURIComponent(property.id)}`}
+                aria-label="View on map"
+                title="View on map"
+                className="border-border-default text-carbon-900 flex h-10 items-center justify-center gap-2 rounded-full border bg-white px-4 text-sm font-medium transition-colors hover:bg-black/5"
+              >
+                <MapPinned aria-hidden="true" className="size-[18px]" />
+                <span>View on map</span>
+              </a>
+              <SavePropertyButton
+                propertyId={property.id}
+                propertyTitle={property.title}
+              />
             </div>
           </div>
 
@@ -247,7 +267,7 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
                 <div>
                   <div className="flex flex-wrap items-center gap-3">
                     <span className="rounded-full bg-black px-3 py-1 text-xs font-medium text-white">
-                      {property.purpose === "sale" ? "For sale" : "For rent"}
+                      For rent
                     </span>
                     <span className="text-carbon-600 inline-flex items-center gap-1.5 text-sm">
                       <BadgeCheck aria-hidden="true" className="size-4" />
@@ -263,9 +283,9 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
                   </p>
                 </div>
                 <p className="font-bricolage text-carbon-900 shrink-0 text-3xl font-medium">
-                  {property.currency} {property.price.toLocaleString()}
+                  <CurrencyAmount usdAmount={property.price} />
                   <span className="text-carbon-500 mt-1 block text-right text-sm font-normal">
-                    {property.purpose === "sale" ? "total price" : "per month"}
+                    per month
                   </span>
                 </p>
               </div>
@@ -301,9 +321,7 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
                   A thoughtfully presented long-term home in {property.location}
                   , offering comfortable living spaces, practical finishes, and
                   a calm residential setting. The property is ready for serious
-                  {property.purpose === "sale"
-                    ? "buyers looking for a clear, dependable purchase experience."
-                    : "renters looking for a clear, dependable move-in experience."}
+                  renters looking for a clear, dependable move-in experience.
                 </p>
               </section>
 
@@ -388,7 +406,7 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
                   <p className="font-bricolage text-carbon-900 font-medium">
                     Julien Mugisha
                   </p>
-                  <p className="text-carbon-500 text-sm">Landlord</p>
+                  <p className="text-carbon-500 text-sm">Property manager</p>
                 </div>
               </div>
 
@@ -397,12 +415,12 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
                 until you choose to share them.
               </p>
 
-              <ContactLandlordForm landlordName="Julien" />
+              <ContactPropertyManagerForm managerName="Julien" />
             </aside>
           </div>
         </div>
       </main>
-      <Footer />
+      {renterView ? null : <Footer />}
     </>
   );
 }
@@ -424,23 +442,5 @@ function Fact({
         {value}
       </dd>
     </div>
-  );
-}
-
-function ActionButton({
-  label,
-  icon: Icon,
-}: {
-  label: string;
-  icon: typeof Heart;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      className="border-border-default text-carbon-900 flex size-10 items-center justify-center rounded-full border bg-white transition-colors hover:bg-black/5"
-    >
-      <Icon aria-hidden="true" className="size-[18px]" />
-    </button>
   );
 }

@@ -4,10 +4,10 @@ import { useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft,
   ArrowRight,
   Building2,
   Check,
+  ChevronLeft,
   ChevronDown,
   ImagePlus,
   KeyRound,
@@ -247,7 +247,7 @@ export function ListPropertyForm({
               <SelectField
                 label="I am a"
                 name="representativeType"
-                options={["Landlord", "Broker", "Real estate agency"]}
+                options={["Property manager", "Agent"]}
                 required
               />
               <Field label="Email address" name="email" type="email" required />
@@ -255,7 +255,7 @@ export function ListPropertyForm({
               <Field
                 label="Agency name"
                 name="agencyName"
-                hint="Optional for landlords and independent brokers"
+                hint="Optional if you work independently"
                 className="sm:col-span-2"
               />
             </div>
@@ -433,7 +433,7 @@ export function ListPropertyForm({
             <SelectField
               label="Listing purpose"
               name="purpose"
-              options={["For rent", "For sale"]}
+              options={["For rent"]}
               required
             />
             <SelectField
@@ -446,7 +446,7 @@ export function ListPropertyForm({
             <SelectField
               label="Payment period"
               name="paymentPeriod"
-              options={["Per month", "Per year", "Total sale price"]}
+              options={["Per month", "Per year"]}
               required
             />
             <Field
@@ -570,7 +570,7 @@ export function ListPropertyForm({
             disabled={step === firstStep}
             className="font-bricolage inline-flex h-12 items-center gap-2 rounded-full border border-black/20 px-6 font-medium transition-colors hover:bg-black hover:text-white disabled:pointer-events-none disabled:opacity-0"
           >
-            <ArrowLeft aria-hidden="true" className="size-4" />
+            <ChevronLeft aria-hidden="true" className="size-4" />
             Back
           </button>
           {step < STEPS.length - 1 ? (

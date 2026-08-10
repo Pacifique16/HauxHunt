@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { setPartnerRole } from "@/components/partner/use-partner-role";
 import {
   Building2,
   Check,
@@ -11,7 +12,6 @@ import {
   Eye,
   EyeOff,
   Home,
-  KeyRound,
   UserRound,
 } from "lucide-react";
 
@@ -29,22 +29,16 @@ const ACCOUNT_TYPES = [
     icon: Home,
   },
   {
-    value: "landlord",
-    label: "Landlord",
-    description: "List and manage your own properties.",
-    icon: KeyRound,
+    value: "property_manager",
+    label: "Property Manager",
+    description: "Manage properties you own or are appointed to manage.",
+    icon: Building2,
   },
   {
-    value: "broker",
-    label: "Broker",
+    value: "agent",
+    label: "Agent",
     description: "Represent clients and publish listings.",
     icon: UserRound,
-  },
-  {
-    value: "agency",
-    label: "Agency",
-    description: "Manage a team and property portfolio.",
-    icon: Building2,
   },
 ] as const;
 
@@ -85,8 +79,36 @@ export function AuthenticationForm({
       .toLowerCase();
 
     if (!isRegister) {
+      if (email === "renter@gmail.com") {
+        window.sessionStorage.setItem("hauxhunt-authenticated-role", "renter");
+        router.replace("/renter-dashboard");
+        return;
+      }
+
       if (email === "partner@gmail.com") {
-        router.replace("/partner-dashboard");
+        window.sessionStorage.setItem(
+          "hauxhunt-authenticated-role",
+          "property_manager",
+        );
+        setPartnerRole("property_manager");
+        const returnTo = new URLSearchParams(window.location.search).get(
+          "returnTo",
+        );
+        router.replace(
+          returnTo?.startsWith("/") ? returnTo : "/partner-dashboard",
+        );
+        return;
+      }
+
+      if (email === "agent@gmail.com") {
+        window.sessionStorage.setItem("hauxhunt-authenticated-role", "agent");
+        setPartnerRole("agent");
+        const returnTo = new URLSearchParams(window.location.search).get(
+          "returnTo",
+        );
+        router.replace(
+          returnTo?.startsWith("/") ? returnTo : "/partner-dashboard",
+        );
         return;
       }
 
@@ -195,14 +217,12 @@ export function AuthenticationForm({
               compact={compact}
               required
             />
-            {(accountType === "agency" || accountType === "broker") && (
+            {(accountType === "property_manager" ||
+              accountType === "agent") && (
               <Field
-                label={
-                  accountType === "agency" ? "Agency name" : "Business name"
-                }
+                label="Agency name (optional)"
                 name="businessName"
                 compact={compact}
-                required={accountType === "agency"}
               />
             )}
           </>
@@ -232,7 +252,7 @@ export function AuthenticationForm({
             <SelectField
               label="Country"
               name="country"
-              options={["Rwanda", "Nigeria"]}
+              options={["Rwanda", "Nigeria", "Kenya"]}
               compact={compact}
               required
             />
@@ -286,7 +306,7 @@ export function AuthenticationForm({
 
       {isRegister && (
         <label
-          className={`flex items-start gap-3 rounded-xl bg-black/[0.035] text-sm ${compact ? "mt-4 p-3 leading-5" : "mt-6 p-4 leading-6"}`}
+          className={`flex items-start gap-3 text-sm ${compact ? "mt-4 leading-5" : "mt-6 leading-6"}`}
         >
           <input
             type="checkbox"

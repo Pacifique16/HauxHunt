@@ -173,49 +173,13 @@ export const DEMO_LISTINGS: MockListing[] = [
   },
   {
     id: "gisenyi-lake-view-apartment",
-    title: "Lake-view apartment",
+    title: "Beach Front Apartments",
     location: "Gisenyi, Rwanda",
     matchLocations: ["gisenyi"],
     currency: "USD",
     price: 445,
     bedrooms: 2,
     amenities: ["Lake view", "Furnished", "Balcony"],
-    verified: true,
-  },
-  {
-    id: "kibagabaga-family-home-sale",
-    title: "Modern family home for sale",
-    location: "Kibagabaga, Kigali",
-    matchLocations: ["kigali", "kibagabaga"],
-    currency: "USD",
-    price: 128_000,
-    purpose: "sale",
-    bedrooms: 4,
-    amenities: ["Quiet street", "Parking", "Garden", "Secure compound"],
-    verified: true,
-  },
-  {
-    id: "remera-garden-house-sale",
-    title: "Garden house for sale",
-    location: "Remera, Kigali",
-    matchLocations: ["kigali", "remera"],
-    currency: "USD",
-    price: 98_000,
-    purpose: "sale",
-    bedrooms: 3,
-    amenities: ["Garden", "Parking", "Quiet compound"],
-    verified: true,
-  },
-  {
-    id: "gisenyi-lake-residence-sale",
-    title: "Lake-view residence for sale",
-    location: "Gisenyi, Rwanda",
-    matchLocations: ["gisenyi"],
-    currency: "USD",
-    price: 87_000,
-    purpose: "sale",
-    bedrooms: 3,
-    amenities: ["Lake view", "Garden", "Parking"],
     verified: true,
   },
 ];
@@ -310,13 +274,12 @@ export function parseQuery(rawQuery: string): ParsedFilter[] {
   const filters: ParsedFilter[] = [];
   const consumed: string[] = [];
 
-  const purposeMatch = lower.match(/\b(?:for\s+)?(rent|sale|buy)\b/);
+  const purposeMatch = lower.match(/\b(?:for\s+)?(rent)\b/);
   if (purposeMatch) {
-    const purpose = purposeMatch[1] === "rent" ? "rent" : "sale";
     filters.push({
       id: nextId("purpose"),
       kind: "purpose",
-      label: purpose === "rent" ? "For rent" : "For sale",
+      label: "For rent",
     });
     consumed.push(purposeMatch[0]);
   }

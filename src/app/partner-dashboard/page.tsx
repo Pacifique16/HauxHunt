@@ -1,4 +1,5 @@
-import type { Metadata } from "next";
+"use client";
+
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -6,10 +7,8 @@ import {
   Building2,
   CheckCircle2,
   Clock3,
-  Eye,
   FileText,
   Inbox,
-  MessageSquare,
   Plus,
   TrendingUp,
   UserRound,
@@ -19,37 +18,59 @@ import {
 import { DashboardShell } from "@/components/partner/dashboard-shell";
 import { ListingOptionsMenu } from "@/components/partner/listing-options-menu";
 import { VerificationProgressCard } from "@/components/partner/verification-progress-card";
+import { usePartnerRole } from "@/components/partner/use-partner-role";
 
-export const metadata: Metadata = {
-  title: "Partner dashboard | HauxHunt",
-  description:
-    "Manage HauxHunt listings, property requests, enquiries, verification, drafts, and listing performance.",
-};
-
-const STATS = [
+const PROPERTY_MANAGER_STATS = [
   {
-    label: "Live listings",
+    label: "Managed homes",
     value: "12",
-    change: "This month",
+    change: "10 currently occupied",
     icon: Building2,
   },
   {
-    label: "Listing views",
-    value: "4,286",
-    change: "Last 30 days",
-    icon: Eye,
+    label: "Rent collected",
+    value: "USD 7,840",
+    change: "This month",
+    icon: TrendingUp,
   },
   {
-    label: "New enquiries",
-    value: "24",
-    change: "7 need a reply",
-    icon: MessageSquare,
+    label: "Open maintenance",
+    value: "3",
+    change: "1 needs attention",
+    icon: Clock3,
   },
   {
-    label: "Matched requests",
-    value: "16",
-    change: "5 new today",
+    label: "Active applications",
+    value: "8",
+    change: "Across 4 properties",
     icon: Users,
+  },
+] as const;
+
+const AGENT_STATS = [
+  {
+    label: "Active mandates",
+    value: "18",
+    change: "15 exclusive",
+    icon: FileText,
+  },
+  {
+    label: "Qualified leads",
+    value: "34",
+    change: "7 new today",
+    icon: Users,
+  },
+  {
+    label: "Visits scheduled",
+    value: "11",
+    change: "This week",
+    icon: Clock3,
+  },
+  {
+    label: "Commission pipeline",
+    value: "USD 6,420",
+    change: "Across 9 active deals",
+    icon: TrendingUp,
   },
 ] as const;
 
@@ -105,18 +126,23 @@ const REQUESTS = [
 ] as const;
 
 export default function PartnerDashboardPage() {
+  const role = usePartnerRole();
+  const isAgent = role === "agent";
+  const stats = isAgent ? AGENT_STATS : PROPERTY_MANAGER_STATS;
+
   return (
     <DashboardShell>
       <section className="px-5 pt-10 pb-24 sm:px-6 lg:px-10 xl:px-12">
         <div className="mx-auto max-w-[1360px]">
           <header className="flex flex-col gap-8 border-b border-black/10 pb-10 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <h1 className="font-bricolage text-carbon-900 text-[clamp(3rem,6vw,5.5rem)] leading-[0.9] font-medium tracking-[-0.06em]">
-                Partner dashboard
+              <h1 className="dashboard-page-title text-carbon-900">
+                {isAgent ? "Agent dashboard" : "Property manager dashboard"}
               </h1>
               <p className="text-carbon-600 mt-7 max-w-3xl text-lg leading-7">
-                Manage listings, property requests, enquiries, verification,
-                saved drafts, and listing performance.
+                {isAgent
+                  ? "Manage mandates, leads, property visits, active deals, commissions, and listing performance."
+                  : "Manage properties, tenancies, applications, maintenance, rent activity, and listing performance."}
               </p>
             </div>
             <Link
@@ -129,7 +155,7 @@ export default function PartnerDashboardPage() {
           </header>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {STATS.map((stat) => (
+            {stats.map((stat) => (
               <StatCard key={stat.label} {...stat} />
             ))}
           </div>
@@ -141,8 +167,12 @@ export default function PartnerDashboardPage() {
                 className="relative rounded-[1.75rem] border border-black/10 bg-white shadow-[0_16px_45px_rgba(0,0,0,0.055)]"
               >
                 <SectionHeader
-                  title="Your listings"
-                  description="Your most recent listing activity, newest first."
+                  title={isAgent ? "Active mandates" : "Your properties"}
+                  description={
+                    isAgent
+                      ? "The latest activity across properties you are authorized to represent."
+                      : "The latest activity across properties you own or manage for clients."
+                  }
                   action="View all"
                   actionHref="/partner-dashboard/listings"
                 />
@@ -187,9 +217,13 @@ export default function PartnerDashboardPage() {
                 className="overflow-hidden rounded-[1.75rem] border border-black/10 bg-white shadow-[0_16px_45px_rgba(0,0,0,0.055)]"
               >
                 <SectionHeader
-                  title="Recent property requests"
-                  description="Respond where your properties are a good fit."
-                  action="Browse requests"
+                  title={isAgent ? "Matched leads" : "Recent property requests"}
+                  description={
+                    isAgent
+                      ? "Qualified renters whose needs match your active mandates."
+                      : "Respond where one of your managed properties is a good fit."
+                  }
+                  action={isAgent ? "View leads" : "Browse requests"}
                 />
                 <div className="divide-y divide-black/10">
                   {REQUESTS.map((request) => (
@@ -227,9 +261,13 @@ export default function PartnerDashboardPage() {
                 className="overflow-hidden rounded-[1.75rem] border border-black/10 bg-white shadow-[0_16px_45px_rgba(0,0,0,0.055)]"
               >
                 <SectionHeader
-                  title="Application review"
-                  description="Review every applicant and co-applicant together."
-                  action="Open workspace"
+                  title={isAgent ? "Deal progression" : "Application review"}
+                  description={
+                    isAgent
+                      ? "Track prospects from property visit through agreement."
+                      : "Review every applicant and co-applicant together."
+                  }
+                  action={isAgent ? "Open deals" : "Open workspace"}
                 />
                 <article className="p-5 sm:p-6">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">

@@ -1,6 +1,6 @@
-import type { StaticImageData } from "next/image";
+import Image, { type StaticImageData } from "next/image";
 import Link from "next/link";
-import { ChevronDown, MapPin, Search, SlidersHorizontal } from "lucide-react";
+import { ChevronDown, SlidersHorizontal } from "lucide-react";
 
 import house1 from "../../../house1.jpg";
 import house2 from "../../../house2.jpg";
@@ -8,9 +8,12 @@ import house3 from "../../../house3.jpg";
 import house4 from "../../../house4.jpg";
 import house5 from "../../../house5.jpg";
 import house6 from "../../../house6.jpeg";
+import emptyIllustration from "../../../empty.png";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { AutoSubmitFilterForm } from "@/components/listings/auto-submit-filter-form";
+import { SearchQueryField } from "@/components/listings/search-query-field";
+import { CurrencyFilterSelect } from "@/components/currency/currency-selector";
 import { ListingCard } from "@/components/sections/featured-listings/listing-card";
 import { matchListings, parseQuery } from "@/data/hero-search-demo";
 import type { PropertyPreview } from "@/types";
@@ -35,10 +38,26 @@ const RESULT_IMAGES: Record<string, StaticImageData> = {
   "gisenyi-lake-residence-sale": house2,
 };
 
+const BEACH_FRONT_PROPERTY_IDS = new Set([
+  "gisenyi-lakefront-residence",
+  "gisenyi-lake-view-apartment",
+  "ikoyi-waterfront-apartment",
+  "ikoyi-3br",
+]);
+
 const CATEGORY_RESULTS: Record<
   string,
   { label: string; propertyIds: string[] }
 > = {
+  "beach-front-apartments": {
+    label: "Beach Front Apartments",
+    propertyIds: [
+      "gisenyi-lakefront-residence",
+      "gisenyi-lake-view-apartment",
+      "ikoyi-waterfront-apartment",
+      "ikoyi-3br",
+    ],
+  },
   "houses-for-rent": {
     label: "Houses for rent",
     propertyIds: [
@@ -76,14 +95,6 @@ const CATEGORY_RESULTS: Record<
       "karongi-hillside-family-house",
     ],
   },
-  "houses-for-sale": {
-    label: "Houses for sale",
-    propertyIds: [
-      "kibagabaga-family-home-sale",
-      "remera-garden-house-sale",
-      "gisenyi-lake-residence-sale",
-    ],
-  },
 };
 
 type SearchPageProps = {
@@ -95,7 +106,14 @@ function valueOf(value: string | string[] | undefined) {
 }
 
 function propertyType(property: PropertyPreview) {
+  if (BEACH_FRONT_PROPERTY_IDS.has(property.id))
+    return "Beach Front Apartments";
   const title = property.title.toLowerCase();
+  if (title.includes("penthouse")) return "Penthouse";
+  if (title.includes("mansion")) return "Mansion";
+  if (title.includes("shared")) return "Shared apartment";
+  if (title.includes("single room") || title.includes("private room"))
+    return "Single room";
   if (title.includes("studio")) return "Studio apartment";
   if (title.includes("apartment")) return "Apartment";
   if (title.includes("villa")) return "Villa";
@@ -118,7 +136,8 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
 async function SearchResults({ searchParams }: SearchPageProps) {
   const params = await searchParams;
   const query = valueOf(params.q);
-  const type = valueOf(params.type);
+  const locationSearch = valueOf(params.source) === "location";
+  const requestedType = valueOf(params.type);
   const priceRange = valueOf(params.price);
   const bedroomsValue = valueOf(params.bedrooms);
   const bathroomsValue = valueOf(params.bathrooms);
@@ -128,15 +147,25 @@ async function SearchResults({ searchParams }: SearchPageProps) {
     ? categoryValue[0]
     : categoryValue;
   const category = categoryKey ? CATEGORY_RESULTS[categoryKey] : undefined;
+  const type =
+    requestedType ||
+    (categoryKey === "beach-front-apartments"
+      ? "Beach Front Apartments"
+      : "");
   const filters = query ? parseQuery(query) : [];
-  const allResults = matchListings([]);
+  const allResults = matchListings([]).filter(
+    (property) => property.purpose === "rent",
+  );
+  const hasStructuredFilters = Boolean(
+    type || priceRange || bedroomsValue || bathroomsValue,
+  );
   const baseResults = query
-    ? matchListings(filters)
+    ? matchListings(filters).filter((property) => property.purpose === "rent")
     : category
       ? allResults.filter((property) =>
           category.propertyIds.includes(property.id),
         )
-      : [];
+      : allResults;
   const bedrooms = Number.parseInt(bedroomsValue, 10) || 0;
   const bathrooms = Number.parseInt(bathroomsValue, 10) || 0;
   const results = baseResults
@@ -171,7 +200,11 @@ async function SearchResults({ searchParams }: SearchPageProps) {
       if (sort === "price-high") return b.price - a.price;
       return a.id.localeCompare(b.id);
     });
-  const resultLabel = query || category?.label || "";
+  const resultLabel =
+    query ||
+    category?.label ||
+    type ||
+    (hasStructuredFilters ? "selected filters" : "all properties");
 
   return (
     <>
@@ -184,6 +217,11 @@ async function SearchResults({ searchParams }: SearchPageProps) {
           action="/search"
           className="mx-auto grid max-w-[1562px] items-end gap-4 md:grid-cols-2 xl:grid-cols-[minmax(250px,1.5fr)_repeat(4,minmax(135px,0.7fr))]"
         >
+          <input
+            type="hidden"
+            name="source"
+            value={locationSearch ? "location" : ""}
+          />
           {categoryKey ? (
             <input type="hidden" name="category" value={categoryKey} />
           ) : null}
@@ -192,13 +230,7 @@ async function SearchResults({ searchParams }: SearchPageProps) {
               What are you looking for?
             </span>
             <span className="flex h-12 items-center gap-3 rounded-xl border border-black/15 px-4 transition-colors focus-within:border-black">
-              <Search aria-hidden="true" className="text-carbon-500 size-5" />
-              <input
-                name="q"
-                defaultValue={query}
-                placeholder="2 bedrooms in Kigali under USD 800"
-                className="catalogue-filter-control min-w-0 flex-1 bg-transparent text-sm outline-none"
-              />
+              <SearchQueryField defaultValue={query} />
             </span>
           </label>
           <SearchSelect
@@ -208,24 +240,34 @@ async function SearchResults({ searchParams }: SearchPageProps) {
             value={type}
             options={[
               "House",
+              "Beach Front Apartments",
               "Apartment",
               "Duplex",
+              "Single room",
+              "Penthouse",
+              "Shared apartment",
               "Studio apartment",
+              "Mansion",
               "Villa",
             ]}
           />
-          <SearchSelect
+          <CurrencyFilterSelect
             label="Price range"
             name="price"
             placeholder="Any Price"
             value={priceRange}
-            options={["0-500", "501-1000", "1001-2000", "2001-Infinity"]}
-            optionLabels={{
-              "0-500": "Under USD 500",
-              "501-1000": "USD 500 – 1,000",
-              "1001-2000": "USD 1,000 – 2,000",
-              "2001-Infinity": "Above USD 2,000",
-            }}
+            ranges={[
+              { value: "50-100", minimumUsd: 50, maximumUsd: 100 },
+              { value: "100-150", minimumUsd: 100, maximumUsd: 150 },
+              { value: "150-250", minimumUsd: 150, maximumUsd: 250 },
+              { value: "250-500", minimumUsd: 250, maximumUsd: 500 },
+              { value: "500-1000", minimumUsd: 500, maximumUsd: 1000 },
+              {
+                value: "1000-Infinity",
+                minimumUsd: 1000,
+                maximumUsd: null,
+              },
+            ]}
           />
           <SearchSelect
             label="Bedrooms"
@@ -247,9 +289,11 @@ async function SearchResults({ searchParams }: SearchPageProps) {
       {results.length > 0 ? (
         <ResultsGrid
           query={resultLabel}
+          locationSearch={locationSearch}
           results={results}
           filters={{
             query,
+            locationSearch,
             categoryKey,
             type,
             priceRange,
@@ -259,7 +303,9 @@ async function SearchResults({ searchParams }: SearchPageProps) {
           }}
         />
       ) : (
-        <EmptyResults hasQuery={Boolean(query || category)} />
+        <EmptyResults
+          hasQuery={Boolean(query || category || hasStructuredFilters)}
+        />
       )}
     </>
   );
@@ -309,13 +355,16 @@ function SearchSelect({
 
 function ResultsGrid({
   query,
+  locationSearch,
   results,
   filters,
 }: {
   query: string;
+  locationSearch: boolean;
   results: PropertyPreview[];
   filters: {
     query: string;
+    locationSearch: boolean;
     categoryKey?: string;
     type: string;
     priceRange: string;
@@ -332,7 +381,19 @@ function ResultsGrid({
       <div className="mx-auto max-w-[1562px]">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-carbon-500 text-sm">Results for “{query}”</p>
+            <p className="text-carbon-500 text-sm">
+              {query === "selected filters" || query === "all properties" ? (
+                query === "selected filters" ? (
+                  "Results for your selected filters"
+                ) : (
+                  "All available properties"
+                )
+              ) : (
+                <>
+                  {locationSearch ? "Houses near" : "Results for"} “{query}”
+                </>
+              )}
+            </p>
             <h1
               id="search-results-title"
               className="font-bricolage text-carbon-900 mt-1 text-3xl font-medium tracking-[-0.03em]"
@@ -347,6 +408,11 @@ function ResultsGrid({
             className="flex items-center gap-2"
           >
             <input type="hidden" name="q" value={filters.query} />
+            <input
+              type="hidden"
+              name="source"
+              value={filters.locationSearch ? "location" : ""}
+            />
             {filters.categoryKey ? (
               <input
                 type="hidden"
@@ -396,6 +462,7 @@ function ResultsGrid({
 
             return (
               <ListingCard
+                requiresLogin
                 key={property.id}
                 title={property.title}
                 location={property.location}
@@ -422,32 +489,36 @@ function ResultsGrid({
 
 function EmptyResults({ hasQuery }: { hasQuery: boolean }) {
   return (
-    <section className="px-5 py-20 sm:px-6 sm:py-28">
+    <section className="px-5 py-14 sm:px-6 sm:py-20">
       <div className="mx-auto flex max-w-[620px] flex-col items-center text-center">
-        <div className="bg-carbon-900 flex size-24 items-center justify-center rounded-full text-white">
-          <MapPin aria-hidden="true" className="size-10" />
-        </div>
-        <h1 className="font-bricolage text-carbon-900 mt-8 text-[clamp(2.25rem,5vw,3.5rem)] leading-none font-medium tracking-[-0.04em]">
-          {hasQuery ? "Nothing here… yet." : "Start your home search"}
-        </h1>
-        <p className="text-carbon-600 mt-4 max-w-[48ch] text-lg">
+        <Image
+          src={emptyIllustration}
+          alt="No properties found"
+          className="h-36 w-auto object-contain"
+        />
+        <h1 className="font-bricolage text-carbon-900 mt-5 text-2xl font-medium whitespace-nowrap">
           {hasQuery
-            ? "Nothing matched your criteria. Try adjusting your search or post a property request so the right property partner can reach you."
+            ? "No properties match your filters"
+            : "Start your home search"}
+        </h1>
+        <p className="text-carbon-500 mt-2 max-w-md text-sm leading-6">
+          {hasQuery
+            ? "Try adjusting or clearing some filters to see more available properties."
             : "Describe the home you need above and we’ll show the closest available matches."}
         </p>
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <Link
             href="/search"
-            className="border-carbon-900 font-bricolage text-carbon-900 inline-flex h-12 items-center justify-center gap-2 rounded-full border px-6 font-medium"
+            className="border-carbon-900 text-carbon-900 inline-flex h-11 items-center justify-center gap-2 rounded-full border px-6 text-sm font-medium"
           >
             <SlidersHorizontal aria-hidden="true" className="size-4" />
             Clear filters
           </Link>
           <Link
             href="/property-request"
-            className="bg-carbon-900 font-bricolage inline-flex h-12 items-center justify-center rounded-full px-6 font-medium text-white"
+            className="bg-carbon-900 inline-flex h-11 items-center justify-center rounded-full px-6 text-sm font-medium text-white"
           >
-            Post property request
+            Request a property
           </Link>
         </div>
       </div>

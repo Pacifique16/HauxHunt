@@ -60,29 +60,52 @@ const LOCATIONS = [
   },
 ] as const;
 
-export function TrendingLocations() {
+type TrendingLocationsProps = {
+  audience?: "guest" | "renter";
+  variant?: "page" | "embedded";
+};
+
+export function TrendingLocations({
+  audience = "guest",
+  variant = "page",
+}: TrendingLocationsProps = {}) {
+  const embedded = variant === "embedded";
+
   return (
     <section
+      id="trending-locations"
       aria-labelledby="trending-locations-title"
-      className="bg-canvas px-5 py-20 sm:px-6 sm:py-24 lg:px-11 xl:px-[52px]"
+      className={
+        embedded
+          ? "mt-20 scroll-mt-24"
+          : "bg-canvas scroll-mt-24 px-5 py-20 sm:px-6 sm:py-24 lg:px-11 xl:px-[52px]"
+      }
     >
       <div className="mx-auto max-w-[1562px]">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2
               id="trending-locations-title"
-              className="font-bricolage text-carbon-900 text-[clamp(2.25rem,4vw,3.75rem)] leading-none font-normal tracking-[-0.04em]"
+              className={
+                embedded
+                  ? "font-bricolage text-carbon-900 text-3xl leading-none font-medium tracking-[-0.04em] sm:text-4xl"
+                  : "font-bricolage text-carbon-900 text-[clamp(2.25rem,4vw,3.75rem)] leading-none font-normal tracking-[-0.04em]"
+              }
             >
               Trending Locations
             </h2>
             <p className="text-body-m text-carbon-900 mt-4 sm:whitespace-nowrap">
-              Explore homes where renters are looking now, across Rwanda and
-              Nigeria.
+              Explore homes where renters are looking now, across Rwanda,
+              Nigeria, and Kenya.
             </p>
           </div>
 
           <Link
-            href="/search?category=houses-for-rent"
+            href={
+              audience === "renter"
+                ? "/renter-dashboard/properties"
+                : "/properties?map=1"
+            }
             className="font-bricolage border-carbon-900 text-carbon-900 hover:bg-muted inline-flex h-11 shrink-0 items-center justify-center gap-2 self-start rounded-full border bg-transparent px-5 text-base font-medium transition-colors duration-150 sm:self-auto"
           >
             Explore more
@@ -95,7 +118,11 @@ export function TrendingLocations() {
             <LocationCard
               key={`${location.country}-${location.name}`}
               {...location}
-              href={`/search?q=${encodeURIComponent(`homes in ${location.name}`)}`}
+              href={
+                audience === "renter"
+                  ? `/renter-dashboard/properties?location=${encodeURIComponent(location.name)}`
+                  : `/properties?location=${encodeURIComponent(location.name)}&map=1`
+              }
             />
           ))}
         </div>

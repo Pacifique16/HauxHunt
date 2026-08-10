@@ -6,6 +6,7 @@ import { useState } from "react";
 import {
   ArrowDownRight,
   ArrowUpRight,
+  ChevronLeft,
   ChevronDown,
   Download,
   Eye,
@@ -575,13 +576,14 @@ export function PerformanceDashboard() {
           <button
             type="button"
             onClick={() => setShowAllListings(false)}
-            className="mb-7 text-sm font-medium text-black/55 transition-colors hover:text-black"
+            className="mb-7 inline-flex items-center gap-1 text-sm font-medium text-black/55 transition-colors hover:text-black"
           >
-            &lt; Back
+            <ChevronLeft aria-hidden="true" className="size-4" />
+            Back
           </button>
           <header className="flex flex-col gap-6 border-b border-black/10 pb-8 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h1 className="font-bricolage text-carbon-900 text-[clamp(2.5rem,4vw,4rem)] leading-[0.95] font-medium tracking-[-0.05em]">
+              <h1 className="dashboard-page-title text-carbon-900">
                 All listing performance
               </h1>
               <p className="text-carbon-600 mt-4 text-base">
@@ -716,7 +718,7 @@ export function PerformanceDashboard() {
       <div className="mx-auto max-w-[1360px]">
         <header className="flex flex-col gap-6 border-b border-black/10 pb-8 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h1 className="font-bricolage text-carbon-900 text-[clamp(2.75rem,5vw,4.75rem)] leading-[0.92] font-medium tracking-[-0.055em]">
+            <h1 className="dashboard-page-title text-carbon-900">
               Listing performance
             </h1>
             <p className="text-carbon-600 mt-5 max-w-2xl text-base leading-7 sm:text-lg">

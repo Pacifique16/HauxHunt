@@ -4,33 +4,70 @@ import { useId, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { Plus, Search } from "lucide-react";
+import { MapPin, Mic, Plus, Search } from "lucide-react";
 
 import { FilterToken } from "./filter-token";
 import { MatchRow } from "./match-row";
 import { heroEase } from "./hero-motion";
 import { matchListings } from "@/data/hero-search-demo";
 import type { ParsedFilter, PropertyPreview } from "@/types";
+import {
+  formatCurrencyRange,
+  useDisplayCurrency,
+} from "@/components/currency/currency-selector";
 
 type Stage = "idle" | "parsed" | "results";
 
+type SpeechRecognitionEventLike = {
+  results: ArrayLike<{ 0: { transcript: string } }>;
+};
+
+type SpeechRecognitionLike = {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start: () => void;
+  stop: () => void;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  onend: (() => void) | null;
+  onerror: (() => void) | null;
+};
+
+type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
+
+type ReverseGeocodeResult = {
+  display_name?: string;
+  address?: {
+    house_number?: string;
+    road?: string;
+    pedestrian?: string;
+    neighbourhood?: string;
+    suburb?: string;
+    city?: string;
+    town?: string;
+    village?: string;
+  };
+};
+
 const LOCATIONS = [
-  "Kigali",
-  "Kibagabaga",
-  "Kacyiru",
-  "Nyarutarama",
-  "Remera",
-  "Gisenyi",
-  "Musanze",
   "Lagos",
-  "Lekki",
-  "Ikoyi",
   "Abuja",
-  "Wuse",
+  "Rivers State",
+  "Uyo",
+  "Kaduna",
+  "Enugu",
+  "Kigali",
+  "Gisenyi",
+  "Karongi",
+  "Nairobi",
+  "Mombasa",
+  "Kiambu",
+  "Kisumu",
 ] as const;
 
 const PROPERTY_TYPES = [
   "Apartment",
+  "Beach Front Apartments",
   "Duplex",
   "Single room",
   "Penthouse",
@@ -41,7 +78,7 @@ const PROPERTY_TYPES = [
   "Hotel",
 ] as const;
 
-const CRITERIA = ["For rent", "For sale"] as const;
+const CRITERIA = ["Entire place", "Shared home"] as const;
 
 const PRICE_RANGES = [
   "USD 50 – 100",
@@ -51,6 +88,15 @@ const PRICE_RANGES = [
   "USD 500 – 1,000",
   "USD 1,000+",
 ] as const;
+
+const PRICE_RANGE_VALUES: Record<string, string> = {
+  "USD 50 – 100": "50-100",
+  "USD 100 – 150": "100-150",
+  "USD 150 – 250": "150-250",
+  "USD 250 – 500": "250-500",
+  "USD 500 – 1,000": "500-1000",
+  "USD 1,000+": "1000-Infinity",
+};
 
 const reveal = {
   initial: { opacity: 0, y: -6 },
@@ -73,6 +119,7 @@ const reveal = {
  */
 export function SearchWorkspace() {
   const router = useRouter();
+  const displayCurrency = useDisplayCurrency();
   const [query, setQuery] = useState("");
   const [stage, setStage] = useState<Stage>("idle");
   const [filters, setFilters] = useState<ParsedFilter[]>([]);
@@ -82,44 +129,139 @@ export function SearchWorkspace() {
   const [propertyType, setPropertyType] = useState("");
   const [criteria, setCriteria] = useState("");
   const [pricing, setPricing] = useState("");
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [listening, setListening] = useState(false);
+  const [usingCurrentLocation, setUsingCurrentLocation] = useState(false);
   const understoodRef = useRef<HTMLHeadingElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const voiceTranscriptRef = useRef("");
   const inputId = useId();
 
-  function runParse(text: string) {
-    const trimmed = text.trim();
-    if (!trimmed) return;
-    router.push(`/search?q=${encodeURIComponent(trimmed)}`);
+  function useCurrentLocation() {
+    const prototypeAddress = "31 KG 152 St, Kigali";
+    setUsingCurrentLocation(true);
+    setQuery(prototypeAddress);
+
+    if (!navigator.geolocation) return;
+
+    setLocationLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        try {
+          const endpoint = new URL(
+            "https://nominatim.openstreetmap.org/reverse",
+          );
+          endpoint.searchParams.set("format", "jsonv2");
+          endpoint.searchParams.set("lat", String(coords.latitude));
+          endpoint.searchParams.set("lon", String(coords.longitude));
+          endpoint.searchParams.set("zoom", "18");
+          endpoint.searchParams.set("addressdetails", "1");
+          endpoint.searchParams.set("layer", "address");
+          endpoint.searchParams.set("accept-language", "en");
+          const response = await fetch(endpoint);
+          if (!response.ok) throw new Error("Address lookup failed");
+          const result = (await response.json()) as ReverseGeocodeResult;
+          const address = result.address;
+          const street = [
+            address?.house_number,
+            address?.road ?? address?.pedestrian,
+          ]
+            .filter(Boolean)
+            .join(" ");
+          const area = address?.neighbourhood ?? address?.suburb;
+          const city = address?.city ?? address?.town ?? address?.village;
+          const readableAddress =
+            [street, area, city].filter(Boolean).join(", ") ||
+            result.display_name?.split(",").slice(0, 3).join(",").trim();
+          if (!readableAddress) throw new Error("No street address found");
+          setQuery(readableAddress);
+        } catch {
+          setQuery(prototypeAddress);
+        } finally {
+          setLocationLoading(false);
+        }
+      },
+      () => setLocationLoading(false),
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  }
+
+  function toggleVoiceSearch() {
+    if (listening) {
+      recognitionRef.current?.stop();
+      return;
+    }
+
+    const browserWindow = window as typeof window & {
+      SpeechRecognition?: SpeechRecognitionConstructor;
+      webkitSpeechRecognition?: SpeechRecognitionConstructor;
+    };
+    const Recognition =
+      browserWindow.SpeechRecognition ?? browserWindow.webkitSpeechRecognition;
+
+    if (!Recognition) {
+      setUsingCurrentLocation(false);
+      setQuery("Voice search is not supported in this browser");
+      return;
+    }
+
+    const recognition = new Recognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-US";
+    recognition.onresult = (event) => {
+      voiceTranscriptRef.current = Array.from(event.results)
+        .map((result) => result[0]?.transcript ?? "")
+        .join(" ")
+        .trim();
+    };
+    recognition.onend = () => {
+      if (voiceTranscriptRef.current) {
+        setUsingCurrentLocation(false);
+        setQuery(voiceTranscriptRef.current);
+      }
+      setListening(false);
+    };
+    recognition.onerror = () => setListening(false);
+    recognitionRef.current = recognition;
+    voiceTranscriptRef.current = "";
+    setListening(true);
+    recognition.start();
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (query.trim()) {
-      runParse(query);
+
+    if (criteria === "Shared home") {
+      const sharedHomeLocation = location || query.trim();
+      const sharedHomeParams = new URLSearchParams();
+      if (sharedHomeLocation) {
+        sharedHomeParams.set("location", sharedHomeLocation);
+      }
+      if (propertyType) sharedHomeParams.set("type", propertyType);
+      if (pricing) sharedHomeParams.set("priceRange", pricing);
+      router.push(
+        `/flatmates${sharedHomeParams.size ? `?${sharedHomeParams.toString()}` : ""}`,
+      );
       return;
     }
 
-    const structuredFilters: ParsedFilter[] = [
-      location
-        ? { id: "structured-location", kind: "location", label: location }
-        : null,
-      propertyType
-        ? { id: "structured-type", kind: "custom", label: propertyType }
-        : null,
-      criteria
-        ? { id: "structured-criteria", kind: "custom", label: criteria }
-        : null,
-      pricing
-        ? { id: "structured-pricing", kind: "custom", label: pricing }
-        : null,
-    ].filter((filter): filter is ParsedFilter => filter !== null);
+    const standardSearchParams = new URLSearchParams();
+    const searchText = query.trim() || location;
+    if (searchText) standardSearchParams.set("q", searchText);
+    if (usingCurrentLocation) standardSearchParams.set("source", "location");
+    if (propertyType) standardSearchParams.set("type", propertyType);
+    if (pricing) standardSearchParams.set("price", PRICE_RANGE_VALUES[pricing]);
 
-    if (structuredFilters.length === 0) return;
-    router.push(
-      `/search?q=${encodeURIComponent(
-        structuredFilters.map((filter) => filter.label).join(" "),
-      )}`,
-    );
+    if (standardSearchParams.size) {
+      router.push(`/search?${standardSearchParams.toString()}`);
+      return;
+    }
+
+    if (criteria === "Entire place") {
+      router.push("/properties?mapHidden=1");
+    }
   }
 
   function handleRemoveFilter(id: string) {
@@ -186,10 +328,16 @@ export function SearchWorkspace() {
       <form onSubmit={handleSubmit} className="p-3 sm:p-4">
         <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-3">
           <div className="focus-within:border-border-interactive flex min-w-0 flex-1 items-center gap-3 border-b border-transparent transition-colors duration-150">
-            <Search
-              aria-hidden="true"
-              className="text-fg-muted size-5 shrink-0"
-            />
+            <button
+              type="button"
+              onClick={useCurrentLocation}
+              disabled={locationLoading}
+              aria-label="Use my current location"
+              title="Use my current location"
+              className="text-carbon-600 flex size-9 shrink-0 items-center justify-center rounded-full bg-transparent transition-colors hover:text-black disabled:opacity-40"
+            >
+              <MapPin aria-hidden="true" className="size-5" />
+            </button>
             <label htmlFor={inputId} className="sr-only">
               Describe the home you are looking for
             </label>
@@ -198,19 +346,36 @@ export function SearchWorkspace() {
               id={inputId}
               type="text"
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="A quiet 2-bedroom in Lagos, under USD 900…"
+              onChange={(event) => {
+                setUsingCurrentLocation(false);
+                setQuery(event.target.value);
+              }}
+              placeholder={
+                'Try "A quiet 2-bedroom in Lagos, under USD 900......"'
+              }
               autoComplete="off"
-              className="search-query-input text-body-l text-fg placeholder:text-fg-muted min-w-0 flex-1 bg-transparent px-1 py-1.5"
+              className="search-query-input text-body-l text-fg min-w-0 flex-1 bg-transparent px-1 py-1.5 placeholder:text-black/55 placeholder:opacity-100"
             />
           </div>
           <button
+            type="button"
+            onClick={toggleVoiceSearch}
+            aria-label={listening ? "Stop voice search" : "Start voice search"}
+            title={listening ? "Stop listening" : "Search by voice"}
+            className={`flex size-10 shrink-0 items-center justify-center rounded-full bg-transparent transition-colors ${
+              listening ? "text-red-600" : "text-carbon-600 hover:text-black"
+            }`}
+          >
+            <Mic aria-hidden="true" className="size-5" />
+          </button>
+          <button
             type="submit"
             disabled={!hasSearchInput}
-            className="bg-action-primary text-fg-on-brand text-body-s hover:bg-action-primary-hover active:bg-action-primary-active inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full px-5 font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] transition-colors duration-150 disabled:pointer-events-none disabled:opacity-35"
+            aria-label="Search"
+            title="Search"
+            className="bg-action-primary text-fg-on-brand hover:bg-action-primary-hover active:bg-action-primary-active inline-flex size-11 shrink-0 items-center justify-center rounded-full shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] transition-colors duration-150 disabled:pointer-events-none disabled:opacity-35"
           >
             <Search aria-hidden="true" className="size-4" />
-            Search
           </button>
         </div>
 
@@ -243,6 +408,14 @@ export function SearchWorkspace() {
               onChange={setPricing}
               placeholder="Choose pricing"
               options={PRICE_RANGES}
+              optionLabels={Object.fromEntries([
+                [PRICE_RANGES[0], formatCurrencyRange(50, 100, displayCurrency)],
+                [PRICE_RANGES[1], formatCurrencyRange(100, 150, displayCurrency)],
+                [PRICE_RANGES[2], formatCurrencyRange(150, 250, displayCurrency)],
+                [PRICE_RANGES[3], formatCurrencyRange(250, 500, displayCurrency)],
+                [PRICE_RANGES[4], formatCurrencyRange(500, 1000, displayCurrency)],
+                [PRICE_RANGES[5], formatCurrencyRange(1000, null, displayCurrency)],
+              ])}
             />
           </div>
         ) : null}
@@ -344,6 +517,7 @@ type SearchSelectProps = {
   onChange: (value: string) => void;
   placeholder: string;
   options: readonly string[];
+  optionLabels?: Record<string, string>;
 };
 
 function SearchSelect({
@@ -352,6 +526,7 @@ function SearchSelect({
   onChange,
   placeholder,
   options,
+  optionLabels = {},
 }: SearchSelectProps) {
   const id = useId();
 
@@ -370,7 +545,7 @@ function SearchSelect({
         <option value="">{placeholder}</option>
         {options.map((option) => (
           <option key={option} value={option}>
-            {option}
+            {optionLabels[option] ?? option}
           </option>
         ))}
       </select>

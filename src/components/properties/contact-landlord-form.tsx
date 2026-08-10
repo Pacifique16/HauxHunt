@@ -3,10 +3,10 @@
 import { useState, type FormEvent } from "react";
 import { Check, ChevronDown, MessageCircle } from "lucide-react";
 
-export function ContactLandlordForm({
-  landlordName,
+export function ContactPropertyManagerForm({
+  managerName,
 }: {
-  landlordName: string;
+  managerName: string;
 }) {
   const [sent, setSent] = useState(false);
   const [country, setCountry] = useState<"UG" | "RW" | "NG">("UG");
@@ -87,7 +87,7 @@ export function ContactLandlordForm({
           name="message"
           required
           rows={4}
-          placeholder={`Write a message to ${landlordName}`}
+          placeholder={`Write a message to ${managerName}`}
           className="contact-field-control border-border-default text-carbon-900 w-full resize-none rounded-xl border bg-white px-4 py-3 text-sm leading-6 transition-colors outline-none focus:border-black"
         />
       </label>

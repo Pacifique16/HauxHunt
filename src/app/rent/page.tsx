@@ -7,7 +7,8 @@ import {
 
 export const metadata: Metadata = {
   title: "Houses for rent | HauxHunt",
-  description: "Explore long-term rental houses across Rwanda and Nigeria.",
+  description:
+    "Explore long-term rental houses across Rwanda, Nigeria, and Kenya.",
 };
 
 export default async function RentPage({

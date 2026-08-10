@@ -2,7 +2,7 @@ import { KeyRound, ReceiptText, ShieldCheck } from "lucide-react";
 
 const PROOF_POINTS = [
   { icon: ShieldCheck, label: "Verified homes" },
-  { icon: KeyRound, label: "Checked landlords" },
+  { icon: KeyRound, label: "Verified property managers" },
   { icon: ReceiptText, label: "Clear move-in costs" },
 ] as const;
 

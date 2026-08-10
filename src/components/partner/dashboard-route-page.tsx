@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 
 import { DashboardShell } from "@/components/partner/dashboard-shell";
+import { usePartnerRole } from "@/components/partner/use-partner-role";
 import { ListingOptionsMenu } from "@/components/partner/listing-options-menu";
 import houseOne from "../../../house1.jpg";
 import houseTwo from "../../../house2.jpg";
@@ -312,13 +313,12 @@ function getListingDetails(listing: (typeof PORTFOLIO_LISTINGS)[number]) {
     ? LOCATION_COORDINATES[coordinateKey]
     : LOCATION_COORDINATES.Kigali;
   const isApartment = /apartment|studio|penthouse|suite/i.test(listing.title);
-  const isSale = !listing.price.includes("month");
 
   return {
     type: isApartment ? "Apartment" : "House",
-    purpose: isSale ? "For sale" : "For rent",
+    purpose: "For rent",
     availableFrom: listing.status === "Live" ? "Available now" : "On approval",
-    minimumStay: isSale ? "Not applicable" : "12 months",
+    minimumStay: "12 months",
     exactAddress: `${listing.location} · Property entrance verified`,
     latitude,
     longitude,
@@ -422,6 +422,40 @@ export type DashboardSection = keyof typeof SECTIONS;
 
 export function DashboardRoutePage({ section }: { section: DashboardSection }) {
   const content = SECTIONS[section];
+  const role = usePartnerRole();
+  const isAgent = role === "agent";
+  const roleTitle = isAgent
+    ? section === "listings"
+      ? "Listings & mandates"
+      : section === "enquiries"
+        ? "Leads & calendar"
+        : section === "applications"
+          ? "Deals"
+          : content.title
+    : content.title;
+  const roleDescription = isAgent
+    ? section === "listings"
+      ? "Manage the properties you are authorized to market and track every owner mandate."
+      : section === "enquiries"
+        ? "Qualify renter leads and organize property visits."
+        : section === "applications"
+          ? "Move qualified prospects from viewing to signed agreement and commission."
+          : content.description
+    : content.description;
+  const roleStats: ReadonlyArray<readonly [string, string]> =
+    isAgent && section === "enquiries"
+      ? [
+          ["New leads", "7"],
+          ["Visits scheduled", "5"],
+          ["Awaiting follow-up", "3"],
+        ]
+      : isAgent && section === "applications"
+        ? [
+            ["Active deals", "8"],
+            ["Negotiating", "5"],
+            ["Ready to close", "3"],
+          ]
+        : content.stats;
   const Icon = content.icon;
   const action = "action" in content ? content.action : null;
 
@@ -437,12 +471,12 @@ export function DashboardRoutePage({ section }: { section: DashboardSection }) {
                 </span>
               ) : null}
               <h1
-                className={`font-bricolage text-carbon-900 text-[clamp(2.75rem,5vw,4.75rem)] leading-[0.92] font-medium tracking-[-0.055em] ${section !== "listings" && section !== "verification" ? "mt-6" : ""}`}
+                className={`dashboard-page-title text-carbon-900 ${section !== "listings" && section !== "verification" ? "mt-6" : ""}`}
               >
-                {content.title}
+                {roleTitle}
               </h1>
               <p className="text-carbon-600 mt-5 max-w-2xl text-base leading-7 sm:text-lg">
-                {content.description}
+                {roleDescription}
               </p>
             </div>
             {action ? (
@@ -458,7 +492,7 @@ export function DashboardRoutePage({ section }: { section: DashboardSection }) {
 
           {section !== "listings" ? (
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
-              {content.stats.map(([label, value]) => (
+              {roleStats.map(([label, value]) => (
                 <article
                   key={label}
                   className="rounded-[1.5rem] bg-white p-6 shadow-[0_12px_35px_rgba(0,0,0,0.045)]"
@@ -482,8 +516,8 @@ export function DashboardRoutePage({ section }: { section: DashboardSection }) {
                     Recent activity
                   </h2>
                   <p className="text-carbon-500 mt-2 text-sm">
-                    Your latest {content.title.toLowerCase()} updates will
-                    appear here.
+                    Your latest {roleTitle.toLowerCase()} updates will appear
+                    here.
                   </p>
                 </div>
                 <ArrowUpRight aria-hidden="true" className="size-5" />

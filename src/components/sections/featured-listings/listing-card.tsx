@@ -2,8 +2,12 @@
 
 import Image, { type StaticImageData } from "next/image";
 import Link from "next/link";
-import { useState } from "react";
-import { Bath, BedDouble, Expand, Heart, MapPin, Sofa } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { Bath, BedDouble, Expand, Heart, MapPin, Sofa, X } from "lucide-react";
+import loginIllustration from "../../../../login.png";
+import { CurrencyAmount } from "@/components/currency/currency-selector";
 
 type ListingCardProps = {
   title: string;
@@ -18,6 +22,7 @@ type ListingCardProps = {
   image: StaticImageData;
   href: string;
   focalPoint?: string;
+  requiresLogin?: boolean;
 };
 
 export function ListingCard({
@@ -33,19 +38,140 @@ export function ListingCard({
   image,
   href,
   focalPoint = "50% 55%",
+  requiresLogin = false,
 }: ListingCardProps) {
+  const usdAmount = Number(price.replace(/[^0-9.]/g, ""));
   const [liked, setLiked] = useState(false);
   const [savedCount, setSavedCount] = useState(saves);
+  const [feedback, setFeedback] = useState("");
+  const [authPromptOpen, setAuthPromptOpen] = useState(false);
+  const [feedbackHost, setFeedbackHost] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const connectHost = window.setTimeout(
+      () => setFeedbackHost(document.body),
+      0,
+    );
+    return () => window.clearTimeout(connectHost);
+  }, []);
+
+  useEffect(() => {
+    if (!feedback) return;
+    const timer = window.setTimeout(() => setFeedback(""), 3000);
+    return () => window.clearTimeout(timer);
+  }, [feedback]);
 
   function toggleSaved() {
+    if (requiresLogin) {
+      setAuthPromptOpen(true);
+      return;
+    }
+
     setLiked((current) => {
       setSavedCount((count) => count + (current ? -1 : 1));
+      setFeedback(
+        current ? "Removed from saved homes" : "House saved to your homes",
+      );
       return !current;
     });
   }
 
   return (
     <article className="listing-glass group relative overflow-hidden rounded-2xl">
+      {feedbackHost
+        ? createPortal(
+            <>
+              <AnimatePresence>
+                {feedback ? (
+                  <motion.div
+                    key={feedback}
+                    role="status"
+                    initial={{ opacity: 0, y: 22, scale: 0.97 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 14, scale: 0.98 }}
+                    transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                    className="fixed bottom-6 left-1/2 z-[150] min-w-72 -translate-x-1/2 overflow-hidden rounded-2xl border border-white/10 bg-black px-5 py-4 text-center text-sm font-medium whitespace-nowrap text-white shadow-[0_18px_50px_rgba(0,0,0,0.24)]"
+                  >
+                    {feedback}
+                    <motion.span
+                      aria-hidden="true"
+                      initial={{ scaleX: 1 }}
+                      animate={{ scaleX: 0 }}
+                      transition={{ duration: 3, ease: "linear" }}
+                      className="absolute inset-x-0 bottom-0 h-0.5 origin-left bg-white"
+                    />
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
+              <AnimatePresence>
+                {authPromptOpen ? (
+                  <motion.div
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="save-auth-title"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-[160] flex items-center justify-center bg-black/35 p-5"
+                    onClick={() => setAuthPromptOpen(false)}
+                  >
+                    <motion.div
+                      initial={{ opacity: 0, y: 18, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 12, scale: 0.98 }}
+                      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                      className="relative w-full max-w-md overflow-hidden rounded-3xl bg-white text-black shadow-[0_28px_90px_rgba(0,0,0,0.24)]"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <div className="relative flex h-48 items-center justify-center bg-black/[0.045] px-8 pt-3">
+                        <Image
+                          src={loginIllustration}
+                          alt=""
+                          className="h-full w-auto object-contain"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setAuthPromptOpen(false)}
+                          aria-label="Close"
+                          className="absolute top-5 right-5 flex size-9 items-center justify-center rounded-full border border-black/15 bg-white/80"
+                        >
+                          <X className="size-4" />
+                        </button>
+                      </div>
+                      <div className="p-7 sm:p-9">
+                        <h2
+                          id="save-auth-title"
+                          className="font-bricolage text-3xl leading-tight font-medium tracking-[-0.035em]"
+                        >
+                          Save homes with an account.
+                        </h2>
+                        <p className="text-carbon-600 mt-3 text-sm leading-6">
+                          Log in or create a HauxHunt account to save this house
+                          and find it again from any device.
+                        </p>
+                        <div className="mt-7 flex gap-3">
+                          <Link
+                            href={`/register?returnTo=${encodeURIComponent(href)}`}
+                            className="font-bricolage flex h-12 flex-1 items-center justify-center rounded-full border border-black/20 px-5 font-medium"
+                          >
+                            Sign up
+                          </Link>
+                          <Link
+                            href={`/login?returnTo=${encodeURIComponent(href)}`}
+                            className="font-bricolage flex h-12 flex-1 items-center justify-center rounded-full bg-black px-5 font-medium text-white"
+                          >
+                            Log in
+                          </Link>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
+            </>,
+            feedbackHost,
+          )
+        : null}
       <Link href={href} className="block">
         <div className="relative aspect-[4/3] overflow-hidden">
           <Image
@@ -73,7 +199,11 @@ export function ListingCard({
             </div>
             <p className="text-carbon-900 shrink-0 text-right">
               <span className="font-bricolage block text-lg font-medium">
-                {price}
+                {Number.isFinite(usdAmount) ? (
+                  <CurrencyAmount usdAmount={usdAmount} />
+                ) : (
+                  price
+                )}
               </span>
               <span className="text-carbon-500 text-xs">{period}</span>
             </p>

@@ -8,6 +8,7 @@ import { Menu, X } from "lucide-react";
 import { Wordmark } from "./wordmark";
 import { useScrolled } from "@/hooks/use-scrolled";
 import { authConfig, navConfig } from "@/config/site";
+import { CurrencySelector } from "@/components/currency/currency-selector";
 
 /**
  * Primary navigation: lockup left, sections centred, account actions right.
@@ -88,7 +89,7 @@ export function Navbar() {
                   href={item.href}
                   aria-current={isCurrent(item.href) ? "page" : undefined}
                   className={[
-                    "font-bricolage text-body-m rounded-sm transition-colors duration-150",
+                    "font-bricolage text-body-m relative inline-flex rounded-sm transition-colors duration-150",
                     solidNav
                       ? isCurrent(item.href)
                         ? "text-fg font-medium"
@@ -99,6 +100,12 @@ export function Navbar() {
                   ].join(" ")}
                 >
                   {item.label}
+                  {isCurrent(item.href) ? (
+                    <span
+                      aria-hidden="true"
+                      className={`absolute top-[calc(100%+0.28rem)] left-1/2 size-1.5 -translate-x-1/2 rounded-full ${solidNav ? "bg-black" : "bg-white"}`}
+                    />
+                  ) : null}
                 </Link>
               </li>
             ))}
@@ -106,6 +113,7 @@ export function Navbar() {
 
           {/* --- Account actions, right ---------------------------------- */}
           <div className="flex items-center gap-2 justify-self-end lg:gap-4 xl:gap-5">
+            <CurrencySelector inverse={!solidNav} />
             <Link
               href={authConfig.register.href}
               className={[
