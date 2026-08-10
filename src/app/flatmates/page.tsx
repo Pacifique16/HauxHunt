@@ -46,6 +46,12 @@ const SHARED_HOMES: Array<{
   amenities: string[];
   likes: string[];
   dislikes: string[];
+  genderPreference: "any" | "female" | "male";
+  occupationPreference:
+    | "any"
+    | "student"
+    | "professional"
+    | "remote-worker";
   image: StaticImageData;
 }> = [
   {
@@ -60,6 +66,8 @@ const SHARED_HOMES: Array<{
     amenities: ["Furnished", "Wi-Fi", "Parking"],
     likes: ["Quiet evenings", "Shared cooking"],
     dislikes: ["Smoking", "Loud parties"],
+    genderPreference: "any",
+    occupationPreference: "student",
     image: house1,
   },
   {
@@ -74,6 +82,8 @@ const SHARED_HOMES: Array<{
     amenities: ["Furnished", "Gym", "Security"],
     likes: ["Clean shared spaces", "Social weekends"],
     dislikes: ["Indoor smoking", "Unannounced guests"],
+    genderPreference: "female",
+    occupationPreference: "professional",
     image: house2,
   },
   {
@@ -88,6 +98,8 @@ const SHARED_HOMES: Array<{
     amenities: ["Backup power", "Parking", "Air conditioning"],
     likes: ["Professionals", "Occasional visitors"],
     dislikes: ["Smoking", "Poor communication"],
+    genderPreference: "male",
+    occupationPreference: "professional",
     image: house3,
   },
   {
@@ -102,6 +114,8 @@ const SHARED_HOMES: Array<{
     amenities: ["Wi-Fi", "Water tank", "Balcony"],
     likes: ["Early mornings", "Quiet home"],
     dislikes: ["Pets", "Late-night noise"],
+    genderPreference: "any",
+    occupationPreference: "student",
     image: house4,
   },
   {
@@ -116,6 +130,8 @@ const SHARED_HOMES: Array<{
     amenities: ["Furnished", "Backup power", "Security"],
     likes: ["Social dinners", "Shared cooking"],
     dislikes: ["Smoking indoors", "Messy common areas"],
+    genderPreference: "any",
+    occupationPreference: "professional",
     image: house5,
   },
   {
@@ -130,6 +146,8 @@ const SHARED_HOMES: Array<{
     amenities: ["Lake view", "Furnished", "Parking"],
     likes: ["Remote workers", "Quiet routines"],
     dislikes: ["Smoking", "Frequent parties"],
+    genderPreference: "any",
+    occupationPreference: "remote-worker",
     image: house6,
   },
 ];
@@ -146,8 +164,9 @@ export default async function FlatmatesPage({
   const typeFilter = valueOf(params.type).trim().toLowerCase();
   const priceRangeFilter = valueOf(params.priceRange);
   const budgetFilter = valueOf(params.budget);
-  const moveInFilter = valueOf(params.moveIn);
-  const lifestyleFilter = valueOf(params.lifestyle);
+  const genderFilter = valueOf(params.gender);
+  const bedroomsFilter = valueOf(params.bedrooms);
+  const occupationFilter = valueOf(params.occupation);
   const showAll =
     (Array.isArray(params.view) ? params.view[0] : params.view) === "all";
   const filteredHomes = SHARED_HOMES.filter((home) => {
@@ -180,32 +199,30 @@ export default async function FlatmatesPage({
         monthlyContribution >= 250 &&
         monthlyContribution <= 400) ||
       (budgetFilter === "above-400" && monthlyContribution > 400);
-    const moveInMatches =
-      !moveInFilter ||
-      (moveInFilter === "now" && home.available === "Available now") ||
-      (moveInFilter === "30-days" &&
-        ["Available now", "Available 1 Sep"].includes(home.available)) ||
-      (moveInFilter === "later" &&
-        !["Available now", "Available 1 Sep"].includes(home.available));
-    const householdText = [...home.likes, ...home.dislikes, ...home.amenities]
-      .join(" ")
-      .toLowerCase();
-    const lifestyleMatches =
-      !lifestyleFilter ||
-      (lifestyleFilter === "quiet" && householdText.includes("quiet")) ||
-      (lifestyleFilter === "social" && householdText.includes("social")) ||
-      (lifestyleFilter === "non-smoking" &&
-        householdText.includes("smoking")) ||
-      (lifestyleFilter === "pet-friendly" &&
-        householdText.includes("pet-friendly"));
+    const genderMatches =
+      !genderFilter ||
+      genderFilter === "any" ||
+      home.genderPreference === "any" ||
+      home.genderPreference === genderFilter;
+    const bedroomsMatches =
+      !bedroomsFilter ||
+      (bedroomsFilter === "4+"
+        ? home.bedrooms >= 4
+        : home.bedrooms === Number(bedroomsFilter));
+    const occupationMatches =
+      !occupationFilter ||
+      occupationFilter === "any" ||
+      home.occupationPreference === "any" ||
+      home.occupationPreference === occupationFilter;
 
     return (
       locationMatches &&
       typeMatches &&
       priceRangeMatches &&
       budgetMatches &&
-      moveInMatches &&
-      lifestyleMatches
+      genderMatches &&
+      bedroomsMatches &&
+      occupationMatches
     );
   });
   const visibleHomes = showAll ? filteredHomes : filteredHomes.slice(0, 4);
@@ -214,8 +231,9 @@ export default async function FlatmatesPage({
   if (typeFilter) filterQuery.set("type", valueOf(params.type));
   if (priceRangeFilter) filterQuery.set("priceRange", priceRangeFilter);
   if (budgetFilter) filterQuery.set("budget", budgetFilter);
-  if (moveInFilter) filterQuery.set("moveIn", moveInFilter);
-  if (lifestyleFilter) filterQuery.set("lifestyle", lifestyleFilter);
+  if (genderFilter) filterQuery.set("gender", genderFilter);
+  if (bedroomsFilter) filterQuery.set("bedrooms", bedroomsFilter);
+  if (occupationFilter) filterQuery.set("occupation", occupationFilter);
   const showAllQuery = new URLSearchParams(filterQuery);
   showAllQuery.set("view", "all");
   const hasFilters = Boolean(
@@ -223,8 +241,9 @@ export default async function FlatmatesPage({
       typeFilter ||
       priceRangeFilter ||
       budgetFilter ||
-      moveInFilter ||
-      lifestyleFilter,
+      (genderFilter && genderFilter !== "any") ||
+      bedroomsFilter ||
+      (occupationFilter && occupationFilter !== "any"),
   );
 
   return (
@@ -247,7 +266,7 @@ export default async function FlatmatesPage({
         <section className="border-y border-black/10 bg-white px-5 py-5 sm:px-6 lg:px-11 xl:px-[52px]">
           <AutoSubmitFilterForm
             action="/flatmates"
-            className="mx-auto grid max-w-[1562px] gap-3 md:grid-cols-2 xl:grid-cols-4"
+            className="mx-auto grid max-w-[1562px] gap-3 md:grid-cols-2 xl:grid-cols-5"
           >
             <input type="hidden" name="type" value={valueOf(params.type)} />
             <input
@@ -267,6 +286,16 @@ export default async function FlatmatesPage({
               />
               <VoiceInputButton />
             </label>
+            <FilterSelect
+              name="gender"
+              label="Gender"
+              value={genderFilter}
+              options={[
+                ["any", "Any gender"],
+                ["female", "Female"],
+                ["male", "Male"],
+              ]}
+            />
             <CurrencyFilterSelect
               name="budget"
               label="Monthly budget"
@@ -280,24 +309,26 @@ export default async function FlatmatesPage({
               ]}
             />
             <FilterSelect
-              name="moveIn"
-              label="Move-in"
-              value={moveInFilter}
+              name="bedrooms"
+              label="Bedrooms"
+              value={bedroomsFilter}
               options={[
-                ["now", "Immediately"],
-                ["30-days", "Within 30 days"],
-                ["later", "Later"],
+                ["1", "1 bedroom"],
+                ["2", "2 bedrooms"],
+                ["3", "3 bedrooms"],
+                ["4+", "4+ bedrooms"],
               ]}
             />
             <FilterSelect
-              name="lifestyle"
-              label="Lifestyle"
-              value={lifestyleFilter}
+              name="occupation"
+              label="Occupation"
+              value={occupationFilter}
               options={[
-                ["quiet", "Quiet home"],
-                ["social", "Social home"],
-                ["non-smoking", "Non-smoking"],
-                ["pet-friendly", "Pet-friendly"],
+                ["any", "Any occupation"],
+                ["student", "Student"],
+                ["professional", "Professional"],
+                ["remote-worker", "Remote worker"],
+                ["self-employed", "Self-employed"],
               ]}
             />
           </AutoSubmitFilterForm>
@@ -459,6 +490,40 @@ export default async function FlatmatesPage({
                           </div>
                         </div>
 
+                        <div className="mt-4 border-t border-black/10 pt-4 text-xs">
+                          <p className="text-carbon-500 text-[0.68rem] font-medium tracking-[0.1em] uppercase">
+                            Preferred flatmate
+                          </p>
+                          <dl className="mt-3 grid grid-cols-2 gap-3">
+                            <div>
+                              <dt className="text-carbon-500">Gender needed</dt>
+                              <dd className="mt-1 font-medium text-black">
+                                {home.genderPreference === "any"
+                                  ? "Any gender"
+                                  : home.genderPreference === "female"
+                                    ? "Female"
+                                    : "Male"}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt className="text-carbon-500">
+                                Occupation needed
+                              </dt>
+                              <dd className="mt-1 font-medium text-black">
+                                {home.occupationPreference === "any"
+                                  ? "Any occupation"
+                                  : home.occupationPreference ===
+                                      "remote-worker"
+                                    ? "Remote worker"
+                                    : home.occupationPreference
+                                        .charAt(0)
+                                        .toUpperCase() +
+                                      home.occupationPreference.slice(1)}
+                              </dd>
+                            </div>
+                          </dl>
+                        </div>
+
                         <Link
                           href="/login"
                           className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-full bg-black text-sm font-medium text-white transition-opacity hover:opacity-75"
@@ -481,7 +546,7 @@ export default async function FlatmatesPage({
                   No shared homes match these filters
                 </h3>
                 <p className="text-carbon-500 mt-2 text-sm">
-                  Try another location, budget, move-in date, or lifestyle.
+                  Try another location, budget, bedroom count, or occupation.
                 </p>
               </div>
             )}
