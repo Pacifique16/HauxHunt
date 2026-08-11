@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { Building2, CheckCircle2, ShieldCheck } from "lucide-react";
+import { Building2, CheckCircle2, CreditCard, ShieldCheck } from "lucide-react";
 
 import { DashboardShell } from "@/components/partner/dashboard-shell";
 import { PartnerDetailsFields } from "@/components/partner/partner-details-fields";
+import { PartnerPlanFields } from "@/components/partner/partner-plan-fields";
 import { SaveSettingsButton } from "@/components/partner/save-settings-button";
 import julienProfile from "../../../../julien.jpg";
 
@@ -60,6 +61,14 @@ export default function PartnerSettingsPage() {
               description="These details are reused when you create a property listing."
             >
               <PartnerDetailsFields />
+            </SettingsCard>
+
+            <SettingsCard
+              icon={CreditCard}
+              title="Billing & plan"
+              description="Manage your HauxHunt subscription and paid tools."
+            >
+              <PartnerPlanFields />
             </SettingsCard>
 
             <SettingsCard

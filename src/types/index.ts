@@ -73,6 +73,78 @@ export type FlatmateProfile = {
   signals: string[];
 };
 
+/**
+ * Owner/property-manager billing tier (Tenanthistory.md), read by
+ * `usePartnerPlan` (src/components/partner/use-partner-plan.ts). "free"
+ * owners see the `UpgradePaywallModal` for paid-only tools like tenant
+ * history; "pro" owners get the real thing.
+ */
+export type PartnerPlan = "free" | "pro";
+
+/**
+ * Where a tenant application sits in the owner's review workflow
+ * (Tenanthistory.md). Not a strict funnel — an application can move
+ * straight from "new" to "approved"/"declined".
+ */
+export type ApplicationStatus =
+  | "new"
+  | "under_review"
+  | "ready_for_decision"
+  | "approved"
+  | "declined";
+
+/**
+ * A renter's application to a listing, shown on the partner dashboard's
+ * Applications view (Tenanthistory.md). `propertyId` matches a
+ * `PORTFOLIO_LISTINGS` title in dashboard-route-page.tsx — that dataset has
+ * no separate id field, so (as with the rest of that file) the title is
+ * the key.
+ */
+export type TenantApplication = {
+  id: string;
+  applicantId: string;
+  applicantName: string;
+  propertyId: string;
+  propertyTitle: string;
+  monthlyRent: string;
+  status: ApplicationStatus;
+  submittedAgo: string;
+  occupation: string;
+  monthlyIncome: string;
+  moveInDate: string;
+  /** Names of other people on the same application, if any. */
+  coApplicants?: string[];
+};
+
+/**
+ * One previous tenancy on an applicant's rental record, as shown in
+ * `TenantHistoryDrawer` (Tenanthistory.md §4).
+ */
+export type TenantStay = {
+  propertyTitle: string;
+  location: string;
+  durationMonths: number;
+  /** 1–5. */
+  landlordRating: number;
+  landlordComment: string;
+};
+
+/**
+ * An applicant's tenant history — previous stays, on-time payment
+ * reliability, and past landlord feedback (Tenanthistory.md §4). Renters
+ * with no rental history (e.g. first-time renters) simply have no entry;
+ * `TenantHistoryDrawer` renders an empty state rather than a zeroed-out one.
+ */
+export type TenantHistoryRecord = {
+  applicantId: string;
+  applicantName: string;
+  totalMonthsRented: number;
+  propertiesRented: number;
+  /** 0–100. */
+  onTimePaymentRate: number;
+  stays: TenantStay[];
+};
+
 export type PropertyPreview = {
   id: string;
   title: string;

@@ -33,9 +33,12 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import type { ApplicationStatus } from "@/types";
 import { DashboardShell } from "@/components/partner/dashboard-shell";
 import { usePartnerRole } from "@/components/partner/use-partner-role";
 import { ListingOptionsMenu } from "@/components/partner/listing-options-menu";
+import { ApplicationCard } from "@/components/partner/application-card";
+import { TENANT_APPLICATIONS } from "@/data/tenant-applications-demo";
 import houseOne from "../../../house1.jpg";
 import houseTwo from "../../../house2.jpg";
 import houseThree from "../../../house3.jpg";
@@ -420,6 +423,19 @@ const SECTIONS = {
 
 export type DashboardSection = keyof typeof SECTIONS;
 
+// Computed from the applications demo dataset rather than hardcoded, so the
+// header KPI cards never drift from what `AllApplications` actually lists
+// below them (Tenanthistory.md).
+const APPLICATION_STATUS_COUNTS = {
+  new: TENANT_APPLICATIONS.filter((application) => application.status === "new").length,
+  underReview: TENANT_APPLICATIONS.filter(
+    (application) => application.status === "under_review",
+  ).length,
+  readyForDecision: TENANT_APPLICATIONS.filter(
+    (application) => application.status === "ready_for_decision",
+  ).length,
+};
+
 export function DashboardRoutePage({ section }: { section: DashboardSection }) {
   const content = SECTIONS[section];
   const role = usePartnerRole();
@@ -451,11 +467,17 @@ export function DashboardRoutePage({ section }: { section: DashboardSection }) {
         ]
       : isAgent && section === "applications"
         ? [
-            ["Active deals", "8"],
-            ["Negotiating", "5"],
-            ["Ready to close", "3"],
+            ["Active deals", String(TENANT_APPLICATIONS.length)],
+            ["Negotiating", String(APPLICATION_STATUS_COUNTS.underReview)],
+            ["Ready to close", String(APPLICATION_STATUS_COUNTS.readyForDecision)],
           ]
-        : content.stats;
+        : section === "applications"
+          ? [
+              ["New applications", String(APPLICATION_STATUS_COUNTS.new)],
+              ["Under review", String(APPLICATION_STATUS_COUNTS.underReview)],
+              ["Ready for decision", String(APPLICATION_STATUS_COUNTS.readyForDecision)],
+            ]
+          : content.stats;
   const Icon = content.icon;
   const action = "action" in content ? content.action : null;
 
@@ -508,6 +530,8 @@ export function DashboardRoutePage({ section }: { section: DashboardSection }) {
 
           {section === "listings" ? (
             <AllListings />
+          ) : section === "applications" ? (
+            <AllApplications isAgent={isAgent} />
           ) : (
             <section className="mt-8 rounded-[2rem] bg-white p-6 shadow-[0_18px_55px_rgba(0,0,0,0.055)] sm:p-8">
               <div className="flex items-start justify-between gap-5">
@@ -972,6 +996,108 @@ function AllListings() {
           )}
         </nav>
       ) : null}
+    </div>
+  );
+}
+
+const APPLICATION_STATUS_FILTERS = [
+  "All",
+  "New",
+  "Under review",
+  "Ready for decision",
+  "Approved",
+  "Declined",
+] as const;
+
+function statusFilterMatches(filter: string, status: ApplicationStatus): boolean {
+  if (filter === "All") return true;
+  return STATUS_FILTER_TO_STATUS[filter] === status;
+}
+
+const STATUS_FILTER_TO_STATUS: Record<string, ApplicationStatus> = {
+  New: "new",
+  "Under review": "under_review",
+  "Ready for decision": "ready_for_decision",
+  Approved: "approved",
+  Declined: "declined",
+};
+
+/**
+ * The Applications view's real content (Tenanthistory.md) — a decision-
+ * ready `ApplicationCard` per applicant, replacing the section's previous
+ * generic "Recent activity" placeholder. Decisions are kept as local state
+ * only, same no-backend approach as `AllListings`' archive/delete actions.
+ */
+function AllApplications({ isAgent }: { isAgent: boolean }) {
+  const [statusFilter, setStatusFilter] = useState<string>("All");
+  const [statusOverrides, setStatusOverrides] = useState<Record<string, ApplicationStatus>>({});
+
+  const applications = TENANT_APPLICATIONS.map((application) => ({
+    ...application,
+    status: statusOverrides[application.id] ?? application.status,
+  })).filter((application) => statusFilterMatches(statusFilter, application.status));
+
+  function decide(applicationId: string, status: ApplicationStatus) {
+    setStatusOverrides((current) => ({ ...current, [applicationId]: status }));
+  }
+
+  return (
+    <div className="mt-8">
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h2 className="font-bricolage text-carbon-900 text-2xl font-medium">
+            {isAgent ? "All deals" : "All applications"}
+          </h2>
+          <p className="text-carbon-500 mt-2 text-sm">
+            {applications.length} {applications.length === 1 ? "result" : "results"}.
+          </p>
+        </div>
+        <label className="relative block shrink-0">
+          <span className="sr-only">Filter by status</span>
+          <select
+            value={statusFilter}
+            onChange={(event) => setStatusFilter(event.target.value)}
+            className="h-11 appearance-none rounded-full border-0 bg-white pr-10 pl-4 text-sm font-medium shadow-[0_8px_24px_rgba(0,0,0,0.06)] ring-0 outline-none focus:ring-0"
+          >
+            {APPLICATION_STATUS_FILTERS.map((filter) => (
+              <option key={filter}>{filter}</option>
+            ))}
+          </select>
+          <ChevronDown
+            aria-hidden="true"
+            className="pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2"
+          />
+        </label>
+      </header>
+
+      {applications.length === 0 ? (
+        <section className="mt-5 flex min-h-[320px] flex-col items-center justify-center bg-white px-6 py-14 text-center shadow-[0_18px_55px_rgba(0,0,0,0.055)]">
+          <Image
+            src={noDataIllustration}
+            alt="No applications found"
+            className="h-36 w-auto object-contain"
+          />
+          <h3 className="font-bricolage text-carbon-900 mt-5 text-2xl font-medium">
+            No {statusFilter === "All" ? "" : `${statusFilter.toLowerCase()} `}applications
+          </h3>
+          <p className="text-carbon-500 mt-2 max-w-md text-sm leading-6">
+            {statusFilter === "All"
+              ? "New applications will show up here as renters apply."
+              : `There are currently no applications matching the ${statusFilter} filter.`}
+          </p>
+        </section>
+      ) : (
+        <div className="mt-5 flex flex-col gap-4">
+          {applications.map((application) => (
+            <ApplicationCard
+              key={application.id}
+              application={application}
+              onApprove={(id) => decide(id, "approved")}
+              onDecline={(id) => decide(id, "declined")}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
