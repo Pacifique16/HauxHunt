@@ -32,6 +32,8 @@ const PROPERTY_MANAGER_STATS = [
     value: "USD 7,840",
     change: "This month",
     icon: TrendingUp,
+    href: "/partner-dashboard/finance",
+    ariaLabel: "View rent collection and payout history",
   },
   {
     label: "Open maintenance",
@@ -382,22 +384,53 @@ function StatCard({
   value,
   change,
   icon: Icon,
+  href,
+  ariaLabel,
 }: {
   label: string;
   value: string;
   change: string;
   icon: LucideIcon;
+  /** Makes the card a real link (KPI.md) instead of a static tile. */
+  href?: string;
+  ariaLabel?: string;
 }) {
-  return (
-    <article className="rounded-[1.5rem] border border-black/10 bg-white p-6 shadow-[0_12px_35px_rgba(0,0,0,0.045)]">
+  const body = (
+    <>
       <div className="flex items-start justify-between gap-5">
         <p className="text-carbon-500 text-sm">{label}</p>
-        <Icon aria-hidden="true" className="size-5" />
+        <span className="flex items-center">
+          <Icon aria-hidden="true" className="size-5" />
+          {href ? (
+            <ArrowUpRight
+              aria-hidden="true"
+              className="ml-0.5 size-4 max-w-0 -translate-x-1 opacity-0 transition-[opacity,transform,max-width] duration-200 group-hover:max-w-4 group-hover:translate-x-0 group-hover:opacity-100"
+            />
+          ) : null}
+        </span>
       </div>
       <p className="font-bricolage text-carbon-900 mt-5 text-4xl font-medium tracking-[-0.045em]">
         {value}
       </p>
       <p className="text-carbon-500 mt-2 text-xs">{change}</p>
+    </>
+  );
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        aria-label={ariaLabel ?? label}
+        className="group rounded-[1.5rem] border border-black/10 bg-white p-6 shadow-[0_12px_35px_rgba(0,0,0,0.045)] transition-all duration-200 hover:border-black/20 hover:shadow-[0_16px_40px_rgba(0,0,0,0.09)]"
+      >
+        {body}
+      </Link>
+    );
+  }
+
+  return (
+    <article className="rounded-[1.5rem] border border-black/10 bg-white p-6 shadow-[0_12px_35px_rgba(0,0,0,0.045)]">
+      {body}
     </article>
   );
 }

@@ -145,6 +145,36 @@ export type TenantHistoryRecord = {
   stays: TenantStay[];
 };
 
+export type PayoutStatus = "paid" | "pending" | "failed";
+
+/**
+ * One in-app rent payout on the "Rent collected" KPI card's destination,
+ * `/partner-dashboard/finance` (KPI.md).
+ */
+export type PayoutRecord = {
+  id: string;
+  date: string;
+  propertyTitle: string;
+  tenantName: string;
+  amount: string;
+  status: PayoutStatus;
+};
+
+export type BillingScheduleStatus = "active" | "paused";
+
+/**
+ * One tenant's recurring in-app rent schedule, shown on the Finance page's
+ * "Active Billing Schedules" tab (KPI.md).
+ */
+export type BillingSchedule = {
+  id: string;
+  tenantName: string;
+  propertyTitle: string;
+  monthlyRent: string;
+  nextDueDate: string;
+  status: BillingScheduleStatus;
+};
+
 export type PropertyPreview = {
   id: string;
   title: string;
