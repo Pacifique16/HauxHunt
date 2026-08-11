@@ -219,6 +219,13 @@ const PROFILE_LINKS = [
   "Account settings",
 ] as const;
 
+// Only these two currently have a real destination behind them — the rest
+// stay inert buttons until those routes exist, same as before.
+const PROFILE_LINK_HREFS: Partial<Record<(typeof PROFILE_LINKS)[number], string>> = {
+  Messages: "/renter-dashboard/messages",
+  "Account settings": "/renter-dashboard/profile",
+};
+
 type SpeechRecognitionEventLike = {
   results: ArrayLike<{ 0: { transcript: string } }>;
 };
@@ -858,15 +865,29 @@ function ProfileMenu() {
         <p className="text-carbon-500 mt-0.5 text-sm">renter@gmail.com</p>
       </div>
       <div className="p-2">
-        {PROFILE_LINKS.map((item) => (
-          <button
-            key={item}
-            type="button"
-            className="flex h-11 w-full items-center rounded-xl px-3 text-left text-sm transition-colors hover:bg-black/[0.055]"
-          >
-            {item}
-          </button>
-        ))}
+        {PROFILE_LINKS.map((item) => {
+          const href = PROFILE_LINK_HREFS[item];
+          if (href) {
+            return (
+              <Link
+                key={item}
+                href={href}
+                className="flex h-11 w-full items-center rounded-xl px-3 text-left text-sm transition-colors hover:bg-black/[0.055]"
+              >
+                {item}
+              </Link>
+            );
+          }
+          return (
+            <button
+              key={item}
+              type="button"
+              className="flex h-11 w-full items-center rounded-xl px-3 text-left text-sm transition-colors hover:bg-black/[0.055]"
+            >
+              {item}
+            </button>
+          );
+        })}
       </div>
       <div className="border-t border-black/10 p-2">
         <Link

@@ -19,6 +19,12 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
+        // Matches the app's established black-pill CTA (hero search button,
+        // listing-card CTA, flatmates page CTAs) rather than the shadcn
+        // default above, which no other part of the app actually uses.
+        solid: "border-transparent bg-black text-white hover:opacity-75",
+        "outline-solid":
+          "border-carbon-900 text-carbon-900 bg-white hover:bg-muted",
       },
       size: {
         default:
@@ -32,6 +38,10 @@ const buttonVariants = cva(
         "icon-sm":
           "size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg",
         "icon-lg": "size-9",
+        // Pill sizes matching the app's established h-11/h-12 rounded-full
+        // CTAs (e.g. "View all properties", "Sign up" / "Log in").
+        pill: "h-11 gap-2 rounded-full px-5 text-sm font-medium",
+        "pill-lg": "h-12 gap-2 rounded-full px-6 text-base font-medium",
       },
     },
     defaultVariants: {
