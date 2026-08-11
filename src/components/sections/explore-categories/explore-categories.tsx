@@ -45,7 +45,7 @@ const CATEGORIES = [
     count: 118,
     href: "/flatmates",
     icon: UsersRound,
-    countLabel: "people and shared homes",
+    countLabel: "people looking for a flatmate",
   },
 ] as const;
 

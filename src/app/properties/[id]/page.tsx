@@ -27,7 +27,9 @@ import { SavePropertyButton } from "@/components/properties/save-property-button
 import { CurrencyAmount } from "@/components/currency/currency-selector";
 import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
 import { HistoryBackButton } from "@/components/navigation/history-back-button";
+import { ApartmentInterestedSection } from "@/components/flatmates/apartment-interested-section";
 import { DEMO_LISTINGS } from "@/data/hero-search-demo";
+import { getFlatmateProfilesForListing } from "@/data/flatmates-demo";
 
 const HOUSE_IMAGES = [house1, house2, house3, house4, house5, house6];
 
@@ -224,6 +226,7 @@ export default async function PropertyPage({
   });
   const highlightedAmenities = orderedAmenities.slice(0, 8);
   const remainingAmenities = orderedAmenities.slice(8);
+  const interestedFlatmates = getFlatmateProfilesForListing(property.id);
 
   return (
     <>
@@ -369,6 +372,11 @@ export default async function PropertyPage({
                   </details>
                 ) : null}
               </section>
+
+              <ApartmentInterestedSection
+                listingId={property.id}
+                profiles={interestedFlatmates}
+              />
 
               <section className="border-t border-black/10 py-9">
                 <h2 className="font-bricolage text-carbon-900 text-2xl font-medium">
