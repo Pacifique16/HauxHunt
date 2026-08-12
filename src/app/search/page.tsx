@@ -11,6 +11,7 @@ import house6 from "../../../house6.jpeg";
 import emptyIllustration from "../../../empty.png";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
+import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
 import { AutoSubmitFilterForm } from "@/components/listings/auto-submit-filter-form";
 import { SearchQueryField } from "@/components/listings/search-query-field";
 import { CurrencyFilterSelect } from "@/components/currency/currency-selector";
@@ -121,20 +122,28 @@ function propertyType(property: PropertyPreview) {
   return "House";
 }
 
-export default function SearchPage({ searchParams }: SearchPageProps) {
+export default async function SearchPage({ searchParams }: SearchPageProps) {
+  const params = await searchParams;
+  const renterView = valueOf(params.from) === "renter";
+
   return (
     <>
-      <Navbar />
+      {renterView ? <RenterCatalogueTopBar /> : <Navbar />}
       <main className="bg-carbon-50 min-h-svh pt-16">
-        <SearchResults searchParams={searchParams} />
+        <SearchResults params={params} renterView={renterView} />
       </main>
-      <Footer />
+      {renterView ? null : <Footer />}
     </>
   );
 }
 
-async function SearchResults({ searchParams }: SearchPageProps) {
-  const params = await searchParams;
+async function SearchResults({
+  params,
+  renterView,
+}: {
+  params: Record<string, string | string[] | undefined>;
+  renterView: boolean;
+}) {
   const query = valueOf(params.q);
   const locationSearch = valueOf(params.source) === "location";
   const requestedType = valueOf(params.type);
@@ -149,9 +158,7 @@ async function SearchResults({ searchParams }: SearchPageProps) {
   const category = categoryKey ? CATEGORY_RESULTS[categoryKey] : undefined;
   const type =
     requestedType ||
-    (categoryKey === "beach-front-apartments"
-      ? "Beach Front Apartments"
-      : "");
+    (categoryKey === "beach-front-apartments" ? "Beach Front Apartments" : "");
   const filters = query ? parseQuery(query) : [];
   const allResults = matchListings([]).filter(
     (property) => property.purpose === "rent",
@@ -217,6 +224,9 @@ async function SearchResults({ searchParams }: SearchPageProps) {
           action="/search"
           className="mx-auto grid max-w-[1562px] items-end gap-4 md:grid-cols-2 xl:grid-cols-[minmax(250px,1.5fr)_repeat(4,minmax(135px,0.7fr))]"
         >
+          {renterView ? (
+            <input type="hidden" name="from" value="renter" />
+          ) : null}
           <input
             type="hidden"
             name="source"
@@ -301,10 +311,12 @@ async function SearchResults({ searchParams }: SearchPageProps) {
             bathroomsValue,
             sort,
           }}
+          renterView={renterView}
         />
       ) : (
         <EmptyResults
           hasQuery={Boolean(query || category || hasStructuredFilters)}
+          renterView={renterView}
         />
       )}
     </>
@@ -358,6 +370,7 @@ function ResultsGrid({
   locationSearch,
   results,
   filters,
+  renterView,
 }: {
   query: string;
   locationSearch: boolean;
@@ -372,6 +385,7 @@ function ResultsGrid({
     bathroomsValue: string;
     sort: string;
   };
+  renterView: boolean;
 }) {
   return (
     <section
@@ -407,6 +421,9 @@ function ResultsGrid({
             action="/search"
             className="flex items-center gap-2"
           >
+            {renterView ? (
+              <input type="hidden" name="from" value="renter" />
+            ) : null}
             <input type="hidden" name="q" value={filters.query} />
             <input
               type="hidden"
@@ -462,7 +479,7 @@ function ResultsGrid({
 
             return (
               <ListingCard
-                requiresLogin
+                requiresLogin={!renterView}
                 key={property.id}
                 title={property.title}
                 location={property.location}
@@ -476,7 +493,7 @@ function ResultsGrid({
                 furnished={furnished}
                 saves={[62, 12, 45, 27, 81, 34, 19, 56][index % 8]}
                 image={RESULT_IMAGES[property.id] ?? house1}
-                href={`/properties/${property.id}`}
+                href={`/properties/${property.id}${renterView ? "?from=renter" : ""}`}
                 focalPoint="50% 52%"
               />
             );
@@ -487,7 +504,13 @@ function ResultsGrid({
   );
 }
 
-function EmptyResults({ hasQuery }: { hasQuery: boolean }) {
+function EmptyResults({
+  hasQuery,
+  renterView,
+}: {
+  hasQuery: boolean;
+  renterView: boolean;
+}) {
   return (
     <section className="px-5 py-14 sm:px-6 sm:py-20">
       <div className="mx-auto flex max-w-[620px] flex-col items-center text-center">
@@ -508,7 +531,7 @@ function EmptyResults({ hasQuery }: { hasQuery: boolean }) {
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <Link
-            href="/search"
+            href={renterView ? "/search?from=renter" : "/search"}
             className="border-carbon-900 text-carbon-900 inline-flex h-11 items-center justify-center gap-2 rounded-full border px-6 text-sm font-medium"
           >
             <SlidersHorizontal aria-hidden="true" className="size-4" />

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { setPartnerRole } from "@/components/partner/use-partner-role";
+import { saveProperty } from "@/hooks/use-saved-properties";
 import {
   Building2,
   Check,
@@ -77,11 +78,32 @@ export function AuthenticationForm({
     const email = String(data.get("email") ?? "")
       .trim()
       .toLowerCase();
+    const searchParams = new URLSearchParams(window.location.search);
+    const pendingPropertyId = searchParams.get("save");
+    const pendingPropertyAlreadySaved = searchParams.get("already") === "1";
+    const returnTo = searchParams.get("returnTo");
+
+    const finishPendingRenterSave = () => {
+      const newlySaved =
+        pendingPropertyId && !pendingPropertyAlreadySaved
+          ? saveProperty(pendingPropertyId)
+          : false;
+      const destination = new URL(
+        returnTo?.startsWith("/") ? returnTo : "/renter-dashboard/saved",
+        window.location.origin,
+      );
+      destination.searchParams.set("saved", newlySaved ? "1" : "already");
+      router.replace(`${destination.pathname}${destination.search}`);
+    };
 
     if (!isRegister) {
       if (email === "renter@gmail.com") {
         window.sessionStorage.setItem("hauxhunt-authenticated-role", "renter");
-        router.replace("/renter-dashboard");
+        if (pendingPropertyId) {
+          finishPendingRenterSave();
+        } else {
+          router.replace("/renter-dashboard");
+        }
         return;
       }
 
@@ -91,9 +113,6 @@ export function AuthenticationForm({
           "property_manager",
         );
         setPartnerRole("property_manager");
-        const returnTo = new URLSearchParams(window.location.search).get(
-          "returnTo",
-        );
         router.replace(
           returnTo?.startsWith("/") ? returnTo : "/partner-dashboard",
         );
@@ -103,9 +122,6 @@ export function AuthenticationForm({
       if (email === "agent@gmail.com") {
         window.sessionStorage.setItem("hauxhunt-authenticated-role", "agent");
         setPartnerRole("agent");
-        const returnTo = new URLSearchParams(window.location.search).get(
-          "returnTo",
-        );
         router.replace(
           returnTo?.startsWith("/") ? returnTo : "/partner-dashboard",
         );
@@ -113,6 +129,12 @@ export function AuthenticationForm({
       }
 
       setError("Wrong email or password.");
+      return;
+    }
+
+    if (accountType === "renter" && pendingPropertyId) {
+      window.sessionStorage.setItem("hauxhunt-authenticated-role", "renter");
+      finishPendingRenterSave();
       return;
     }
 

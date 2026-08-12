@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import {
   ArrowUpRight,
@@ -13,7 +14,7 @@ import {
   ChevronDown,
   Clock3,
   FileCheck2,
-  LocateFixed,
+  MapPin,
   Mic,
   Search,
 } from "lucide-react";
@@ -251,6 +252,7 @@ type ReverseGeocodeResult = {
 };
 
 export default function RenterDashboardPage() {
+  const router = useRouter();
   const displayCurrency = useDisplayCurrency();
   const { scrolled, sentinelRef, threshold } = useScrolled(40);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -263,6 +265,7 @@ export default function RenterDashboardPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [locationLoading, setLocationLoading] = useState(false);
   const [listening, setListening] = useState(false);
+  const [usingCurrentLocation, setUsingCurrentLocation] = useState(false);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const voiceTranscriptRef = useRef("");
   const filteredListings = LISTINGS.filter((listing) => {
@@ -316,6 +319,7 @@ export default function RenterDashboardPage() {
 
   const useCurrentLocation = () => {
     const prototypeAddress = "31 KG 152 St, Kigali";
+    setUsingCurrentLocation(true);
     setSearchQuery(prototypeAddress);
 
     if (!navigator.geolocation) {
@@ -380,6 +384,7 @@ export default function RenterDashboardPage() {
       browserWindow.SpeechRecognition ?? browserWindow.webkitSpeechRecognition;
 
     if (!Recognition) {
+      setUsingCurrentLocation(false);
       setSearchQuery("Voice search is not supported in this browser");
       return;
     }
@@ -396,6 +401,7 @@ export default function RenterDashboardPage() {
     };
     recognition.onend = () => {
       if (voiceTranscriptRef.current) {
+        setUsingCurrentLocation(false);
         setSearchQuery(voiceTranscriptRef.current);
       }
       setListening(false);
@@ -405,6 +411,15 @@ export default function RenterDashboardPage() {
     voiceTranscriptRef.current = "";
     setListening(true);
     recognition.start();
+  };
+
+  const submitHomeSearch = () => {
+    const query = searchQuery.trim();
+    if (!query) return;
+
+    const params = new URLSearchParams({ q: query, from: "renter" });
+    if (usingCurrentLocation) params.set("source", "location");
+    router.push(`/search?${params.toString()}`);
   };
 
   const clearExploreFilters = () => {
@@ -469,7 +484,7 @@ export default function RenterDashboardPage() {
                 Saved homes
               </Link>
               <Link
-                href="/property-request"
+                href="/renter-dashboard/requests"
                 className="transition-opacity hover:opacity-60"
               >
                 My requests
@@ -529,7 +544,10 @@ export default function RenterDashboardPage() {
             Find a home that fits your life.
           </h1>
           <form
-            onSubmit={(event) => event.preventDefault()}
+            onSubmit={(event) => {
+              event.preventDefault();
+              submitHomeSearch();
+            }}
             className="mt-9 flex w-full max-w-[900px] flex-col overflow-hidden rounded-[1.35rem] bg-white text-black shadow-[0_24px_70px_rgba(0,0,0,0.28)] sm:h-16 sm:flex-row sm:rounded-full"
           >
             <div className="relative flex min-w-0 flex-1 items-center">
@@ -541,14 +559,17 @@ export default function RenterDashboardPage() {
                 title="Use my current location"
                 className="text-carbon-400 ml-3 flex size-10 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-black/[0.055] hover:text-black disabled:opacity-40"
               >
-                <LocateFixed className="size-5" />
+                <MapPin aria-hidden="true" className="size-5" />
               </button>
               <input
                 type="search"
                 aria-label="Search homes"
                 placeholder="Try ‘3-bedroom apartment in Kacyiru under USD 800’"
                 value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
+                onChange={(event) => {
+                  setUsingCurrentLocation(false);
+                  setSearchQuery(event.target.value);
+                }}
                 style={{ border: 0, boxShadow: "none", outline: "none" }}
                 className="h-16 min-w-0 flex-1 appearance-none border-0 bg-transparent px-4 text-sm shadow-none ring-0 outline-none placeholder:text-black/35 focus:border-0 focus:shadow-none focus:ring-0 focus:outline-none focus-visible:border-0 focus-visible:ring-0 focus-visible:outline-none sm:text-base [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden"
               />
@@ -566,8 +587,9 @@ export default function RenterDashboardPage() {
             </button>
             <button
               type="submit"
+              disabled={!searchQuery.trim()}
               aria-label="Search"
-              className="m-2 flex h-12 items-center justify-center rounded-full bg-black px-6 text-white transition-opacity hover:opacity-75"
+              className="m-2 flex h-12 items-center justify-center rounded-full bg-black px-6 text-white transition-opacity hover:opacity-75 disabled:pointer-events-none disabled:opacity-35"
             >
               <Search className="size-5" />
             </button>
@@ -625,16 +647,8 @@ export default function RenterDashboardPage() {
             ]}
             optionLabels={{
               "Any Price": "Any Price",
-              "Under USD 500": formatCurrencyRange(
-                null,
-                500,
-                displayCurrency,
-              ),
-              "USD 500–1,000": formatCurrencyRange(
-                500,
-                1000,
-                displayCurrency,
-              ),
+              "Under USD 500": formatCurrencyRange(null, 500, displayCurrency),
+              "USD 500–1,000": formatCurrencyRange(500, 1000, displayCurrency),
               "USD 1,000–2,000": formatCurrencyRange(
                 1000,
                 2000,

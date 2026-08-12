@@ -13,7 +13,7 @@ import julienProfile from "../../../julien.jpg";
 const RENTER_LINKS = [
   ["Discover", "/renter-dashboard"],
   ["Saved homes", "/renter-dashboard/saved"],
-  ["My requests", "/property-request"],
+  ["My requests", "/renter-dashboard/requests"],
   ["Visits", "/renter-dashboard/visits"],
   ["Messages", "/renter-dashboard/messages"],
 ] as const;
@@ -23,7 +23,7 @@ export function RenterCatalogueTopBar() {
   const pathname = usePathname();
 
   return (
-    <header className="nav-surface fixed inset-x-0 top-0 z-50 h-16 text-black">
+    <header className="nav-surface border-border-subtle fixed inset-x-0 top-0 z-50 h-16 border-b text-black">
       <div className="mx-auto grid h-full w-[calc(100%-2.5rem)] max-w-[1562px] grid-cols-[auto_1fr_auto] items-center gap-4 sm:w-[calc(100%-3rem)] lg:w-[calc(100%-5.5rem)] lg:grid-cols-[1fr_auto_1fr] lg:gap-10 xl:w-[calc(100%-6.5rem)]">
         <Link href="/renter-dashboard" aria-label="HauxHunt renter home">
           <Wordmark height={38} />

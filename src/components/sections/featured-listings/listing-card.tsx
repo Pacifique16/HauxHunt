@@ -8,6 +8,7 @@ import { createPortal } from "react-dom";
 import { Bath, BedDouble, Expand, Heart, MapPin, Sofa, X } from "lucide-react";
 import loginIllustration from "../../../../login.png";
 import { CurrencyAmount } from "@/components/currency/currency-selector";
+import { useSavedProperty } from "@/hooks/use-saved-properties";
 
 type ListingCardProps = {
   title: string;
@@ -23,6 +24,7 @@ type ListingCardProps = {
   href: string;
   focalPoint?: string;
   requiresLogin?: boolean;
+  propertyId?: string;
 };
 
 export function ListingCard({
@@ -39,10 +41,14 @@ export function ListingCard({
   href,
   focalPoint = "50% 55%",
   requiresLogin = false,
+  propertyId,
 }: ListingCardProps) {
   const usdAmount = Number(price.replace(/[^0-9.]/g, ""));
-  const [liked, setLiked] = useState(false);
-  const [savedCount, setSavedCount] = useState(saves);
+  const resolvedPropertyId =
+    propertyId ?? href.match(/\/properties\/([^?/#]+)/)?.[1] ?? href;
+  const { saved: persistedSaved, toggleSaved: persistSaved } =
+    useSavedProperty(resolvedPropertyId);
+  const liked = !requiresLogin && persistedSaved;
   const [feedback, setFeedback] = useState("");
   const [authPromptOpen, setAuthPromptOpen] = useState(false);
   const [feedbackHost, setFeedbackHost] = useState<HTMLElement | null>(null);
@@ -67,13 +73,10 @@ export function ListingCard({
       return;
     }
 
-    setLiked((current) => {
-      setSavedCount((count) => count + (current ? -1 : 1));
-      setFeedback(
-        current ? "Removed from saved homes" : "House saved to your homes",
-      );
-      return !current;
-    });
+    const nextSaved = persistSaved();
+    setFeedback(
+      nextSaved ? "House saved to your homes" : "Removed from saved homes",
+    );
   }
 
   return (
@@ -151,13 +154,13 @@ export function ListingCard({
                         </p>
                         <div className="mt-7 flex gap-3">
                           <Link
-                            href={`/register?returnTo=${encodeURIComponent(href)}`}
+                            href={`/register?returnTo=${encodeURIComponent("/renter-dashboard/saved")}&save=${encodeURIComponent(resolvedPropertyId)}${persistedSaved ? "&already=1" : ""}`}
                             className="font-bricolage flex h-12 flex-1 items-center justify-center rounded-full border border-black/20 px-5 font-medium"
                           >
                             Sign up
                           </Link>
                           <Link
-                            href={`/login?returnTo=${encodeURIComponent(href)}`}
+                            href={`/login?returnTo=${encodeURIComponent("/renter-dashboard/saved")}&save=${encodeURIComponent(resolvedPropertyId)}${persistedSaved ? "&already=1" : ""}`}
                             className="font-bricolage flex h-12 flex-1 items-center justify-center rounded-full bg-black px-5 font-medium text-white"
                           >
                             Log in
@@ -231,7 +234,7 @@ export function ListingCard({
           fill={liked ? "currentColor" : "none"}
         />
         <span className="font-bricolage text-xs tabular-nums">
-          {savedCount}
+          {saves + (liked ? 1 : 0)}
         </span>
       </button>
     </article>
