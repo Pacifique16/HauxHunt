@@ -851,3 +851,6 @@ Creating turbopack project {
  GET /renter-dashboard/messages?host=Property+representative 404 in 83ms (next.js: 17ms, application-code: 65ms)
  GET /renter-dashboard/applications 200 in 68ms (next.js: 10ms, application-code: 58ms)
  GET /properties/kacyiru-2br?from=renter 200 in 95ms (next.js: 12ms, generate-params: 11ms, application-code: 72ms)
+ GET / 200 in 316ms (next.js: 25ms, application-code: 291ms)
+ GET /properties/gisenyi-lakefront-residence 200 in 183ms (next.js: 17ms, generate-params: 18ms, application-code: 148ms)
+ GET /properties/gisenyi-lakefront-residence 200 in 502ms (next.js: 16ms, generate-params: 14ms, application-code: 473ms)
