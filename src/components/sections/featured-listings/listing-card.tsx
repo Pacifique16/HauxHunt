@@ -75,7 +75,9 @@ export function ListingCard({
 
     const nextSaved = persistSaved();
     setFeedback(
-      nextSaved ? "House saved to your homes" : "Removed from saved homes",
+      nextSaved
+        ? "Home added to your favourites"
+        : "Home removed from your favourites",
     );
   }
 
@@ -146,11 +148,11 @@ export function ListingCard({
                           id="save-auth-title"
                           className="font-bricolage text-3xl leading-tight font-medium tracking-[-0.035em]"
                         >
-                          Save homes with an account.
+                          Keep favourite homes with an account.
                         </h2>
                         <p className="text-carbon-600 mt-3 text-sm leading-6">
-                          Log in or create a HauxHunt account to save this house
-                          and find it again from any device.
+                          Log in or create a HauxHunt account to add this home
+                          to your favourites and find it again from any device.
                         </p>
                         <div className="mt-7 flex gap-3">
                           <Link
@@ -223,7 +225,11 @@ export function ListingCard({
 
       <button
         type="button"
-        aria-label={liked ? `Remove ${title} from favorites` : `Save ${title}`}
+        aria-label={
+          liked
+            ? `Remove ${title} from favourites`
+            : `Add ${title} to favourites`
+        }
         aria-pressed={liked}
         onClick={toggleSaved}
         className="absolute top-4 right-4 z-10 flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-full border border-white/35 bg-black/40 px-3 text-white opacity-100 backdrop-blur-md transition-[background-color,transform,opacity] duration-150 hover:scale-105 hover:bg-black/60 md:opacity-0 md:group-focus-within:opacity-100 md:group-hover:opacity-100"

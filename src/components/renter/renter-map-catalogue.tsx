@@ -53,6 +53,8 @@ type RenterMapCatalogueProps = {
   fitMarkersOnLoad?: boolean;
   focusedMarkerIndex?: number;
   initiallyVisible?: boolean;
+  filtersUnderTopBar?: boolean;
+  context?: ReactNode;
 };
 
 export function RenterMapCatalogue({
@@ -73,6 +75,8 @@ export function RenterMapCatalogue({
   fitMarkersOnLoad = false,
   focusedMarkerIndex,
   initiallyVisible = true,
+  filtersUnderTopBar = false,
+  context,
 }: RenterMapCatalogueProps) {
   const router = useRouter();
   const currency = useDisplayCurrency();
@@ -120,9 +124,15 @@ export function RenterMapCatalogue({
       }).addTo(map);
 
       markerCoordinates.forEach((coordinate, index) => {
-        const priceLabel = formatDisplayPrice(priceValues[index] ?? 0, currency);
+        const priceLabel = formatDisplayPrice(
+          priceValues[index] ?? 0,
+          currency,
+        );
         const property = markerCards[index];
-        const markerWidth = Math.max(70, Math.min(132, priceLabel.length * 7 + 24));
+        const markerWidth = Math.max(
+          70,
+          Math.min(132, priceLabel.length * 7 + 24),
+        );
         const propertyIcon = L.divIcon({
           className: "",
           html: `<span style="box-sizing:border-box;display:flex;width:${markerWidth}px;height:32px;align-items:center;justify-content:center;border-radius:999px;background:#000;border:3px solid #fff;padding:0 10px;box-shadow:0 4px 14px rgba(0,0,0,.3);color:#fff;font-family:var(--font-sans),sans-serif;font-size:11px;font-weight:600;line-height:1;letter-spacing:-.01em;white-space:nowrap">${escapeHtml(priceLabel)}</span>`,
@@ -295,19 +305,45 @@ export function RenterMapCatalogue({
 
   return (
     <section className="flex h-full min-h-0 flex-col border-t border-black/10 bg-white">
-      <button
-        type="button"
-        onClick={toggleMapVisibility}
-        aria-pressed={mapVisible}
-        className="fixed top-[7.65rem] right-5 z-40 inline-flex h-10 items-center gap-2 border border-black/10 bg-white px-4 text-sm font-medium text-black transition-colors hover:bg-black/[0.055] sm:right-6 lg:right-11 xl:right-[52px]"
-      >
-        {mapVisible ? (
-          <List aria-hidden="true" className="size-4" />
-        ) : (
-          <Map aria-hidden="true" className="size-4" />
-        )}
-        {mapVisible ? "Hide map" : "View on map"}
-      </button>
+      {filtersUnderTopBar ? (
+        <div className="shrink-0 border-b border-black/10 bg-white px-5 py-3 sm:px-6 lg:px-11 xl:px-[52px]">
+          <div className="mx-auto max-w-[1562px]">
+            {context}
+            <div className="flex items-center gap-3">
+              <div className="min-w-0 flex-1">{filters}</div>
+              <div className="flex shrink-0 items-center gap-2">{controls}</div>
+              <button
+                type="button"
+                onClick={toggleMapVisibility}
+                aria-pressed={mapVisible}
+                className="inline-flex h-10 shrink-0 items-center gap-2 border border-black/10 bg-white px-4 text-sm font-medium text-black transition-colors hover:bg-black/[0.055]"
+              >
+                {mapVisible ? (
+                  <List aria-hidden="true" className="size-4" />
+                ) : (
+                  <Map aria-hidden="true" className="size-4" />
+                )}
+                {mapVisible ? "Hide map" : "View on map"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+      {!filtersUnderTopBar ? (
+        <button
+          type="button"
+          onClick={toggleMapVisibility}
+          aria-pressed={mapVisible}
+          className="fixed top-[7.65rem] right-5 z-40 inline-flex h-10 items-center gap-2 border border-black/10 bg-white px-4 text-sm font-medium text-black transition-colors hover:bg-black/[0.055] sm:right-6 lg:right-11 xl:right-[52px]"
+        >
+          {mapVisible ? (
+            <List aria-hidden="true" className="size-4" />
+          ) : (
+            <Map aria-hidden="true" className="size-4" />
+          )}
+          {mapVisible ? "Hide map" : "View on map"}
+        </button>
+      ) : null}
       <div
         className={`min-h-0 flex-1 ${
           mapVisible
@@ -322,39 +358,43 @@ export function RenterMapCatalogue({
               : "lg:px-11 xl:px-[52px]"
           }`}
         >
-          <div
-            className={`mb-5 border-b border-black/10 bg-white py-4 ${
-              mapVisible
-                ? "sticky top-0 z-20 -mx-5 px-5 sm:-mx-6 sm:px-6 lg:-mx-7 lg:px-7"
-                : "relative px-0"
-            }`}
-          >
+          {!filtersUnderTopBar || !mapVisible ? (
             <div
-              className={
+              className={`mb-5 border-b border-black/10 bg-white py-4 ${
                 mapVisible
-                  ? "[&_.catalogue-typed-filter]:hidden [&>form]:grid-cols-4"
-                  : ""
-              }
+                  ? "sticky top-0 z-20 -mx-5 px-5 sm:-mx-6 sm:px-6 lg:-mx-7 lg:px-7"
+                  : "relative px-0"
+              }`}
             >
-              {filters}
-            </div>
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-              {!mapVisible ? (
-                <div>
-                  <p className="font-bricolage text-lg font-medium">
-                    {resultCount}{" "}
-                    {resultCount === 1 ? "property" : "properties"}
-                  </p>
-                  <p className="text-carbon-500 text-xs">{resultLabel}</p>
+              {!filtersUnderTopBar ? (
+                <div
+                  className={
+                    mapVisible
+                      ? "[&_.catalogue-typed-filter]:hidden [&>form]:grid-cols-4"
+                      : ""
+                  }
+                >
+                  {filters}
                 </div>
-              ) : (
-                <span />
-              )}
-              <div className="flex flex-wrap items-center justify-end gap-2">
-                {!mapVisible ? controls : null}
+              ) : null}
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                {!mapVisible ? (
+                  <div>
+                    <p className="font-bricolage text-lg font-medium">
+                      {resultCount}{" "}
+                      {resultCount === 1 ? "property" : "properties"}
+                    </p>
+                    <p className="text-carbon-500 text-xs">{resultLabel}</p>
+                  </div>
+                ) : (
+                  <span />
+                )}
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                  {!mapVisible && !filtersUnderTopBar ? controls : null}
+                </div>
               </div>
             </div>
-          </div>
+          ) : null}
           {(
             mapVisible
               ? visibleIndexes.length === 0

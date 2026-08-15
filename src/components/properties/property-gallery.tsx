@@ -43,7 +43,7 @@ export function PropertyGallery({
 
   return (
     <>
-      <div className="grid h-[420px] gap-3 overflow-hidden rounded-3xl md:grid-cols-2 lg:h-[560px]">
+      <div className="grid h-[420px] gap-3 overflow-hidden md:grid-cols-2 lg:h-[560px]">
         <GalleryButton
           image={images[0]}
           title={title}
@@ -73,8 +73,9 @@ export function PropertyGallery({
           className="relative hidden md:block"
           onOpen={setActiveIndex}
         >
-          <span className="pointer-events-none absolute right-4 bottom-4 rounded-full bg-black/75 px-4 py-2 text-sm font-medium text-white backdrop-blur-md">
-            View all photos
+          <span className="pointer-events-none absolute inset-0 bg-black/45 backdrop-blur-[2px]" />
+          <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-xl font-medium text-white">
+            +{Math.max(0, images.length - 4)} more photos
           </span>
         </GalleryButton>
       </div>

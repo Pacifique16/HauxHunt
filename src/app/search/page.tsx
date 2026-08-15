@@ -239,7 +239,7 @@ async function SearchResults({
             <span className="text-carbon-900 mb-2 block text-sm font-medium">
               What are you looking for?
             </span>
-            <span className="flex h-12 items-center gap-3 rounded-xl border border-black/15 px-4 transition-colors focus-within:border-black">
+            <span className="catalogue-location-filter flex items-center gap-2 px-4">
               <SearchQueryField defaultValue={query} />
             </span>
           </label>

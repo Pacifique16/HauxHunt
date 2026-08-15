@@ -705,6 +705,45 @@
   outline: none;
 }
 
+/* Application fields indicate focus with their bottom border only. */
+.application-form-input:focus-visible {
+  outline: none;
+}
+
+/* Keep filter dropdowns consistent across catalogue and dashboard surfaces. */
+select.catalogue-filter-control {
+  height: 2.5rem !important;
+  border-radius: 9999px !important;
+}
+
+.catalogue-location-filter {
+  height: 2.5rem;
+  border: 0;
+  border-radius: 9999px;
+  background: rgb(0 0 0 / 4.5%);
+}
+
+/* Keep modal surfaces consistent across every dashboard and public flow. */
+[role="dialog"] {
+  border-radius: 1.5rem;
+}
+
+[role="dialog"] input,
+[role="dialog"] textarea,
+[role="dialog"] select {
+  outline: none;
+}
+
+[role="dialog"] input:focus,
+[role="dialog"] input:focus-visible,
+[role="dialog"] textarea:focus,
+[role="dialog"] textarea:focus-visible,
+[role="dialog"] select:focus,
+[role="dialog"] select:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
 .font-bricolage {
   font-family: "Bricolage Grotesque", sans-serif;
   font-optical-sizing: auto;

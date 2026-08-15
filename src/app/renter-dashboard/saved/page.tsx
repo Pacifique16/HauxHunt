@@ -49,8 +49,8 @@ export default function SavedHomesPage() {
     const showFeedback = window.setTimeout(() => {
       setSaveFeedback(
         saveStatus === "already"
-          ? "This home is already saved"
-          : "Home saved to your saved homes",
+          ? "This home is already in your favourites"
+          : "Home added to your favourites",
       );
       const cleanUrl = new URL(window.location.href);
       cleanUrl.searchParams.delete("saved");
@@ -90,7 +90,7 @@ export default function SavedHomesPage() {
           <div className="mx-auto max-w-[1562px]">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <h1 className="dashboard-page-title text-carbon-900">
-                Saved homes
+                Favourite Homes
               </h1>
               {savedListings.length ? (
                 <label className="flex items-center gap-2 text-sm font-medium">
@@ -126,8 +126,10 @@ export default function SavedHomesPage() {
             {savedListings.length ? (
               <>
                 <p className="text-carbon-500 mb-6 text-sm">
-                  {savedListings.length} saved{" "}
-                  {savedListings.length === 1 ? "home" : "homes"}
+                  {savedListings.length}{" "}
+                  {savedListings.length === 1
+                    ? "favourite home"
+                    : "favourite homes"}
                 </p>
                 <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {savedListings.map((property, index) => (
@@ -153,11 +155,11 @@ export default function SavedHomesPage() {
               <div className="flex min-h-[480px] flex-col items-center justify-center text-center">
                 <Image
                   src={emptyIllustration}
-                  alt="No saved homes"
+                  alt="No favourite homes"
                   className="h-44 w-auto object-contain"
                 />
                 <h2 className="font-bricolage text-carbon-900 mt-5 text-2xl font-medium">
-                  No saved homes yet
+                  No favourite homes yet
                 </h2>
                 <p className="text-carbon-500 mt-2 max-w-md text-sm leading-6">
                   Tap the heart on a home you like and it will appear here for

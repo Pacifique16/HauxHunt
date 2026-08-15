@@ -22,6 +22,7 @@ import { VoiceInputButton } from "@/components/listings/voice-input-button";
 import { ListingCard } from "@/components/sections/featured-listings/listing-card";
 import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
 import { RenterMapCatalogue } from "@/components/renter/renter-map-catalogue";
+import { SaveSearchAction } from "@/components/renter/save-search-action";
 import { HistoryBackButton } from "@/components/navigation/history-back-button";
 import { CurrencyFilterSelect } from "@/components/currency/currency-selector";
 import { DEMO_LISTINGS, type MockListing } from "@/data/hero-search-demo";
@@ -130,6 +131,9 @@ export function CataloguePage({
   const bathroomsValue = valueOf(searchParams.bathrooms);
   const sort = valueOf(searchParams.sort);
   const focusedListingId = valueOf(searchParams.focus);
+  const savedSearchName = valueOf(searchParams.savedSearch);
+  const savedSearchMatches = valueOf(searchParams.matches);
+  const savedSearchNewMatches = valueOf(searchParams.newMatches);
   const mapMode =
     purpose === "all" ||
     audience === "renter" ||
@@ -288,40 +292,44 @@ export function CataloguePage({
           mapMode ? "flex h-svh flex-col overflow-hidden" : "min-h-svh"
         }`}
       >
-        <section
-          className={`bg-white px-5 sm:px-6 lg:px-11 xl:px-[52px] ${
-            mapMode ? "py-4" : "pt-8 pb-12"
-          }`}
-        >
-          <div className="mx-auto max-w-[1562px]">
-            {mapMode ? (
-              <HistoryBackButton
-                fallbackHref={audience === "renter" ? "/renter-dashboard" : "/"}
-                className="text-carbon-600 hover:text-carbon-900 mb-1 inline-flex h-8 items-center gap-1 text-sm font-medium"
-              >
-                <ChevronLeft aria-hidden="true" className="size-4" />
-                Back
-              </HistoryBackButton>
-            ) : null}
-            <div className="flex items-center justify-between gap-5">
-              <h1 className="dashboard-page-title text-carbon-900">{title}</h1>
-              {purpose === "rent" && !mapMode ? (
-                <Link
-                  href={mapViewHref()}
-                  className="border-border-default text-carbon-900 inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full border bg-white px-4 text-sm font-medium transition-colors hover:bg-black/5"
+        {mapMode && (audience === "renter" || purpose === "all") ? null : (
+          <section
+            className={`bg-white px-5 sm:px-6 lg:px-11 xl:px-[52px] ${
+              mapMode ? "py-4" : "pt-8 pb-12"
+            }`}
+          >
+            <div className="mx-auto max-w-[1562px]">
+              {mapMode ? (
+                <HistoryBackButton
+                  fallbackHref="/"
+                  className="text-carbon-600 hover:text-carbon-900 mb-1 inline-flex h-8 items-center gap-1 text-sm font-medium"
                 >
-                  <MapPinned aria-hidden="true" className="size-[18px]" />
-                  <span>View on map</span>
-                </Link>
+                  <ChevronLeft aria-hidden="true" className="size-4" />
+                  Back
+                </HistoryBackButton>
+              ) : null}
+              <div className="flex items-center justify-between gap-5">
+                <h1 className="dashboard-page-title text-carbon-900">
+                  {title}
+                </h1>
+                {purpose === "rent" && !mapMode ? (
+                  <Link
+                    href={mapViewHref()}
+                    className="border-border-default text-carbon-900 inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full border bg-white px-4 text-sm font-medium transition-colors hover:bg-black/5"
+                  >
+                    <MapPinned aria-hidden="true" className="size-[18px]" />
+                    <span>View on map</span>
+                  </Link>
+                ) : null}
+              </div>
+              {audience === "guest" && !mapMode ? (
+                <p className="text-carbon-600 mt-5 max-w-none text-lg leading-7 whitespace-nowrap">
+                  {description}
+                </p>
               ) : null}
             </div>
-            {audience === "guest" && !mapMode ? (
-              <p className="text-carbon-600 mt-5 max-w-none text-lg leading-7 whitespace-nowrap">
-                {description}
-              </p>
-            ) : null}
-          </div>
-        </section>
+          </section>
+        )}
 
         {!mapMode ? (
           <section
@@ -331,19 +339,17 @@ export function CataloguePage({
             <AutoSubmitFilterForm
               key={`${locationValue}|${type}|${priceRange}|${bedroomsValue}|${bathroomsValue}`}
               action={pathname}
-              className="mx-auto grid max-w-[1562px] items-end gap-4 md:grid-cols-2 xl:grid-cols-[minmax(250px,1.5fr)_repeat(4,minmax(135px,0.7fr))]"
+              className="mx-auto grid max-w-[1562px] grid-cols-[minmax(260px,2.2fr)_repeat(4,minmax(92px,0.65fr))] items-center gap-2"
             >
-              <label className="md:col-span-2 xl:col-span-1">
-                <span className="text-carbon-900 mb-2 block text-sm font-medium">
-                  Location
-                </span>
-                <span className="flex h-12 items-center gap-3 rounded-2xl border border-black/15 px-4 transition-colors focus-within:border-black">
+              <label>
+                <span className="sr-only">Location</span>
+                <span className="catalogue-location-filter flex items-center gap-2 px-4">
                   <button
                     type="submit"
                     aria-label="Search location"
                     className="text-carbon-500 hover:text-carbon-900 shrink-0 transition-colors"
                   >
-                    <Search aria-hidden="true" className="size-5" />
+                    <Search aria-hidden="true" className="size-4" />
                   </button>
                   <input
                     name="location"
@@ -359,7 +365,7 @@ export function CataloguePage({
 
               <FilterSelect
                 label="Property type"
-                placeholder="Any Type"
+                placeholder="Home Type"
                 name="type"
                 value={type}
                 options={[
@@ -375,10 +381,12 @@ export function CataloguePage({
                   "Villa",
                   "Hotel",
                 ]}
+                hideLabel
+                pill
               />
               <CurrencyFilterSelect
                 label="Price range"
-                placeholder="Any Price"
+                placeholder="Price"
                 name="price"
                 value={priceRange}
                 ranges={[
@@ -391,20 +399,26 @@ export function CataloguePage({
                     maximumUsd: null,
                   },
                 ]}
+                hideLabel
+                pill
               />
               <FilterSelect
                 label="Bedrooms"
-                placeholder="Any"
+                placeholder="Bedrooms"
                 name="bedrooms"
                 value={bedroomsValue}
                 options={["1", "2", "3", "4", "5+"]}
+                hideLabel
+                pill
               />
               <FilterSelect
                 label="Bathrooms"
-                placeholder="Any"
+                placeholder="Bathrooms"
                 name="bathrooms"
                 value={bathroomsValue}
                 options={["1", "2", "3", "4", "5+"]}
+                hideLabel
+                pill
               />
             </AutoSubmitFilterForm>
           </section>
@@ -482,6 +496,30 @@ export function CataloguePage({
 
             {mapMode ? (
               <RenterMapCatalogue
+                filtersUnderTopBar
+                context={
+                  savedSearchName ? (
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pb-3">
+                      <span className="rounded-full bg-black px-3 py-1 text-[11px] font-medium text-white">
+                        Saved Search
+                      </span>
+                      <p className="font-bricolage text-lg font-medium">
+                        {savedSearchName}
+                      </p>
+                      {savedSearchMatches ? (
+                        <span className="text-carbon-500 text-sm">
+                          {savedSearchMatches} matching homes
+                        </span>
+                      ) : null}
+                      {Number(savedSearchNewMatches) > 0 ? (
+                        <span className="text-sm font-medium">
+                          {savedSearchNewMatches} new listings since your last
+                          visit
+                        </span>
+                      ) : null}
+                    </div>
+                  ) : undefined
+                }
                 resultCount={listings.length}
                 pageStart={pageStart}
                 pageSize={listingsPerPage}
@@ -521,6 +559,15 @@ export function CataloguePage({
                 }
                 controls={
                   <>
+                    {audience === "renter" && hasFilters ? (
+                      <SaveSearchAction
+                        location={locationValue}
+                        type={type}
+                        price={priceRange}
+                        bedrooms={bedroomsValue}
+                        bathrooms={bathroomsValue}
+                      />
+                    ) : null}
                     {hasFilters ? (
                       <Link
                         href={
@@ -585,7 +632,7 @@ export function CataloguePage({
                   <AutoSubmitFilterForm
                     key={`renter-filters-${locationValue}|${type}|${priceRange}|${bedroomsValue}|${bathroomsValue}`}
                     action={pathname}
-                    className="grid grid-cols-5 gap-2"
+                    className="grid grid-cols-[minmax(260px,2.2fr)_repeat(4,minmax(92px,0.65fr))] gap-2"
                   >
                     <input
                       type="hidden"
@@ -595,7 +642,7 @@ export function CataloguePage({
                     {audience === "guest" ? (
                       <input type="hidden" name="map" value="1" />
                     ) : null}
-                    <label className="catalogue-typed-filter flex h-12 min-w-0 items-center gap-2 rounded-2xl bg-black/[0.045] px-3">
+                    <label className="catalogue-location-filter catalogue-typed-filter flex min-w-0 items-center gap-2 px-4">
                       <button
                         type="submit"
                         aria-label="Search location"
@@ -615,7 +662,7 @@ export function CataloguePage({
                     </label>
                     <FilterSelect
                       label="Type"
-                      placeholder="Any type"
+                      placeholder="Home Type"
                       name="type"
                       value={type}
                       options={[
@@ -632,10 +679,11 @@ export function CataloguePage({
                         "Hotel",
                       ]}
                       hideLabel
+                      pill
                     />
                     <CurrencyFilterSelect
                       label="Price"
-                      placeholder="Any price"
+                      placeholder="Price"
                       name="price"
                       value={priceRange}
                       ranges={[
@@ -657,22 +705,25 @@ export function CataloguePage({
                         },
                       ]}
                       hideLabel
+                      pill
                     />
                     <FilterSelect
                       label="Bedrooms"
-                      placeholder="Any beds"
+                      placeholder="Bedrooms"
                       name="bedrooms"
                       value={bedroomsValue}
                       options={["1", "2", "3", "4", "5+"]}
                       hideLabel
+                      pill
                     />
                     <FilterSelect
                       label="Bathrooms"
-                      placeholder="Any baths"
+                      placeholder="Bathrooms"
                       name="bathrooms"
                       value={bathroomsValue}
                       options={["1", "2", "3", "4", "5+"]}
                       hideLabel
+                      pill
                     />
                   </AutoSubmitFilterForm>
                 }
@@ -815,6 +866,7 @@ type FilterSelectProps = {
   options: string[];
   optionLabels?: Record<string, string>;
   hideLabel?: boolean;
+  pill?: boolean;
 };
 
 function FilterSelect({
@@ -825,6 +877,7 @@ function FilterSelect({
   options,
   optionLabels = {},
   hideLabel = false,
+  pill = false,
 }: FilterSelectProps) {
   return (
     <label>
@@ -841,7 +894,7 @@ function FilterSelect({
         <select
           name={name}
           defaultValue={value}
-          className="catalogue-filter-control text-carbon-900 h-12 w-full appearance-none rounded-2xl border border-black/15 bg-white pr-11 pl-4 text-sm transition-colors outline-none focus:border-black"
+          className={`catalogue-filter-control text-carbon-900 w-full appearance-none border border-black/15 bg-white pr-11 pl-4 text-sm transition-colors outline-none focus:border-black ${pill ? "h-10 rounded-full" : "h-12 rounded-2xl"}`}
         >
           <option value="">{placeholder}</option>
           {options.map((option) => (

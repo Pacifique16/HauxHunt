@@ -44,7 +44,9 @@ export function SavePropertyButton({
 
     const nextSaved = persistSaved();
     setFeedback(
-      nextSaved ? "House saved to your homes" : "Removed from saved homes",
+      nextSaved
+        ? "Home added to your favourites"
+        : "Home removed from your favourites",
     );
   }
 
@@ -54,8 +56,8 @@ export function SavePropertyButton({
         type="button"
         aria-label={
           saved
-            ? `Remove ${propertyTitle} from saved homes`
-            : `Save ${propertyTitle}`
+            ? `Remove ${propertyTitle} from favourites`
+            : `Add ${propertyTitle} to favourites`
         }
         aria-pressed={saved}
         onClick={toggleSaved}
@@ -131,11 +133,11 @@ export function SavePropertyButton({
                           id="property-save-auth-title"
                           className="font-bricolage text-3xl leading-tight font-medium tracking-[-0.035em]"
                         >
-                          Save homes with an account.
+                          Keep favourite homes with an account.
                         </h2>
                         <p className="text-carbon-600 mt-3 text-sm leading-6">
-                          Log in or create a HauxHunt account to save this house
-                          and find it again later.
+                          Log in or create a HauxHunt account to add this home
+                          to your favourites and find it again later.
                         </p>
                         <div className="mt-7 flex gap-3">
                           <Link

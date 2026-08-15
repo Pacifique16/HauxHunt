@@ -1,0 +1,395 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import {
+  Bell,
+  BellOff,
+  ChevronRight,
+  Pencil,
+  Plus,
+  Search,
+  X,
+} from "lucide-react";
+import { useState } from "react";
+
+import emptyIllustration from "../../../../empty.png";
+import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
+import { type SavedSearch, useSavedSearches } from "@/hooks/use-saved-searches";
+
+type DialogState = {
+  type: "rename" | "edit" | "delete";
+  search: SavedSearch;
+} | null;
+
+export default function SavedSearchesPage() {
+  const { searches, updateSearch, deleteSearch } = useSavedSearches();
+  const [dialog, setDialog] = useState<DialogState>(null);
+
+  return (
+    <>
+      <RenterCatalogueTopBar />
+      <main className="bg-carbon-50 min-h-svh pt-16 text-black">
+        <section className="border-border-subtle border-b bg-white px-5 py-9 sm:px-6 lg:px-11 xl:px-[52px]">
+          <div className="mx-auto flex max-w-[1562px] flex-wrap items-center justify-between gap-5">
+            <div>
+              <h1 className="dashboard-page-title text-carbon-900">
+                Saved Searches
+              </h1>
+              <p className="text-carbon-500 mt-3 max-w-2xl text-sm leading-6">
+                Keep track of the searches that matter to you and get notified
+                when new homes match your preferences.
+              </p>
+            </div>
+            <Link
+              href="/renter-dashboard/properties"
+              className="inline-flex h-11 items-center gap-2 rounded-full bg-black px-5 text-sm font-medium text-white"
+            >
+              <Plus className="size-4" /> New Search
+            </Link>
+          </div>
+        </section>
+
+        <section className="px-5 py-9 sm:px-6 lg:px-11 lg:py-12 xl:px-[52px]">
+          <div className="mx-auto max-w-[1562px]">
+            {searches.length ? (
+              <>
+                <div className="grid gap-4 lg:grid-cols-2">
+                  {searches.map((savedSearch) => (
+                    <SavedSearchCard
+                      key={savedSearch.id}
+                      search={savedSearch}
+                      onEdit={() =>
+                        setDialog({ type: "edit", search: savedSearch })
+                      }
+                      onRename={() =>
+                        setDialog({ type: "rename", search: savedSearch })
+                      }
+                      onDelete={() =>
+                        setDialog({ type: "delete", search: savedSearch })
+                      }
+                      onToggleAlerts={() => {
+                        updateSearch(savedSearch.id, {
+                          alert:
+                            savedSearch.alert === "paused"
+                              ? "instant"
+                              : "paused",
+                        });
+                      }}
+                    />
+                  ))}
+                </div>
+                <p className="text-carbon-400 mt-3 text-right text-[10px]">
+                  © OpenStreetMap contributors
+                </p>
+              </>
+            ) : (
+              <div className="flex min-h-[520px] flex-col items-center justify-center text-center">
+                <Image
+                  src={emptyIllustration}
+                  alt=""
+                  className="h-44 w-auto object-contain"
+                />
+                <h2 className="font-bricolage mt-6 text-3xl font-medium tracking-[-0.035em]">
+                  Save a search and let HauxHunt keep looking
+                </h2>
+                <p className="text-carbon-500 mt-3 max-w-xl text-sm leading-6">
+                  Save your preferred location, budget and property preferences
+                  so you can easily return to them and discover new matching
+                  homes.
+                </p>
+                <Link
+                  href="/renter-dashboard/properties"
+                  className="mt-7 inline-flex h-12 items-center gap-2 rounded-full bg-black px-6 text-sm font-medium text-white"
+                >
+                  <Search className="size-4" /> Find a Home
+                </Link>
+              </div>
+            )}
+          </div>
+        </section>
+      </main>
+      {dialog ? (
+        <SearchDialog
+          state={dialog}
+          onClose={() => setDialog(null)}
+          onSave={(updates) => {
+            updateSearch(dialog.search.id, updates);
+            setDialog(null);
+          }}
+          onDelete={() => {
+            deleteSearch(dialog.search.id);
+            setDialog(null);
+          }}
+        />
+      ) : null}
+    </>
+  );
+}
+
+function SavedSearchCard({
+  search,
+  onEdit,
+  onRename,
+  onDelete,
+  onToggleAlerts,
+}: {
+  search: SavedSearch;
+  onEdit: () => void;
+  onRename: () => void;
+  onDelete: () => void;
+  onToggleAlerts: () => void;
+}) {
+  const [latitude, longitude] = getSearchCoordinates(search.location);
+  const mapDelta = 0.035;
+  const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${longitude - mapDelta}%2C${latitude - mapDelta}%2C${longitude + mapDelta}%2C${latitude + mapDelta}&layer=mapnik`;
+  const params = new URLSearchParams({
+    location: search.location.split(",")[0].replace(" / nearby", ""),
+    type: search.type,
+    bedrooms: search.bedrooms.match(/\d+/)?.[0] ?? "",
+    savedSearch: search.name,
+    matches: String(search.matches),
+    newMatches: String(search.newMatches),
+  });
+
+  return (
+    <article className="grid overflow-hidden border border-black/15 bg-white p-2.5 shadow-[0_8px_24px_rgba(0,0,0,0.06)] sm:grid-cols-[220px_minmax(0,1fr)] sm:gap-4">
+      <div className="relative min-h-32 overflow-hidden bg-[#d9e5df]">
+        <iframe
+          title={`Map of ${search.location}`}
+          src={mapUrl}
+          loading="lazy"
+          className="absolute -top-24 right-0 left-0 h-[calc(100%+12rem)] w-full border-0"
+        />
+      </div>
+      <div className="flex min-w-0 flex-col px-2 py-2 sm:px-0 sm:py-0.5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <h2 className="font-bricolage text-xl leading-tight font-medium tracking-[-0.025em]">
+              {search.name}{" "}
+              <span className="text-carbon-400 font-sans text-xs font-normal whitespace-nowrap">
+                – 8/15/2026
+              </span>
+            </h2>
+            <p className="mt-2 text-sm">
+              {[search.bedrooms, search.type, search.price]
+                .filter((value) => !value.startsWith("Any"))
+                .join(", ")}
+            </p>
+          </div>
+          <div className="flex shrink-0 items-center gap-1">
+            <button
+              type="button"
+              onClick={onToggleAlerts}
+              aria-label={
+                search.alert === "paused" ? "Resume alerts" : "Pause alerts"
+              }
+              className="flex size-9 items-center justify-center rounded-full text-black/60 hover:bg-black/[0.055] hover:text-black"
+            >
+              {search.alert === "paused" ? (
+                <BellOff className="size-4" />
+              ) : (
+                <Bell className="size-4" />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={onRename}
+              aria-label={`Rename ${search.name}`}
+              className="flex size-9 items-center justify-center rounded-full text-black/60 hover:bg-black/[0.055] hover:text-black"
+            >
+              <Pencil className="size-4" />
+            </button>
+          </div>
+        </div>
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+          <span className="text-carbon-500">
+            {search.matches
+              ? `${search.matches} matching homes`
+              : "No matching homes right now"}
+          </span>
+          {search.newMatches > 0 ? (
+            <span className="rounded-full bg-black px-2.5 py-1 text-xs font-medium text-white">
+              {search.newMatches} new
+            </span>
+          ) : null}
+          <span className="text-carbon-500">
+            {search.alert === "paused"
+              ? "Alerts paused"
+              : `${search.alert[0].toUpperCase()}${search.alert.slice(1)} alerts`}
+          </span>
+          <button
+            type="button"
+            onClick={onEdit}
+            className="text-xs underline decoration-black/25 underline-offset-4 hover:decoration-black"
+          >
+            Edit criteria
+          </button>
+        </div>
+        <div className="mt-auto flex flex-wrap items-center justify-end gap-5 pt-3">
+          <button
+            type="button"
+            onClick={onDelete}
+            className="text-sm font-medium text-red-600 transition-opacity hover:opacity-65"
+          >
+            Delete Search
+          </button>
+          <Link
+            href={`/renter-dashboard/properties?${params.toString()}`}
+            className="inline-flex items-center gap-1 text-sm font-medium transition-opacity hover:opacity-60"
+          >
+            See Results <ChevronRight className="size-4" />
+          </Link>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function getSearchCoordinates(location: string): [number, number] {
+  const normalized = location.toLowerCase();
+  if (normalized.includes("kacyiru")) return [-1.944, 30.083];
+  if (normalized.includes("nyarutarama")) return [-1.929, 30.102];
+  if (normalized.includes("cbd")) return [-1.9441, 30.0619];
+  if (normalized.includes("gisenyi")) return [-1.7028, 29.2564];
+  return [-1.9441, 30.0619];
+}
+
+function SearchDialog({
+  state,
+  onClose,
+  onSave,
+  onDelete,
+}: {
+  state: NonNullable<DialogState>;
+  onClose: () => void;
+  onSave: (updates: Partial<SavedSearch>) => void;
+  onDelete: () => void;
+}) {
+  const [name, setName] = useState(state.search.name);
+  const [location, setLocation] = useState(state.search.location);
+  const [type, setType] = useState(state.search.type);
+  const [bedrooms, setBedrooms] = useState(state.search.bedrooms);
+  const title =
+    state.type === "delete"
+      ? "Delete saved search?"
+      : state.type === "rename"
+        ? "Rename saved search"
+        : "Edit Search";
+
+  return (
+    <div
+      className="fixed inset-0 z-[180] flex items-center justify-center bg-black/35 p-5"
+      onMouseDown={onClose}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="search-dialog-title"
+        onMouseDown={(event) => event.stopPropagation()}
+        className="w-full max-w-lg rounded-3xl bg-white p-7 shadow-[0_28px_90px_rgba(0,0,0,0.24)] sm:p-9"
+      >
+        <div className="flex items-start justify-between gap-5">
+          <h2
+            id="search-dialog-title"
+            className="font-bricolage text-3xl font-medium tracking-[-0.035em]"
+          >
+            {title}
+          </h2>
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={onClose}
+            className="flex size-9 items-center justify-center rounded-full border border-black/15"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+        {state.type === "delete" ? (
+          <p className="text-carbon-500 mt-4 text-sm leading-6">
+            <strong className="font-medium text-black">
+              “{state.search.name}”
+            </strong>{" "}
+            will be removed from your saved searches and you will stop receiving
+            alerts for it.
+          </p>
+        ) : (
+          <div className="mt-7 space-y-4">
+            <Field label="Search name" value={name} onChange={setName} />
+            {state.type === "edit" ? (
+              <>
+                <Field
+                  label="Location"
+                  value={location}
+                  onChange={setLocation}
+                />
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Home type" value={type} onChange={setType} />
+                  <Field
+                    label="Bedrooms"
+                    value={bedrooms}
+                    onChange={setBedrooms}
+                  />
+                </div>
+              </>
+            ) : null}
+          </div>
+        )}
+        <div className="mt-8 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="h-11 rounded-full border border-black/15 px-5 text-sm font-medium"
+          >
+            Cancel
+          </button>
+          {state.type === "delete" ? (
+            <button
+              type="button"
+              onClick={onDelete}
+              className="h-11 rounded-full bg-red-600 px-6 text-sm font-medium text-white"
+            >
+              Delete Search
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() =>
+                onSave({
+                  name: name.trim() || state.search.name,
+                  ...(state.type === "edit"
+                    ? { location, type, bedrooms }
+                    : {}),
+                })
+              }
+              className="h-11 rounded-full bg-black px-6 text-sm font-medium text-white"
+            >
+              {state.type === "rename" ? "Save" : "Save Changes"}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-sm font-medium">{label}</span>
+      <input
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="h-12 w-full rounded-2xl border border-black/15 px-4 text-sm outline-none focus:border-black"
+      />
+    </label>
+  );
+}

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowUpRight,
   ArrowLeft,
@@ -210,14 +210,40 @@ const LISTINGS = [
   },
 ] as const;
 
+const RENTER_NAV_GROUPS = [
+  {
+    label: "Find a Home",
+    links: [
+      ["Listings", "/renter-dashboard/properties"],
+      ["My Favourites", "/renter-dashboard/saved"],
+      ["Saved Searches", "/renter-dashboard/saved-searches"],
+      ["My Viewings", "/renter-dashboard/visits"],
+      ["Applications", "/renter-dashboard/applications"],
+    ],
+  },
+  {
+    label: "My Home",
+    links: [
+      ["My Rentals", "/renter-dashboard/rentals"],
+      ["Payments", "/renter-dashboard/payments"],
+      ["Maintenance", "/renter-dashboard/maintenance"],
+    ],
+  },
+  {
+    label: "Find a Flatmate",
+    links: [
+      ["Browse Flatmates", "/flatmates"],
+      ["My Flatmate Profile", "/renter-dashboard/flatmates/profile"],
+      ["Matches / Interested People", "/renter-dashboard/flatmates/matches"],
+    ],
+  },
+] as const;
+
 const PROFILE_LINKS = [
-  "Saved homes",
-  "Saved searches",
-  "Applications",
-  "Property visits",
-  "Property requests",
-  "Messages",
-  "Account settings",
+  ["My Account", "/renter-dashboard/account"],
+  ["Billing History", "/renter-dashboard/billing-history"],
+  ["Help Center", "/help"],
+  ["Send Feedback", "/feedback"],
 ] as const;
 
 type SpeechRecognitionEventLike = {
@@ -256,6 +282,7 @@ export default function RenterDashboardPage() {
   const displayCurrency = useDisplayCurrency();
   const { scrolled, sentinelRef, threshold } = useScrolled(40);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [openNavMenu, setOpenNavMenu] = useState<string | null>(null);
   const [listingPage, setListingPage] = useState(1);
   const [locationFilter, setLocationFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("Any Type");
@@ -266,6 +293,7 @@ export default function RenterDashboardPage() {
   const [locationLoading, setLocationLoading] = useState(false);
   const [listening, setListening] = useState(false);
   const [usingCurrentLocation, setUsingCurrentLocation] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const voiceTranscriptRef = useRef("");
   const filteredListings = LISTINGS.filter((listing) => {
@@ -316,6 +344,18 @@ export default function RenterDashboardPage() {
     ...filteredListings.slice(listingOffset),
     ...filteredListings.slice(0, listingOffset),
   ];
+
+  useEffect(() => {
+    const closeProfileOnOutsideClick = (event: MouseEvent) => {
+      if (!profileMenuRef.current?.contains(event.target as Node)) {
+        setProfileOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", closeProfileOnOutsideClick);
+    return () =>
+      document.removeEventListener("mousedown", closeProfileOnOutsideClick);
+  }, []);
 
   const useCurrentLocation = () => {
     const prototypeAddress = "31 KG 152 St, Kigali";
@@ -461,49 +501,30 @@ export default function RenterDashboardPage() {
             >
               <Wordmark height={scrolled ? 38 : 48} />
             </Link>
-            <nav className="hidden items-center gap-8 justify-self-center text-sm font-medium lg:flex xl:gap-10">
-              <Link
-                href="#explore-homes"
-                onClick={(event) => {
-                  event.preventDefault();
-                  document
-                    .getElementById("explore-homes")
-                    ?.scrollIntoView({ behavior: "smooth" });
-                }}
-                className="relative inline-flex items-center transition-opacity hover:opacity-60"
-              >
-                Discover
-                <span
-                  className={`absolute top-[calc(100%+0.28rem)] left-1/2 size-1.5 -translate-x-1/2 rounded-full ${scrolled ? "bg-black" : "bg-white"}`}
+            <nav className="hidden items-center gap-5 justify-self-center text-sm font-medium lg:flex xl:gap-7">
+              {RENTER_NAV_GROUPS.map((group) => (
+                <RenterNavDropdown
+                  key={group.label}
+                  group={group}
+                  open={openNavMenu === group.label}
+                  onToggle={() =>
+                    setOpenNavMenu((current) =>
+                      current === group.label ? null : group.label,
+                    )
+                  }
+                  onOpen={() => setOpenNavMenu(group.label)}
+                  onClose={() => setOpenNavMenu(null)}
                 />
-              </Link>
-              <Link
-                href="/renter-dashboard/saved"
-                className="transition-opacity hover:opacity-60"
-              >
-                Saved homes
-              </Link>
-              <Link
-                href="/renter-dashboard/requests"
-                className="transition-opacity hover:opacity-60"
-              >
-                My requests
-              </Link>
-              <Link
-                href="/renter-dashboard/visits"
-                className="transition-opacity hover:opacity-60"
-              >
-                Visits
-              </Link>
+              ))}
               <Link
                 href="/renter-dashboard/messages"
-                className="transition-opacity hover:opacity-60"
+                className="relative inline-flex items-center transition-opacity hover:opacity-60"
               >
                 Messages
               </Link>
             </nav>
             <div className="flex items-center gap-2 justify-self-end sm:gap-4">
-              <CurrencySelector inverse={!scrolled} />
+              <CurrencySelector inverse={!scrolled} openOnHover />
               <button
                 type="button"
                 aria-label="Notifications"
@@ -516,7 +537,7 @@ export default function RenterDashboardPage() {
                   3
                 </span>
               </button>
-              <div className="relative">
+              <div ref={profileMenuRef} className="relative">
                 <button
                   type="button"
                   onClick={() => setProfileOpen((open) => !open)}
@@ -760,7 +781,7 @@ export default function RenterDashboardPage() {
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <h2 className="font-bricolage text-3xl font-medium tracking-[-0.04em] sm:text-4xl">
-                Your saved homes
+                Your favourite homes
               </h2>
               <p className="text-carbon-500 mt-3 text-sm">
                 Keep your strongest options close while you compare.
@@ -770,7 +791,7 @@ export default function RenterDashboardPage() {
               href="/renter-dashboard/saved"
               className="font-bricolage border-carbon-900 text-carbon-900 hover:bg-muted inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border px-5 text-sm font-medium transition-colors duration-150"
             >
-              View saved homes <ArrowUpRight className="size-4" />
+              View favourite homes <ArrowUpRight className="size-4" />
             </Link>
           </div>
           <div className="mt-8 grid gap-4 lg:grid-cols-3">
@@ -864,6 +885,64 @@ export default function RenterDashboardPage() {
   );
 }
 
+function RenterNavDropdown({
+  group,
+  open,
+  onToggle,
+  onOpen,
+  onClose,
+}: {
+  group: (typeof RENTER_NAV_GROUPS)[number];
+  open: boolean;
+  onToggle: () => void;
+  onOpen: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      className="relative"
+      onMouseEnter={onOpen}
+      onMouseLeave={onClose}
+      onFocus={onOpen}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) onClose();
+      }}
+    >
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        aria-haspopup="menu"
+        className="relative inline-flex items-center gap-1.5 transition-opacity hover:opacity-60"
+      >
+        {group.label}
+        <ChevronDown
+          className={`size-3.5 transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+      {open ? (
+        <div className="absolute top-full left-1/2 z-50 w-64 -translate-x-1/2 pt-[0.8rem]">
+          <div
+            role="menu"
+            className="overflow-hidden rounded-2xl bg-white p-2 text-black shadow-[0_24px_70px_rgba(0,0,0,0.24)]"
+          >
+            {group.links.map(([label, href]) => (
+              <Link
+                key={label}
+                href={href}
+                role="menuitem"
+                className="flex min-h-11 items-center rounded-xl px-3 text-sm font-normal transition-colors hover:bg-black/[0.055] focus:bg-black/[0.055] focus:outline-none"
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function ProfileMenu() {
   return (
     <div className="absolute top-[calc(100%+0.75rem)] right-0 z-50 w-[290px] overflow-hidden rounded-2xl bg-white text-black shadow-[0_24px_70px_rgba(0,0,0,0.24)]">
@@ -872,14 +951,14 @@ function ProfileMenu() {
         <p className="text-carbon-500 mt-0.5 text-sm">renter@gmail.com</p>
       </div>
       <div className="p-2">
-        {PROFILE_LINKS.map((item) => (
-          <button
-            key={item}
-            type="button"
+        {PROFILE_LINKS.map(([label, href]) => (
+          <Link
+            key={label}
+            href={href}
             className="flex h-11 w-full items-center rounded-xl px-3 text-left text-sm transition-colors hover:bg-black/[0.055]"
           >
-            {item}
-          </button>
+            {label}
+          </Link>
         ))}
       </div>
       <div className="border-t border-black/10 p-2">
@@ -890,7 +969,7 @@ function ProfileMenu() {
           }}
           className="flex h-11 items-center rounded-xl px-3 text-sm hover:bg-black/[0.055]"
         >
-          Sign out
+          Log Out
         </Link>
       </div>
     </div>
@@ -913,8 +992,8 @@ function FilterTextField({
       <span className="text-carbon-900 mb-2 block text-sm font-medium">
         {label}
       </span>
-      <span className="flex h-12 items-center gap-3 rounded-xl border border-black/15 px-4 transition-colors focus-within:border-black">
-        <Search aria-hidden="true" className="text-carbon-500 size-5" />
+      <span className="catalogue-location-filter flex items-center gap-2 px-4">
+        <Search aria-hidden="true" className="text-carbon-500 size-4" />
         <input
           type="search"
           placeholder={placeholder}
