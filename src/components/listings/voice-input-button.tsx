@@ -40,11 +40,7 @@ export function VoiceInputButton({
       ?.closest("label")
       ?.querySelector<HTMLInputElement>('input:not([type="hidden"])');
     if (!input) return;
-    const valueSetter = Object.getOwnPropertyDescriptor(
-      HTMLInputElement.prototype,
-      "value",
-    )?.set;
-    valueSetter?.call(input, transcript);
+    input.value = transcript;
     input.dispatchEvent(new Event("input", { bubbles: true }));
   }
 

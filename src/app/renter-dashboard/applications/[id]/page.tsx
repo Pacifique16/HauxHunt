@@ -36,7 +36,7 @@ export default function ApplicationDetailPage() {
   const [requestComplete, setRequestComplete] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<File | null>(null);
   const [selectedDocumentType, setSelectedDocumentType] =
-    useState("Proof of income");
+    useState("Reference document");
   const [preview, setPreview] = useState<{
     name: string;
     url?: string;
@@ -76,22 +76,18 @@ export default function ApplicationDetailPage() {
       ? [
           ["Identity document", "Verified"],
           [
-            "Proof of income",
+            "Reference document",
             selectedDocument
               ? requestComplete
                 ? "Received"
                 : "Selected"
               : "Requested",
           ],
-          ["Employment letter", "Received"],
-          ["Reference document", "Received"],
         ]
       : application.status === "Draft"
         ? []
         : [
             ["Identity document", "Verified"],
-            ["Proof of income", "Received"],
-            ["Employment letter", "Received"],
             ["Reference document", "Received"],
           ];
   useEffect(() => {
@@ -110,8 +106,20 @@ export default function ApplicationDetailPage() {
         values?: Record<string, string>;
       };
       const loadSubmission = window.setTimeout(() => {
-        setSubmittedDocuments(submission.documents ?? []);
-        setSubmittedValues(submission.values ?? {});
+        setSubmittedDocuments(
+          (submission.documents ?? []).filter((document) =>
+            ["Identity document", "Reference document"].includes(
+              document.name,
+            ),
+          ),
+        );
+        setSubmittedValues(
+          Object.fromEntries(
+            Object.entries(submission.values ?? {}).filter(
+              ([name]) => name !== "employer" && name !== "role",
+            ),
+          ),
+        );
       }, 0);
       return () => window.clearTimeout(loadSubmission);
     } catch {
@@ -237,7 +245,7 @@ export default function ApplicationDetailPage() {
                       onChange={(event) => {
                         const file = event.target.files?.[0];
                         if (file) {
-                          setSelectedDocumentType("Proof of income");
+                          setSelectedDocumentType("Reference document");
                           setSelectedDocument(file);
                           showToast(`${file.name} is ready to submit.`);
                         }
@@ -313,12 +321,12 @@ export default function ApplicationDetailPage() {
                   ]}
                 />
                 <Summary
-                  title="Employment & Income"
+                  title="Income & Rent Payment"
                   rows={[
                     submittedValues.employment || "Employed",
-                    submittedValues.employer || "Irembo Ltd",
-                    submittedValues.role || "Operations Coordinator",
                     submittedValues.income || "Income range provided",
+                    submittedValues.incomeSource || "Income source provided",
+                    submittedValues.rentPayment || "Payment method provided",
                   ]}
                 />
                 <Summary
@@ -393,7 +401,7 @@ export default function ApplicationDetailPage() {
                     ? [
                         [
                           "Today",
-                          `${selectedDocument?.name ?? "Proof of income"} uploaded and submitted`,
+                          `${selectedDocument?.name ?? "Reference document"} uploaded and submitted`,
                         ],
                       ]
                     : []),

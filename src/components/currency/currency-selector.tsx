@@ -17,7 +17,7 @@ const CURRENCIES: Array<{
   { code: "NGN", name: "Nigerian Naira", symbol: "NGN" },
 ];
 
-// Prototype display rates. Production should replace these with a dated rate API.
+// Demo display rates. Production should replace these with a dated rate API.
 const USD_RATES: Record<DisplayCurrency, number> = {
   USD: 1,
   RWF: 1450,

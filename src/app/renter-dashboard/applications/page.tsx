@@ -39,7 +39,7 @@ const IMAGES: Record<string, StaticImageData> = {
 const tabFor = (status: RenterApplication["status"]): Tab =>
   status === "Draft"
     ? "drafts"
-    : ["Approved", "Not Selected", "Withdrawn"].includes(status)
+    : ["Not Selected", "Withdrawn"].includes(status)
       ? "past"
       : "active";
 
@@ -203,7 +203,7 @@ function ApplicationCard({
       : application.status === "Action Required"
         ? "Complete Request"
         : application.status === "Approved"
-          ? "View Next Steps"
+          ? "Start Rental Setup"
           : application.status === "Not Selected"
             ? "View Similar Homes"
             : "View Application";
@@ -213,7 +213,7 @@ function ApplicationCard({
       : application.status === "Not Selected"
         ? "/renter-dashboard/properties"
         : application.status === "Approved"
-          ? "/renter-dashboard/rentals"
+          ? `/renter-dashboard/rental-setup/${application.id}`
           : `/renter-dashboard/applications/${application.id}`;
   return (
     <article

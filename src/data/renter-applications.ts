@@ -44,7 +44,7 @@ export const RENTER_APPLICATIONS: RenterApplication[] = [
     representative: "Aline Uwase",
     role: "Verified Agent",
     progress: 64,
-    message: "Additional income documentation is needed.",
+    message: "An updated reference document is needed.",
   },
   {
     id: "HH-APP-0250",

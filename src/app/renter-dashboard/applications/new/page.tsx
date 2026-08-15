@@ -21,6 +21,44 @@ const steps = [
   "Review",
 ];
 
+const incomeRanges = [
+  "Under RWF 500,000",
+  "Between RWF 500,000 and RWF 999,999",
+  "Between RWF 1,000,000 and RWF 1,499,999",
+  "Between RWF 1,500,000 and RWF 1,999,999",
+  "Between RWF 2,000,000 and RWF 2,999,999",
+  "Above RWF 3,000,000",
+];
+
+const incomeSources = [
+  "Salary or wages",
+  "Self-employment or business",
+  "Freelance or contract work",
+  "Investments or rental income",
+  "Pension or retirement income",
+  "Family support",
+  "Other",
+];
+
+const rentPaymentMethods = [
+  "Bank transfer",
+  "Mobile Money",
+  "Standing order or direct debit",
+  "Cash deposit",
+  "Employer-paid housing allowance",
+  "Other",
+];
+
+const applicationDocuments = ["Identity document", "Reference document"];
+
+function currentApplicationValues(values: Record<string, string>) {
+  return Object.fromEntries(
+    Object.entries(values).filter(
+      ([name]) => name !== "employer" && name !== "role",
+    ),
+  );
+}
+
 const fields: Record<number, Array<[string, string, string]>> = {
   0: [
     ["Full name", "fullName", "Julien Mugisha"],
@@ -34,9 +72,9 @@ const fields: Record<number, Array<[string, string, string]>> = {
   ],
   2: [
     ["Employment status", "employment", "Employed"],
-    ["Employer", "employer", "e.g. Kigali Innovation City"],
-    ["Role", "role", "e.g. Accountant"],
     ["Monthly income", "income", "RWF 1,500,000"],
+    ["Source of income", "incomeSource", "Salary or wages"],
+    ["How will you pay the rent?", "rentPayment", "Bank transfer"],
   ],
   3: [
     ["Number of occupants", "occupants", "2"],
@@ -96,9 +134,18 @@ export default function NewApplicationPage() {
       };
       const restoreDraft = window.setTimeout(() => {
         if (draft.values) {
-          setValues((current) => ({ ...current, ...draft.values }));
+          setValues((current) => ({
+            ...current,
+            ...currentApplicationValues(draft.values ?? {}),
+          }));
         }
-        if (draft.documents) setDocuments(draft.documents);
+        if (draft.documents) {
+          setDocuments(
+            draft.documents.filter((name) =>
+              applicationDocuments.includes(name),
+            ),
+          );
+        }
         if (typeof draft.step === "number") {
           setStep(Math.min(Math.max(draft.step, 0), steps.length - 1));
         }
@@ -114,7 +161,7 @@ export default function NewApplicationPage() {
       `hauxhunt-application-${property.id}`,
       JSON.stringify({
         step,
-        values,
+        values: currentApplicationValues(values),
         documents,
         propertyId: property.id,
         title: property.title,
@@ -142,11 +189,13 @@ export default function NewApplicationPage() {
         title: property.title,
         location: property.location,
         values,
-        documents: documents.map((name) => ({
-          name,
-          url: documentUrls[name],
-          type: documentTypes[name],
-        })),
+        documents: documents
+          .filter((name) => applicationDocuments.includes(name))
+          .map((name) => ({
+            name,
+            url: documentUrls[name],
+            type: documentTypes[name],
+          })),
       }),
     );
     localStorage.removeItem(`hauxhunt-application-${property.id}`);
@@ -341,6 +390,63 @@ export default function NewApplicationPage() {
                             <option>Retired</option>
                             <option>Other</option>
                           </select>
+                        ) : name === "income" ? (
+                          <select
+                            required
+                            value={values[name] ?? ""}
+                            onChange={(event) =>
+                              setValues((current) => ({
+                                ...current,
+                                [name]: event.target.value,
+                              }))
+                            }
+                            className="application-form-input h-11 w-full border-0 border-b border-black/20 bg-transparent px-1 text-sm outline-none focus:border-black focus:ring-0"
+                          >
+                            <option value="">Select monthly income</option>
+                            {incomeRanges.map((range) => (
+                              <option key={range} value={range}>
+                                {range}
+                              </option>
+                            ))}
+                          </select>
+                        ) : name === "incomeSource" ? (
+                          <select
+                            required
+                            value={values[name] ?? ""}
+                            onChange={(event) =>
+                              setValues((current) => ({
+                                ...current,
+                                [name]: event.target.value,
+                              }))
+                            }
+                            className="application-form-input h-11 w-full border-0 border-b border-black/20 bg-transparent px-1 text-sm outline-none focus:border-black focus:ring-0"
+                          >
+                            <option value="">Select source of income</option>
+                            {incomeSources.map((source) => (
+                              <option key={source} value={source}>
+                                {source}
+                              </option>
+                            ))}
+                          </select>
+                        ) : name === "rentPayment" ? (
+                          <select
+                            required
+                            value={values[name] ?? ""}
+                            onChange={(event) =>
+                              setValues((current) => ({
+                                ...current,
+                                [name]: event.target.value,
+                              }))
+                            }
+                            className="application-form-input h-11 w-full border-0 border-b border-black/20 bg-transparent px-1 text-sm outline-none focus:border-black focus:ring-0"
+                          >
+                            <option value="">Select payment method</option>
+                            {rentPaymentMethods.map((method) => (
+                              <option key={method} value={method}>
+                                {method}
+                              </option>
+                            ))}
+                          </select>
                         ) : (
                           <input
                             required
@@ -470,24 +576,18 @@ function Documents({
   return (
     <div>
       <p className="text-carbon-500 mb-5 text-sm">
-        Identity document and proof of income are required. PDF, JPG or PNG.
+        An identity document is required. PDF, JPG or PNG.
       </p>
       <div className="grid gap-4 sm:grid-cols-2">
-        {[
-          "Identity document",
-          "Proof of income",
-          "Employment letter",
-          "Reference document",
-        ].map((name) => (
+        {applicationDocuments.map((name) => (
           <label
             key={name}
-            className={`flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed p-5 text-center transition-colors ${documents.includes(name) ? "border-black bg-black/[0.035]" : "border-black/25 hover:border-black"}`}
+            className={`flex min-h-52 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed p-8 text-center transition-colors ${documents.includes(name) ? "border-black bg-black/[0.035]" : "border-black/25 hover:border-black"}`}
           >
             <input
               type="file"
               required={
-                (name === "Identity document" || name === "Proof of income") &&
-                !documents.includes(name)
+                name === "Identity document" && !documents.includes(name)
               }
               accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
               className="sr-only"
@@ -548,7 +648,14 @@ function Review({
         />
         <ReviewBlock
           title="Applicant"
-          rows={[values.fullName, values.email, values.employment]}
+          rows={[
+            values.fullName,
+            values.email,
+            values.employment,
+            values.incomeSource,
+            values.income,
+            values.rentPayment,
+          ]}
         />
         <ReviewBlock
           title="Documents"

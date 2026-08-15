@@ -139,9 +139,9 @@ export function SearchWorkspace() {
   const inputId = useId();
 
   function useCurrentLocation() {
-    const prototypeAddress = "31 KG 152 St, Kigali";
+    const demoAddress = "31 KG 152 St, Kigali";
     setUsingCurrentLocation(true);
-    setQuery(prototypeAddress);
+    setQuery(demoAddress);
 
     if (!navigator.geolocation) return;
 
@@ -177,7 +177,7 @@ export function SearchWorkspace() {
           if (!readableAddress) throw new Error("No street address found");
           setQuery(readableAddress);
         } catch {
-          setQuery(prototypeAddress);
+          setQuery(demoAddress);
         } finally {
           setLocationLoading(false);
         }
@@ -409,12 +409,30 @@ export function SearchWorkspace() {
               placeholder="Choose pricing"
               options={PRICE_RANGES}
               optionLabels={Object.fromEntries([
-                [PRICE_RANGES[0], formatCurrencyRange(50, 100, displayCurrency)],
-                [PRICE_RANGES[1], formatCurrencyRange(100, 150, displayCurrency)],
-                [PRICE_RANGES[2], formatCurrencyRange(150, 250, displayCurrency)],
-                [PRICE_RANGES[3], formatCurrencyRange(250, 500, displayCurrency)],
-                [PRICE_RANGES[4], formatCurrencyRange(500, 1000, displayCurrency)],
-                [PRICE_RANGES[5], formatCurrencyRange(1000, null, displayCurrency)],
+                [
+                  PRICE_RANGES[0],
+                  formatCurrencyRange(50, 100, displayCurrency),
+                ],
+                [
+                  PRICE_RANGES[1],
+                  formatCurrencyRange(100, 150, displayCurrency),
+                ],
+                [
+                  PRICE_RANGES[2],
+                  formatCurrencyRange(150, 250, displayCurrency),
+                ],
+                [
+                  PRICE_RANGES[3],
+                  formatCurrencyRange(250, 500, displayCurrency),
+                ],
+                [
+                  PRICE_RANGES[4],
+                  formatCurrencyRange(500, 1000, displayCurrency),
+                ],
+                [
+                  PRICE_RANGES[5],
+                  formatCurrencyRange(1000, null, displayCurrency),
+                ],
               ])}
             />
           </div>

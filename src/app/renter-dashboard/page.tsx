@@ -358,9 +358,9 @@ export default function RenterDashboardPage() {
   }, []);
 
   const useCurrentLocation = () => {
-    const prototypeAddress = "31 KG 152 St, Kigali";
+    const demoAddress = "31 KG 152 St, Kigali";
     setUsingCurrentLocation(true);
-    setSearchQuery(prototypeAddress);
+    setSearchQuery(demoAddress);
 
     if (!navigator.geolocation) {
       return;
@@ -398,7 +398,7 @@ export default function RenterDashboardPage() {
           if (!readableAddress) throw new Error("No street address found");
           setSearchQuery(readableAddress);
         } catch {
-          setSearchQuery(prototypeAddress);
+          setSearchQuery(demoAddress);
         } finally {
           setLocationLoading(false);
         }
