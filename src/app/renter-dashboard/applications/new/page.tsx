@@ -159,9 +159,12 @@ export default function NewApplicationPage() {
         <RenterCatalogueTopBar />
         <main className="bg-carbon-50 flex min-h-svh items-center justify-center px-5 pt-16">
           <section className="w-full max-w-xl bg-white p-8 text-center shadow-[0_3px_14px_rgba(0,0,0,0.04)]">
-            <span className="mx-auto flex size-11 items-center justify-center rounded-full bg-black text-white">
-              <Check className="size-5" />
-            </span>
+            <Image
+              src={applicationReceivedIllustration}
+              alt="Application already received illustration"
+              className="mx-auto h-36 w-auto object-contain"
+              priority
+            />
             <h1 className="font-bricolage mt-5 text-3xl font-medium">
               You already applied
             </h1>

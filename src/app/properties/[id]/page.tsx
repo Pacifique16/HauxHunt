@@ -411,20 +411,23 @@ export default async function PropertyPage({
                 until you choose to share them.
               </p>
 
-              <RequestViewingButton
-                propertyId={property.id}
-                title={property.title}
-                location={property.location}
-              />
+              <div className={renterView ? "mt-6 grid grid-cols-2 gap-3" : ""}>
+                <RequestViewingButton
+                  propertyId={property.id}
+                  title={property.title}
+                  location={property.location}
+                  compact={renterView}
+                />
 
-              {renterView ? (
-                <Link
-                  href={`/renter-dashboard/applications/new?property=${property.id}`}
-                  className="mt-3 flex h-11 w-full items-center justify-center rounded-full border border-black/15 text-sm font-medium transition-colors hover:border-black"
-                >
-                  Apply Now
-                </Link>
-              ) : null}
+                {renterView ? (
+                  <Link
+                    href={`/renter-dashboard/applications/new?property=${property.id}`}
+                    className="flex h-11 w-full items-center justify-center rounded-full border border-black/15 px-2 text-sm font-medium whitespace-nowrap transition-colors hover:border-black"
+                  >
+                    Apply Now
+                  </Link>
+                ) : null}
+              </div>
 
               <ContactPropertyManagerForm managerName="Julien" />
             </aside>

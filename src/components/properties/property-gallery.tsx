@@ -85,7 +85,7 @@ export function PropertyGallery({
           role="dialog"
           aria-modal="true"
           aria-label={`${title} photo preview`}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-[1px] sm:p-8"
+          className="property-photo-preview fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-[1px] sm:p-8"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) setActiveIndex(null);
           }}
@@ -116,7 +116,7 @@ export function PropertyGallery({
               <ChevronLeft aria-hidden="true" className="size-6" />
             </button>
 
-            <div className="relative size-full overflow-hidden rounded-xl bg-black shadow-[0_28px_90px_rgba(0,0,0,0.5)]">
+            <div className="relative size-full overflow-hidden bg-black shadow-[0_28px_90px_rgba(0,0,0,0.5)]">
               <Image
                 src={images[activeIndex]}
                 alt={`${title} property view ${activeIndex + 1}`}

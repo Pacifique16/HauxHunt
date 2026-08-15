@@ -14,10 +14,12 @@ export function RequestViewingButton({
   propertyId,
   title,
   location,
+  compact = false,
 }: {
   propertyId: string;
   title: string;
   location: string;
+  compact?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [sent, setSent] = useState(false);
@@ -52,7 +54,7 @@ export function RequestViewingButton({
           setDuplicate(false);
           setOpen(true);
         }}
-        className="mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-black px-6 text-sm font-medium text-white"
+        className={`${compact ? "h-11 gap-1 px-2" : "mt-6 h-12 gap-2 px-6"} flex w-full items-center justify-center rounded-full bg-black text-sm font-medium whitespace-nowrap text-white`}
       >
         <CalendarDays className="size-4" /> Request Viewing
       </button>

@@ -728,6 +728,11 @@ select.catalogue-filter-control {
   border-radius: 1.5rem;
 }
 
+/* Full-screen photo previews are backdrops, not rounded modal cards. */
+[role="dialog"].property-photo-preview {
+  border-radius: 0;
+}
+
 [role="dialog"] input,
 [role="dialog"] textarea,
 [role="dialog"] select {
