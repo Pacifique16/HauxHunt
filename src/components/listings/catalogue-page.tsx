@@ -8,13 +8,13 @@ import {
   Search,
 } from "lucide-react";
 
-import house1 from "../../../house1.jpg";
-import house2 from "../../../house2.jpg";
-import house3 from "../../../house3.jpg";
-import house4 from "../../../house4.jpg";
-import house5 from "../../../house5.jpg";
-import house6 from "../../../house6.jpeg";
-import emptyIllustration from "../../../empty.png";
+import house1 from "@/assets/images/house1.jpg";
+import house2 from "@/assets/images/house2.jpg";
+import house3 from "@/assets/images/house3.jpg";
+import house4 from "@/assets/images/house4.jpg";
+import house5 from "@/assets/images/house5.jpg";
+import house6 from "@/assets/images/house6.jpeg";
+import emptyIllustration from "@/assets/images/empty.png";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { AutoSubmitFilterForm } from "@/components/listings/auto-submit-filter-form";

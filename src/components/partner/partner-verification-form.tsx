@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 
 import { ALL_COUNTRIES } from "@/lib/countries";
-import underReviewIllustration from "../../../under-review.png";
+import underReviewIllustration from "@/assets/images/under-review.png";
 
 const STEPS = [
   { short: "Personal identity", title: "Personal identity" },

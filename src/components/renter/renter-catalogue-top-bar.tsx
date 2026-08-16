@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { Wordmark } from "@/components/layout/wordmark";
 import { CurrencySelector } from "@/components/currency/currency-selector";
-import julienProfile from "../../../julien.jpg";
+import julienProfile from "@/assets/images/julien.jpg";
 
 const RENTER_NAV_GROUPS = [
   {

@@ -13,16 +13,16 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import house1 from "../../../../house1.jpg";
-import house2 from "../../../../house2.jpg";
-import house3 from "../../../../house3.jpg";
-import house4 from "../../../../house4.jpg";
-import house5 from "../../../../house5.jpg";
-import house6 from "../../../../house6.jpeg";
-import emptyIllustration from "../../../../empty.png";
-import julienProfile from "../../../../julien.jpg";
-import scheduleIllustration from "../../../../schedule.png";
-import cancelIllustration from "../../../../cancel.png";
+import house1 from "@/assets/images/house1.jpg";
+import house2 from "@/assets/images/house2.jpg";
+import house3 from "@/assets/images/house3.jpg";
+import house4 from "@/assets/images/house4.jpg";
+import house5 from "@/assets/images/house5.jpg";
+import house6 from "@/assets/images/house6.jpeg";
+import emptyIllustration from "@/assets/images/empty.png";
+import julienProfile from "@/assets/images/julien.jpg";
+import scheduleIllustration from "@/assets/images/schedule.png";
+import cancelIllustration from "@/assets/images/cancel.png";
 import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
 import { useViewingRequests } from "@/hooks/use-viewing-requests";
 

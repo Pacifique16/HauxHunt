@@ -3,8 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Check, ChevronLeft, ChevronRight, FileText, X } from "lucide-react";
 import { useState } from "react";
-import agreedIllustration from "../../../../../agreed.png";
-import managerAvatar from "../../../../../julien.jpg";
+import agreedIllustration from "@/assets/images/agreed.png";
+import managerAvatar from "@/assets/images/julien.jpg";
 import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
 const steps = [
   "Rental Details",

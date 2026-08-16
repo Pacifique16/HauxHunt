@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-import emptyIllustration from "../../../../empty.png";
+import emptyIllustration from "@/assets/images/empty.png";
 import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
 import { type SavedSearch, useSavedSearches } from "@/hooks/use-saved-searches";
 

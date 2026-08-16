@@ -16,8 +16,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import archivingIllustration from "../../../archiving.png";
-import deletingIllustration from "../../../deleting.png";
+import archivingIllustration from "@/assets/images/archiving.png";
+import deletingIllustration from "@/assets/images/deleting.png";
 
 export function ListingOptionsMenu({
   title,

@@ -14,7 +14,7 @@ import {
   useState,
 } from "react";
 import "leaflet/dist/leaflet.css";
-import emptyIllustration from "../../../empty.png";
+import emptyIllustration from "@/assets/images/empty.png";
 import {
   formatDisplayPrice,
   useDisplayCurrency,

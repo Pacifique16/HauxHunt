@@ -7,7 +7,7 @@ import { Heart, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
-import loginIllustration from "../../../login.png";
+import loginIllustration from "@/assets/images/login.png";
 import { useSavedProperty } from "@/hooks/use-saved-properties";
 
 export function SavePropertyButton({

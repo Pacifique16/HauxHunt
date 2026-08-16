@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Bath, BedDouble, Expand, Heart, MapPin, Sofa, X } from "lucide-react";
-import loginIllustration from "../../../../login.png";
+import loginIllustration from "@/assets/images/login.png";
 import { CurrencyAmount } from "@/components/currency/currency-selector";
 import { useSavedProperty } from "@/hooks/use-saved-properties";
 

@@ -22,8 +22,8 @@ import {
 } from "lucide-react";
 
 import { Wordmark } from "@/components/layout/wordmark";
-import appIllustration from "../../../illustrated-black-man-using-mobile-phone.png";
-import julienProfile from "../../../julien.jpg";
+import appIllustration from "@/assets/images/illustrated-black-man-using-mobile-phone.png";
+import julienProfile from "@/assets/images/julien.jpg";
 import { usePartnerRole } from "@/components/partner/use-partner-role";
 
 type DashboardNavItem = {

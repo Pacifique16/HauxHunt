@@ -11,11 +11,11 @@ import {
   MessageCircle,
   Wrench,
 } from "lucide-react";
-import house1 from "../../../../../house1.jpg";
-import house2 from "../../../../../house2.jpg";
-import house3 from "../../../../../house3.jpg";
-import house4 from "../../../../../house4.jpg";
-import managerAvatar from "../../../../../julien.jpg";
+import house1 from "@/assets/images/house1.jpg";
+import house2 from "@/assets/images/house2.jpg";
+import house3 from "@/assets/images/house3.jpg";
+import house4 from "@/assets/images/house4.jpg";
+import managerAvatar from "@/assets/images/julien.jpg";
 import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
 import { RENTER_RENTALS } from "@/data/renter-rentals";
 const images = [house1, house2, house3, house4];

@@ -29,15 +29,15 @@ import { ListingCard } from "@/components/sections/featured-listings/listing-car
 import { VoiceInputButton } from "@/components/listings/voice-input-button";
 import { TrendingLocations } from "@/components/sections/trending-locations/trending-locations";
 import { useScrolled } from "@/hooks/use-scrolled";
-import heroImage from "../../../house-isolated-field.jpg";
-import houseOne from "../../../house1.jpg";
-import houseTwo from "../../../house2.jpg";
-import houseThree from "../../../house3.jpg";
-import houseFour from "../../../house4.jpg";
-import houseFive from "../../../house5.jpg";
-import houseSix from "../../../house6.jpeg";
-import julienProfile from "../../../julien.jpg";
-import emptyIllustration from "../../../empty.png";
+import heroImage from "@/assets/images/house-isolated-field.jpg";
+import houseOne from "@/assets/images/house1.jpg";
+import houseTwo from "@/assets/images/house2.jpg";
+import houseThree from "@/assets/images/house3.jpg";
+import houseFour from "@/assets/images/house4.jpg";
+import houseFive from "@/assets/images/house5.jpg";
+import houseSix from "@/assets/images/house6.jpeg";
+import julienProfile from "@/assets/images/julien.jpg";
+import emptyIllustration from "@/assets/images/empty.png";
 
 const LISTINGS = [
   {

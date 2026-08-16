@@ -5,7 +5,7 @@ import Link from "next/link";
 import { CalendarDays, Clock3, X } from "lucide-react";
 import { useState } from "react";
 
-import scheduleIllustration from "../../../schedule.png";
+import scheduleIllustration from "@/assets/images/schedule.png";
 import { addViewingRequest } from "@/hooks/use-viewing-requests";
 
 const TIMES = ["09:00 AM", "10:30 AM", "1:00 PM", "3:30 PM"];

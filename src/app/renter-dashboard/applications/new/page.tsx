@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Check, ChevronLeft, ChevronRight, FileUp } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import applicationReceivedIllustration from "../../../../../application-received.png";
+import applicationReceivedIllustration from "@/assets/images/application-received.png";
 import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
 import { DEMO_LISTINGS } from "@/data/hero-search-demo";
 import { RENTER_APPLICATIONS } from "@/data/renter-applications";
