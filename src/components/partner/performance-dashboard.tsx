@@ -940,7 +940,7 @@ function SelectControl({
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-11 appearance-none rounded-full border-0 bg-white pr-10 pl-5 text-sm font-medium ring-0 outline-none"
+        className="h-11 appearance-none rounded-full border-0 bg-white pr-10 pl-5 text-sm font-medium shadow-[0_8px_24px_rgba(0,0,0,0.06)] ring-0 outline-none focus:ring-0"
       >
         <>
           {options.map((option) => (

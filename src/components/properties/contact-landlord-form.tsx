@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { Check, ChevronDown, MessageCircle } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 
 export function ContactPropertyManagerForm({
   managerName,
@@ -96,11 +96,7 @@ export function ContactPropertyManagerForm({
         type="submit"
         className="font-bricolage bg-carbon-900 flex h-12 w-full items-center justify-center gap-2 rounded-full px-6 font-medium text-white transition-colors hover:bg-black"
       >
-        {sent ? (
-          <Check aria-hidden="true" className="size-4" />
-        ) : (
-          <MessageCircle aria-hidden="true" className="size-4" />
-        )}
+        {sent ? <Check aria-hidden="true" className="size-4" /> : null}
         {sent ? "Message sent" : "Send message"}
       </button>
 

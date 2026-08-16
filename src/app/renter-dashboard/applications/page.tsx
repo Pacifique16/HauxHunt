@@ -6,7 +6,6 @@ import { useSearchParams } from "next/navigation";
 import {
   BadgeCheck,
   ChevronDown,
-  MessageCircle,
   MoreHorizontal,
   Search,
   Trash2,
@@ -186,7 +185,7 @@ export default function ApplicationsPage() {
                       setStatusFilter(status);
                       if (status !== "all") setTab(tabFor(status));
                     }}
-                    className="h-10 w-full appearance-none rounded-full bg-white pr-10 pl-4 text-sm outline-none"
+                    className="h-11 w-full appearance-none rounded-full border-0 bg-white pr-10 pl-4 text-sm font-medium shadow-[0_8px_24px_rgba(0,0,0,0.06)] ring-0 outline-none focus:ring-0"
                   >
                     {STATUS_OPTIONS.map((status) => (
                       <option key={status} value={status}>
@@ -358,9 +357,8 @@ function ApplicationCard({
           </Link>
           <Link
             href={`/renter-dashboard/messages?property=${encodeURIComponent(application.title)}&application=${application.status}`}
-            className="inline-flex h-10 items-center gap-2 rounded-full border border-black/15 px-4 text-sm"
+            className="inline-flex h-10 items-center rounded-full border border-black/15 px-4 text-sm"
           >
-            <MessageCircle className="size-4" />
             Message
           </Link>
           <Link

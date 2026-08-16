@@ -584,7 +584,7 @@ function FilterSelect({
         aria-label={label}
         name={name}
         defaultValue={value}
-        className="catalogue-filter-control h-12 w-full appearance-none rounded-2xl border-0 bg-black/[0.045] pr-11 pl-4 text-sm ring-0 outline-none focus:ring-0 focus:outline-none"
+        className="catalogue-filter-control h-12 w-full appearance-none rounded-full border-0 bg-white pr-11 pl-4 text-sm font-medium shadow-[0_8px_24px_rgba(0,0,0,0.06)] ring-0 outline-none focus:ring-0 focus:outline-none"
       >
         <option value="">{label}</option>
         {options.map(([optionValue, optionLabel]) => (

@@ -215,7 +215,7 @@ export default function PaymentsPage() {
                       setPageState(event.target.value as PageState),
                       setSelectedPayment(null)
                     )}
-                    className="h-10 appearance-none rounded-full bg-white pr-10 pl-4 text-sm text-black outline-none"
+                    className="h-11 appearance-none rounded-full border-0 bg-white pr-10 pl-4 text-sm font-medium text-black shadow-[0_8px_24px_rgba(0,0,0,0.06)] ring-0 outline-none focus:ring-0"
                   >
                     <option value="active">Upcoming</option>
                     <option value="due">Due today</option>

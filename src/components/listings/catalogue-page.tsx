@@ -479,7 +479,7 @@ export function CataloguePage({
                       id="catalogue-sort"
                       name="sort"
                       defaultValue={sort}
-                      className="catalogue-filter-control h-11 appearance-none rounded-2xl border border-black/15 bg-white pr-10 pl-4 text-sm transition-colors outline-none focus:border-black"
+                      className="catalogue-filter-control h-11 appearance-none rounded-full border-0 bg-white pr-10 pl-4 text-sm font-medium shadow-[0_8px_24px_rgba(0,0,0,0.06)] ring-0 outline-none focus:ring-0"
                     >
                       <option value="">Newest</option>
                       <option value="price-low">Price: low to high</option>
@@ -617,7 +617,7 @@ export function CataloguePage({
                           aria-label="Sort properties"
                           name="sort"
                           defaultValue={sort}
-                          className="catalogue-filter-control h-10 appearance-none rounded-full border border-black/15 bg-white pr-9 pl-4 text-sm outline-none"
+                          className="catalogue-filter-control h-11 appearance-none rounded-full border-0 bg-white pr-9 pl-4 text-sm font-medium shadow-[0_8px_24px_rgba(0,0,0,0.06)] ring-0 outline-none focus:ring-0"
                         >
                           <option value="">Newest</option>
                           <option value="price-low">Price: low to high</option>
@@ -894,7 +894,7 @@ function FilterSelect({
         <select
           name={name}
           defaultValue={value}
-          className={`catalogue-filter-control text-carbon-900 w-full appearance-none border border-black/15 bg-white pr-11 pl-4 text-sm transition-colors outline-none focus:border-black ${pill ? "h-10 rounded-full" : "h-12 rounded-2xl"}`}
+          className={`catalogue-filter-control text-carbon-900 w-full appearance-none rounded-full border-0 bg-white pr-11 pl-4 text-sm font-medium shadow-[0_8px_24px_rgba(0,0,0,0.06)] ring-0 outline-none focus:ring-0 ${pill ? "h-11" : "h-12"}`}
         >
           <option value="">{placeholder}</option>
           {options.map((option) => (

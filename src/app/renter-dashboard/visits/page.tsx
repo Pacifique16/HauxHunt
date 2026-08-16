@@ -8,7 +8,6 @@ import {
   ChevronDown,
   Clock3,
   MapPinned,
-  MessageCircle,
   Search,
   X,
 } from "lucide-react";
@@ -277,7 +276,7 @@ export default function MyViewingsPage() {
                       setStatusFilter(status);
                       if (status !== "all") setTab(tabForStatus(status));
                     }}
-                    className="h-10 w-full appearance-none rounded-full bg-white pr-10 pl-4 text-sm outline-none"
+                    className="h-11 w-full appearance-none rounded-full border-0 bg-white pr-10 pl-4 text-sm font-medium shadow-[0_8px_24px_rgba(0,0,0,0.06)] ring-0 outline-none focus:ring-0"
                   >
                     {STATUS_OPTIONS.map((status) => (
                       <option key={status} value={status}>
@@ -443,11 +442,7 @@ function ViewingCard({
               >
                 View Details
               </button>
-              <ActionLink
-                href={messageHref}
-                label="Message"
-                icon={MessageCircle}
-              />
+              <ActionLink href={messageHref} label="Message" />
               <a
                 href={`https://www.openstreetmap.org/search?query=${encodeURIComponent(viewing.location)}`}
                 target="_blank"
@@ -564,19 +559,16 @@ function ActionLink({
   href,
   label,
   primary = false,
-  icon: Icon,
 }: {
   href: string;
   label: string;
   primary?: boolean;
-  icon?: typeof MessageCircle;
 }) {
   return (
     <Link
       href={href}
       className={`inline-flex h-10 items-center gap-2 rounded-full border px-4 text-sm ${primary ? "border-black bg-black text-white" : "border-black/15"}`}
     >
-      {Icon ? <Icon className="size-4" /> : null}
       {label}
     </Link>
   );
