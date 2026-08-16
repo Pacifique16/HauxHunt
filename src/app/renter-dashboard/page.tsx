@@ -241,7 +241,6 @@ const RENTER_NAV_GROUPS = [
 
 const PROFILE_LINKS = [
   ["My Account", "/renter-dashboard/account"],
-  ["Billing History", "/renter-dashboard/billing-history"],
   ["Help Center", "/help"],
   ["Send Feedback", "/feedback"],
 ] as const;

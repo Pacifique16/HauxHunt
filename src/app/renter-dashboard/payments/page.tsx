@@ -8,19 +8,20 @@ import {
   Check,
   ChevronDown,
   CircleAlert,
-  CreditCard,
   Download,
-  Landmark,
-  Smartphone,
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import emptyIllustration from "@/assets/images/empty.png";
 import blackHauxHuntLogo from "@/assets/images/HauxHunt_black_with_company_name.png";
+import bankMethodImage from "@/assets/images/bank.png";
+import cardMethodImage from "@/assets/images/card.png";
+import mobileMethodImage from "@/assets/images/mobile.png";
 import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
 
-type PageState = "empty" | "invited" | "active" | "due" | "overdue";
+type PageState = "active" | "due" | "overdue";
+type PaymentAccess = "disabled" | "invited" | "enabled";
 type PaymentMethod = "Mobile Money" | "Card" | "Bank Transfer";
 type Modal =
   | "setup"
@@ -138,6 +139,7 @@ const history = [
 ];
 
 export default function PaymentsPage() {
+  const [paymentAccess, setPaymentAccess] = useState<PaymentAccess>("enabled");
   const [pageState, setPageState] = useState<PageState>(
     hasPaymentDueToday ? "due" : "active",
   );
@@ -196,39 +198,39 @@ export default function PaymentsPage() {
           <div className="mx-auto flex max-w-[1200px] flex-wrap items-end justify-between gap-5">
             <div>
               <h1 className="dashboard-page-title">Payments</h1>
-              {pageState !== "empty" && pageState !== "invited" ? (
+              {paymentAccess === "enabled" ? (
                 <p className="text-carbon-500 mt-2 text-sm">
                   Manage rent and view payment activity for your HauxHunt
                   rentals.
                 </p>
               ) : null}
             </div>
-            <label className="flex items-center gap-2 text-xs text-black/45">
-              Payment status
-              <span className="relative">
-                <select
-                  value={pageState}
-                  onChange={(event) => (
-                    setPageState(event.target.value as PageState),
-                    setSelectedPayment(null)
-                  )}
-                  className="h-10 appearance-none rounded-full bg-white pr-10 pl-4 text-sm text-black outline-none"
-                >
-                  <option value="active">Upcoming</option>
-                  <option value="due">Due today</option>
-                  <option value="overdue">Overdue</option>
-                  <option value="invited">Payment invitation</option>
-                  <option value="empty">Not enabled</option>
-                </select>
-                <ChevronDown className="pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2 text-black/45" />
-              </span>
-            </label>
+            {paymentAccess === "enabled" ? (
+              <label className="flex items-center gap-2 text-xs text-black/45">
+                Payment status
+                <span className="relative">
+                  <select
+                    value={pageState}
+                    onChange={(event) => (
+                      setPageState(event.target.value as PageState),
+                      setSelectedPayment(null)
+                    )}
+                    className="h-10 appearance-none rounded-full bg-white pr-10 pl-4 text-sm text-black outline-none"
+                  >
+                    <option value="active">Upcoming</option>
+                    <option value="due">Due today</option>
+                    <option value="overdue">Overdue</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2 text-black/45" />
+                </span>
+              </label>
+            ) : null}
           </div>
         </header>
 
-        {pageState === "empty" ? (
+        {paymentAccess === "disabled" ? (
           <EmptyPayments />
-        ) : pageState === "invited" ? (
+        ) : paymentAccess === "invited" ? (
           <Invitation onSetup={() => setModal("setup")} />
         ) : (
           <ActivePayments
@@ -265,6 +267,7 @@ export default function PaymentsPage() {
           setMethod={setMethod}
           setModal={setModal}
           enablePayments={() => {
+            setPaymentAccess("enabled");
             setPageState(hasPaymentDueToday ? "due" : "active");
             setModal("setup-success");
           }}
@@ -353,7 +356,7 @@ function ActivePayments({
   openReceipt,
   payUpcoming,
 }: {
-  pageState: Exclude<PageState, "empty" | "invited">;
+  pageState: PageState;
   historyFilter: HistoryFilter;
   setHistoryFilter: (value: HistoryFilter) => void;
   visibleHistory: typeof history;
@@ -573,14 +576,18 @@ function ActivePayments({
         <Card title="Payment Method">
           <div className="flex flex-wrap items-center justify-between gap-5">
             <div className="flex items-center gap-4">
-              <span className="flex size-11 items-center justify-center rounded-full bg-black/[0.05]">
-                {method === "Mobile Money" ? (
-                  <Smartphone className="size-5" />
-                ) : method === "Card" ? (
-                  <CreditCard className="size-5" />
-                ) : (
-                  <Landmark className="size-5" />
-                )}
+              <span className="flex size-11 items-center justify-center">
+                <Image
+                  src={
+                    method === "Mobile Money"
+                      ? mobileMethodImage
+                      : method === "Card"
+                        ? cardMethodImage
+                        : bankMethodImage
+                  }
+                  alt=""
+                  className="size-8 object-contain"
+                />
               </span>
               <div>
                 <p className="font-medium">{method}</p>
@@ -857,20 +864,24 @@ function MethodSelection({
     [
       "Mobile Money",
       "Pay using your supported mobile money account.",
-      Smartphone,
+      mobileMethodImage,
     ],
-    ["Card", "Pay using a debit or credit card.", CreditCard],
-    ["Bank Transfer", "View bank-transfer instructions.", Landmark],
+    ["Card", "Pay using a debit or credit card.", cardMethodImage],
+    ["Bank Transfer", "View bank-transfer instructions.", bankMethodImage],
   ] as const;
   return (
     <div className="mt-5 space-y-3">
-      {methods.map(([name, description, Icon]) => (
+      {methods.map(([name, description, methodImage]) => (
         <button
           key={name}
           onClick={() => select(name)}
           className={`flex w-full items-center gap-4 rounded-xl p-4 text-left ring-1 ${selected === name ? "bg-black text-white ring-black" : "ring-black/10"}`}
         >
-          <Icon className="size-5 shrink-0" />
+          <Image
+            src={methodImage}
+            alt=""
+            className="size-8 shrink-0 object-contain"
+          />
           <span className="flex-1">
             <span className="block font-medium">{name}</span>
             <span
