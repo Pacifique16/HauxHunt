@@ -76,18 +76,14 @@ export default function SavedHomesPage() {
   return (
     <>
       {saveFeedback ? (
-        <div
-          role="status"
-          className="fixed bottom-6 left-1/2 z-[150] min-w-72 -translate-x-1/2 overflow-hidden rounded-2xl border border-white/10 bg-black px-5 py-4 text-center text-sm font-medium whitespace-nowrap text-white shadow-[0_18px_50px_rgba(0,0,0,0.24)]"
-        >
+        <div role="status" className="feedback-toast">
           {saveFeedback}
-          <span className="absolute inset-x-0 bottom-0 h-0.5 animate-pulse bg-white" />
         </div>
       ) : null}
       <RenterCatalogueTopBar />
       <main className="bg-carbon-50 min-h-svh pt-16">
-        <section className="border-border-subtle border-b bg-white px-5 py-10 sm:px-6 lg:px-11 xl:px-[52px]">
-          <div className="mx-auto max-w-[1562px]">
+        <section className="bg-carbon-50 px-5 pt-9 sm:px-6 lg:px-11 xl:px-[52px]">
+          <div className="mx-auto max-w-[1562px] border-b border-black/10 pb-4">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <h1 className="dashboard-page-title text-carbon-900">
                 Favourite Homes
@@ -121,11 +117,11 @@ export default function SavedHomesPage() {
           </div>
         </section>
 
-        <section className="px-5 py-10 sm:px-6 lg:px-11 xl:px-[52px]">
+        <section className="px-5 pt-4 pb-10 sm:px-6 lg:px-11 xl:px-[52px]">
           <div className="mx-auto max-w-[1562px]">
             {savedListings.length ? (
               <>
-                <p className="text-carbon-500 mb-6 text-sm">
+                <p className="text-carbon-500 mb-4 text-sm">
                   {savedListings.length}{" "}
                   {savedListings.length === 1
                     ? "favourite home"

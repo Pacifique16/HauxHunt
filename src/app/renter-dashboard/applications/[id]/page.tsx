@@ -108,9 +108,7 @@ export default function ApplicationDetailPage() {
       const loadSubmission = window.setTimeout(() => {
         setSubmittedDocuments(
           (submission.documents ?? []).filter((document) =>
-            ["Identity document", "Reference document"].includes(
-              document.name,
-            ),
+            ["Identity document", "Reference document"].includes(document.name),
           ),
         );
         setSubmittedValues(
@@ -194,248 +192,258 @@ export default function ApplicationDetailPage() {
             </div>
           </div>
         </section>
-        <div className="mx-auto grid max-w-[1200px] gap-6 px-5 py-8 sm:px-6 lg:grid-cols-[1fr_320px] lg:py-10">
-          <div className="space-y-6">
-            {actionRequired ? (
-              <section className="border border-black bg-white p-6">
-                <h2 className="font-bricolage text-2xl font-medium">
-                  Action required
-                </h2>
-                <p className="mt-3 text-sm">
-                  {application.representative} requested an updated{" "}
-                  {selectedDocumentType.toLowerCase()}.
-                </p>
-                <div className="text-carbon-500 mt-3 flex gap-5 text-xs">
-                  <span>Requested: 14 August 2026</span>
-                  <span>Due: 17 August 2026</span>
-                </div>
-                {selectedDocument ? (
-                  <div className="mt-5 flex items-center justify-between gap-4 border-y border-black/10 py-3">
-                    <div className="flex min-w-0 items-center gap-3">
-                      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-black/[0.05]">
-                        <FileText className="size-4" />
-                      </span>
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">
-                          {selectedDocument.name}
-                        </p>
-                        <p className="text-carbon-500 mt-0.5 text-xs">
-                          {(selectedDocument.size / 1024 / 1024).toFixed(2)} MB
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedDocument(null)}
-                      aria-label="Remove selected document"
-                      className="flex size-8 shrink-0 items-center justify-center rounded-full hover:bg-black/[0.05]"
-                    >
-                      <X className="size-4" />
-                    </button>
+        <div className="px-5 sm:px-6 lg:px-11 xl:px-[52px]">
+          <div className="mx-auto grid w-full max-w-[1200px] gap-6 py-8 lg:grid-cols-[1fr_320px] lg:py-10">
+            <div className="space-y-6">
+              {actionRequired ? (
+                <section className="border border-black bg-white p-6">
+                  <h2 className="font-bricolage text-2xl font-medium">
+                    Action required
+                  </h2>
+                  <p className="mt-3 text-sm">
+                    {application.representative} requested an updated{" "}
+                    {selectedDocumentType.toLowerCase()}.
+                  </p>
+                  <div className="text-carbon-500 mt-3 flex gap-5 text-xs">
+                    <span>Requested: 14 August 2026</span>
+                    <span>Due: 17 August 2026</span>
                   </div>
-                ) : null}
-                <div className="mt-5 flex flex-wrap gap-3">
-                  <label
-                    className={`${selectedDocument ? "border border-black/15 text-black" : "bg-black text-white"} flex h-10 cursor-pointer items-center rounded-full px-5 text-sm`}
-                  >
-                    <input
-                      type="file"
-                      accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
-                      className="sr-only"
-                      onChange={(event) => {
-                        const file = event.target.files?.[0];
-                        if (file) {
-                          setSelectedDocumentType("Reference document");
-                          setSelectedDocument(file);
-                          showToast(`${file.name} is ready to submit.`);
-                        }
-                      }}
-                    />
-                    {selectedDocument ? "Replace Document" : "Upload Document"}
-                  </label>
                   {selectedDocument ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setRequestComplete(true);
-                        showToast("Document uploaded successfully.");
-                      }}
-                      className="h-10 rounded-full bg-black px-5 text-sm text-white"
-                    >
-                      Submit Document
-                    </button>
-                  ) : null}
-                </div>
-              </section>
-            ) : null}
-            <Section title="Application progress">
-              <div className="space-y-0">
-                {steps.map((step, index) => (
-                  <div key={step} className="flex gap-3">
-                    <div className="flex flex-col items-center">
-                      <span
-                        className={`flex size-7 items-center justify-center rounded-full ${index < completedSteps ? "bg-black text-white" : "border border-black/20"}`}
-                      >
-                        {index < completedSteps ? (
-                          <Check className="size-3.5" />
-                        ) : (
-                          <Circle className="size-2.5" />
-                        )}
-                      </span>
-                      {index < steps.length - 1 ? (
-                        <span className="h-9 w-px bg-black/15" />
-                      ) : null}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">{step}</p>
-                      <p className="text-carbon-500 mt-0.5 text-xs">
-                        {index < completedSteps
-                          ? "10 Aug · Complete"
-                          : index === Math.min(completedSteps, steps.length - 1)
-                            ? "Current"
-                            : "Pending"}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Section>
-            <Section title="Application summary">
-              <div className="grid gap-5 sm:grid-cols-2">
-                <Summary
-                  title="Applicant"
-                  rows={[
-                    submittedValues.fullName || "Julien Mugisha",
-                    submittedValues.email || "renter@gmail.com",
-                    submittedValues.phone || "+250 788 000 000",
-                    "Primary applicant",
-                  ]}
-                />
-                <Summary
-                  title="Rental preferences"
-                  rows={[
-                    `Move-in: ${submittedValues.moveIn || "1 September 2026"}`,
-                    `Lease: ${submittedValues.lease || "12 months"}`,
-                    `${submittedValues.occupants || "2"} occupants`,
-                    submittedValues.pets || "No pets",
-                  ]}
-                />
-                <Summary
-                  title="Income & Rent Payment"
-                  rows={[
-                    submittedValues.employment || "Employed",
-                    submittedValues.income || "Income range provided",
-                    submittedValues.incomeSource || "Income source provided",
-                    submittedValues.rentPayment || "Payment method provided",
-                  ]}
-                />
-                <Summary
-                  title="Co-applicant"
-                  rows={[submittedValues.coApplicant || "No co-applicant"]}
-                />
-              </div>
-            </Section>
-            <Section title="Documents">
-              {documentRows.length ? (
-                <div className="divide-y divide-black/10">
-                  {documentRows.map(([name, status]) => (
-                    <div
-                      key={name}
-                      className="flex items-center justify-between gap-3 py-3"
-                    >
-                      <span className="flex items-center gap-2 text-sm">
-                        <FileText className="size-4" />
-                        {name}
-                      </span>
-                      <div className="flex items-center gap-3">
-                        <span className="text-carbon-500 text-xs">
-                          {status}
+                    <div className="mt-5 flex items-center justify-between gap-4 border-y border-black/10 py-3">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-black/[0.05]">
+                          <FileText className="size-4" />
                         </span>
-                        {status === "Pending" || status === "Requested" ? (
-                          <label className="cursor-pointer text-xs underline underline-offset-4">
-                            <input
-                              type="file"
-                              accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
-                              className="sr-only"
-                              onChange={(event) => {
-                                const file = event.target.files?.[0];
-                                if (file) {
-                                  setSelectedDocumentType(name);
-                                  setSelectedDocument(file);
-                                  showToast(`${file.name} is ready to submit.`);
-                                  window.scrollTo({
-                                    top: 0,
-                                    behavior: "smooth",
-                                  });
-                                }
-                              }}
-                            />
-                            Upload
-                          </label>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => openDocument(name)}
-                            className="text-xs underline underline-offset-4"
-                          >
-                            View
-                          </button>
-                        )}
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium">
+                            {selectedDocument.name}
+                          </p>
+                          <p className="text-carbon-500 mt-0.5 text-xs">
+                            {(selectedDocument.size / 1024 / 1024).toFixed(2)}{" "}
+                            MB
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedDocument(null)}
+                        aria-label="Remove selected document"
+                        className="flex size-8 shrink-0 items-center justify-center rounded-full hover:bg-black/[0.05]"
+                      >
+                        <X className="size-4" />
+                      </button>
+                    </div>
+                  ) : null}
+                  <div className="mt-5 flex flex-wrap gap-3">
+                    <label
+                      className={`${selectedDocument ? "border border-black/15 text-black" : "bg-black text-white"} flex h-10 cursor-pointer items-center rounded-full px-5 text-sm`}
+                    >
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+                        className="sr-only"
+                        onChange={(event) => {
+                          const file = event.target.files?.[0];
+                          if (file) {
+                            setSelectedDocumentType("Reference document");
+                            setSelectedDocument(file);
+                            showToast(`${file.name} is ready to submit.`);
+                          }
+                        }}
+                      />
+                      {selectedDocument
+                        ? "Replace Document"
+                        : "Upload Document"}
+                    </label>
+                    {selectedDocument ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setRequestComplete(true);
+                          showToast("Document uploaded successfully.");
+                        }}
+                        className="h-10 rounded-full bg-black px-5 text-sm text-white"
+                      >
+                        Submit Document
+                      </button>
+                    ) : null}
+                  </div>
+                </section>
+              ) : null}
+              <Section title="Application progress">
+                <div className="space-y-0">
+                  {steps.map((step, index) => (
+                    <div key={step} className="flex gap-3">
+                      <div className="flex flex-col items-center">
+                        <span
+                          className={`flex size-7 items-center justify-center rounded-full ${index < completedSteps ? "bg-black text-white" : "border border-black/20"}`}
+                        >
+                          {index < completedSteps ? (
+                            <Check className="size-3.5" />
+                          ) : (
+                            <Circle className="size-2.5" />
+                          )}
+                        </span>
+                        {index < steps.length - 1 ? (
+                          <span className="h-9 w-px bg-black/15" />
+                        ) : null}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">{step}</p>
+                        <p className="text-carbon-500 mt-0.5 text-xs">
+                          {index < completedSteps
+                            ? "10 Aug · Complete"
+                            : index ===
+                                Math.min(completedSteps, steps.length - 1)
+                              ? "Current"
+                              : "Pending"}
+                        </p>
                       </div>
                     </div>
                   ))}
                 </div>
-              ) : (
-                <div className="border-y border-black/10 py-6 text-sm">
-                  <p className="font-medium">No documents available</p>
-                  <p className="text-carbon-500 mt-1">
-                    No uploaded files are attached to this application.
-                  </p>
+              </Section>
+              <Section title="Application summary">
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <Summary
+                    title="Applicant"
+                    rows={[
+                      submittedValues.fullName || "Julien Mugisha",
+                      submittedValues.email || "renter@gmail.com",
+                      submittedValues.phone || "+250 788 000 000",
+                      "Primary applicant",
+                    ]}
+                  />
+                  <Summary
+                    title="Rental preferences"
+                    rows={[
+                      `Move-in: ${submittedValues.moveIn || "1 September 2026"}`,
+                      `Lease: ${submittedValues.lease || "12 months"}`,
+                      `${submittedValues.occupants || "2"} occupants`,
+                      submittedValues.pets || "No pets",
+                    ]}
+                  />
+                  <Summary
+                    title="Income & Rent Payment"
+                    rows={[
+                      submittedValues.employment || "Employed",
+                      submittedValues.income || "Income range provided",
+                      submittedValues.incomeSource || "Income source provided",
+                      submittedValues.rentPayment || "Payment method provided",
+                    ]}
+                  />
+                  <Summary
+                    title="Co-applicant"
+                    rows={[submittedValues.coApplicant || "No co-applicant"]}
+                  />
                 </div>
-              )}
-            </Section>
-            <Section title="Activity">
-              <div className="space-y-4 text-sm">
-                {[
-                  ...(requestComplete
-                    ? [
-                        [
-                          "Today",
-                          `${selectedDocument?.name ?? "Reference document"} uploaded and submitted`,
-                        ],
-                      ]
-                    : []),
-                  ["14 Aug", "Additional document requested"],
-                  ["12 Aug", "Application moved to Under Review"],
-                  ["10 Aug", "Application submitted"],
-                  ["10 Aug", "Documents uploaded"],
-                ].map(([date, text]) => (
-                  <div
-                    key={`${date}-${text}`}
-                    className="grid grid-cols-[60px_1fr] gap-4"
-                  >
-                    <strong>{date}</strong>
-                    <span className="text-carbon-500">{text}</span>
+              </Section>
+              <Section title="Documents">
+                {documentRows.length ? (
+                  <div className="divide-y divide-black/10">
+                    {documentRows.map(([name, status]) => (
+                      <div
+                        key={name}
+                        className="flex items-center justify-between gap-3 py-3"
+                      >
+                        <span className="flex items-center gap-2 text-sm">
+                          <FileText className="size-4" />
+                          {name}
+                        </span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-carbon-500 text-xs">
+                            {status}
+                          </span>
+                          {status === "Pending" || status === "Requested" ? (
+                            <label className="cursor-pointer text-xs underline underline-offset-4">
+                              <input
+                                type="file"
+                                accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+                                className="sr-only"
+                                onChange={(event) => {
+                                  const file = event.target.files?.[0];
+                                  if (file) {
+                                    setSelectedDocumentType(name);
+                                    setSelectedDocument(file);
+                                    showToast(
+                                      `${file.name} is ready to submit.`,
+                                    );
+                                    window.scrollTo({
+                                      top: 0,
+                                      behavior: "smooth",
+                                    });
+                                  }
+                                }}
+                              />
+                              Upload
+                            </label>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => openDocument(name)}
+                              className="text-xs underline underline-offset-4"
+                            >
+                              View
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </Section>
+                ) : (
+                  <div className="border-y border-black/10 py-6 text-sm">
+                    <p className="font-medium">No documents available</p>
+                    <p className="text-carbon-500 mt-1">
+                      No uploaded files are attached to this application.
+                    </p>
+                  </div>
+                )}
+              </Section>
+              <Section title="Activity">
+                <div className="space-y-4 text-sm">
+                  {[
+                    ...(requestComplete
+                      ? [
+                          [
+                            "Today",
+                            `${selectedDocument?.name ?? "Reference document"} uploaded and submitted`,
+                          ],
+                        ]
+                      : []),
+                    ["14 Aug", "Additional document requested"],
+                    ["12 Aug", "Application moved to Under Review"],
+                    ["10 Aug", "Application submitted"],
+                    ["10 Aug", "Documents uploaded"],
+                  ].map(([date, text]) => (
+                    <div
+                      key={`${date}-${text}`}
+                      className="grid grid-cols-[60px_1fr] gap-4"
+                    >
+                      <strong>{date}</strong>
+                      <span className="text-carbon-500">{text}</span>
+                    </div>
+                  ))}
+                </div>
+              </Section>
+            </div>
+            <aside className="h-fit bg-white p-6 shadow-[0_3px_12px_rgba(0,0,0,0.03)] lg:sticky lg:top-20">
+              <h2 className="font-bricolage text-xl font-medium">
+                Reviewed by
+              </h2>
+              <p className="mt-5 font-medium">{application.representative}</p>
+              <p className="text-carbon-500 mt-1 flex items-center gap-1 text-sm">
+                <BadgeCheck className="size-4" />
+                {application.role}
+              </p>
+              <p className="text-carbon-500 mt-1 text-xs">Member since 2026</p>
+              <Link
+                href={`/renter-dashboard/messages?host=${encodeURIComponent(application.representative)}`}
+                className="mt-5 inline-flex h-10 items-center rounded-full bg-black px-5 text-sm text-white"
+              >
+                Message
+              </Link>
+            </aside>
           </div>
-          <aside className="h-fit bg-white p-6 shadow-[0_3px_12px_rgba(0,0,0,0.03)] lg:sticky lg:top-20">
-            <h2 className="font-bricolage text-xl font-medium">Reviewed by</h2>
-            <p className="mt-5 font-medium">{application.representative}</p>
-            <p className="text-carbon-500 mt-1 flex items-center gap-1 text-sm">
-              <BadgeCheck className="size-4" />
-              {application.role}
-            </p>
-            <p className="text-carbon-500 mt-1 text-xs">Member since 2026</p>
-            <Link
-              href={`/renter-dashboard/messages?host=${encodeURIComponent(application.representative)}`}
-              className="mt-5 inline-flex h-10 items-center rounded-full bg-black px-5 text-sm text-white"
-            >
-              Message
-            </Link>
-          </aside>
         </div>
       </main>
       {preview ? (
@@ -496,10 +504,7 @@ export default function ApplicationDetailPage() {
         </div>
       ) : null}
       {toast ? (
-        <div
-          role="status"
-          className="fixed bottom-6 left-1/2 z-[120] -translate-x-1/2 rounded-full bg-black px-5 py-3 text-sm text-white shadow-xl"
-        >
+        <div role="status" className="feedback-toast">
           {toast}
         </div>
       ) : null}

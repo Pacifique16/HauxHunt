@@ -792,6 +792,45 @@ select.catalogue-filter-control {
     inset 0 -1px 0 rgb(255 255 255 / 0.06);
 }
 
+.feedback-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  z-index: 180;
+  min-width: 18rem;
+  max-width: calc(100% - 2rem);
+  transform: translateX(-50%);
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 1rem;
+  background: #000;
+  padding: 1rem 1.25rem;
+  color: #fff;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: 0 18px 50px rgb(0 0 0 / 0.24);
+}
+
+.feedback-toast::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: #fff;
+  content: "";
+  transform-origin: left;
+  animation: feedback-toast-progress 3s linear forwards;
+}
+
+@keyframes feedback-toast-progress {
+  to {
+    transform: scaleX(0);
+  }
+}
+
 .category-atmosphere {
   background-color: var(--carbon-100);
   background-image:

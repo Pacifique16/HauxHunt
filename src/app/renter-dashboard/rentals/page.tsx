@@ -1,7 +1,7 @@
 "use client";
 import Image, { type StaticImageData } from "next/image";
 import Link from "next/link";
-import { BadgeCheck, ChevronRight } from "lucide-react";
+import { BadgeCheck, ChevronDown, ChevronRight, Search } from "lucide-react";
 import { useState } from "react";
 import house1 from "@/assets/images/house1.jpg";
 import house2 from "@/assets/images/house2.jpg";
@@ -9,45 +9,109 @@ import house3 from "@/assets/images/house3.jpg";
 import house4 from "@/assets/images/house4.jpg";
 import emptyIllustration from "@/assets/images/empty.png";
 import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
-import { RENTER_RENTALS } from "@/data/renter-rentals";
+import { RENTER_RENTALS, type RentalStatus } from "@/data/renter-rentals";
 const images: StaticImageData[] = [house1, house2, house3, house4];
+type RentalTab = "current" | "past";
+type StatusFilter = "all" | RentalStatus;
+const STATUS_OPTIONS: StatusFilter[] = [
+  "all",
+  "Upcoming",
+  "Active",
+  "Ending Soon",
+  "Ended",
+];
+const tabFor = (status: RentalStatus): RentalTab =>
+  status === "Ended" ? "past" : "current";
+
 export default function RentalsPage() {
-  const [tab, setTab] = useState<"current" | "past">("current");
-  const rentals = RENTER_RENTALS.filter((r) =>
-    tab === "past" ? r.status === "Ended" : r.status !== "Ended",
+  const [tab, setTab] = useState<RentalTab>("current");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [propertySearch, setPropertySearch] = useState("");
+  const normalizedSearch = propertySearch.trim().toLocaleLowerCase();
+  const filtersActive = statusFilter !== "all" || normalizedSearch.length > 0;
+  const rentals = RENTER_RENTALS.filter(
+    (rental) =>
+      (filtersActive || tabFor(rental.status) === tab) &&
+      (statusFilter === "all" || rental.status === statusFilter) &&
+      (!normalizedSearch ||
+        rental.title.toLocaleLowerCase().includes(normalizedSearch)),
   );
   return (
     <>
       <RenterCatalogueTopBar />
       <main className="bg-carbon-50 min-h-svh pt-16 text-black">
-        <header className="border-b border-black/10 bg-white px-5 pt-9 sm:px-6 lg:px-11 xl:px-[52px]">
+        <header className="bg-carbon-50 px-5 pt-9 sm:px-6 lg:px-11 xl:px-[52px]">
           <div className="mx-auto max-w-[1562px]">
             <h1 className="dashboard-page-title">My Rentals</h1>
             <p className="text-carbon-500 mt-2 text-sm">
               Manage the homes you&apos;re currently renting and review your
               rental history.
             </p>
-            <div className="mt-7 flex gap-7">
-              {(["current", "past"] as const).map((item) => (
-                <button
-                  key={item}
-                  onClick={() => setTab(item)}
-                  className={`relative h-12 text-sm font-medium capitalize ${tab === item ? "text-black" : "text-black/45"}`}
-                >
-                  {item}
-                  {tab === item ? (
-                    <span className="absolute inset-x-0 bottom-0 h-0.5 bg-black" />
-                  ) : null}
-                </button>
-              ))}
+            <div className="mt-7 flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
+              <div className="flex gap-7">
+                {(["current", "past"] as const).map((item) => (
+                  <button
+                    key={item}
+                    onClick={() => {
+                      setTab(item);
+                      setStatusFilter("all");
+                      setPropertySearch("");
+                    }}
+                    className={`relative h-12 text-sm font-medium capitalize ${tab === item ? "text-black" : "text-black/45"}`}
+                  >
+                    {item}
+                    {tab === item ? (
+                      <span className="absolute inset-x-0 bottom-0 h-0.5 bg-black" />
+                    ) : null}
+                  </button>
+                ))}
+              </div>
+              <div className="flex w-full gap-3 pb-2 md:w-auto">
+                <label className="relative block min-w-0 flex-1 md:w-72 md:flex-none">
+                  <span className="sr-only">Search by property name</span>
+                  <Search
+                    aria-hidden="true"
+                    className="text-carbon-500 pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2"
+                  />
+                  <input
+                    type="search"
+                    value={propertySearch}
+                    onChange={(event) => setPropertySearch(event.target.value)}
+                    placeholder="Search by property name"
+                    className="h-10 w-full rounded-full bg-white pr-4 pl-11 text-sm outline-none"
+                  />
+                </label>
+                <label className="relative block w-44 sm:w-52">
+                  <span className="sr-only">Filter by rental status</span>
+                  <select
+                    value={statusFilter}
+                    onChange={(event) => {
+                      const status = event.target.value as StatusFilter;
+                      setStatusFilter(status);
+                      if (status !== "all") setTab(tabFor(status));
+                    }}
+                    className="h-10 w-full appearance-none rounded-full bg-white pr-10 pl-4 text-sm outline-none"
+                  >
+                    {STATUS_OPTIONS.map((status) => (
+                      <option key={status} value={status}>
+                        {status === "all" ? "All statuses" : status}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    aria-hidden="true"
+                    className="text-carbon-500 pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2"
+                  />
+                </label>
+              </div>
             </div>
           </div>
         </header>
-        <section className="px-5 pb-9 sm:px-6 lg:px-11 xl:px-[52px]">
+        <section className="px-5 pt-5 pb-9 sm:px-6 lg:px-11 xl:px-[52px]">
           {rentals.length ? (
-            <div className="mx-auto max-w-[1562px] overflow-x-auto border border-black/10 bg-white shadow-[0_3px_12px_rgba(0,0,0,.025)]">
+            <section className="mx-auto max-w-[1562px] overflow-x-auto bg-white shadow-[0_18px_55px_rgba(0,0,0,0.055)]">
               <table className="w-full min-w-[980px] text-left">
-                <thead className="border-b border-black/10 bg-white text-xs text-black/55">
+                <thead className="border-b border-black/8 text-xs text-black">
                   <tr>
                     {[
                       "Property",
@@ -57,16 +121,19 @@ export default function RentalsPage() {
                       "Rental period",
                       "Managed by",
                       "",
-                    ].map((x) => (
-                      <th key={x} className="px-5 py-4 font-bold">
-                        {x}
+                    ].map((heading) => (
+                      <th key={heading} className="px-5 py-4 font-bold">
+                        {heading}
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-black/10">
+                <tbody className="divide-y divide-black/8">
                   {rentals.map((r) => (
-                    <tr key={r.id} className="hover:bg-black/[.018]">
+                    <tr
+                      key={r.id}
+                      className="transition-colors hover:bg-black/[0.025]"
+                    >
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
                           <Image
@@ -117,7 +184,7 @@ export default function RentalsPage() {
                           href={`/renter-dashboard/rentals/${r.id}`}
                           className="inline-flex h-10 items-center gap-1 rounded-full bg-black px-4 text-sm whitespace-nowrap text-white"
                         >
-                          View Rental
+                          View More Info
                           <ChevronRight className="size-4" />
                         </Link>
                       </td>
@@ -125,6 +192,30 @@ export default function RentalsPage() {
                   ))}
                 </tbody>
               </table>
+            </section>
+          ) : filtersActive ? (
+            <div className="mx-auto flex min-h-[430px] max-w-[1562px] flex-col items-center justify-center bg-white px-6 text-center">
+              <Image
+                src={emptyIllustration}
+                alt=""
+                className="h-40 w-auto object-contain"
+              />
+              <h2 className="font-bricolage mt-5 text-2xl font-medium">
+                No matching rentals
+              </h2>
+              <p className="text-carbon-500 mt-2 text-sm">
+                Try another property name or rental status.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setPropertySearch("");
+                  setStatusFilter("all");
+                }}
+                className="mt-6 rounded-full border border-black/15 px-5 py-3 text-sm font-medium"
+              >
+                Clear filters
+              </button>
             </div>
           ) : (
             <RentalEmptyState past={tab === "past"} />

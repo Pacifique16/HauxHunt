@@ -537,12 +537,23 @@ export default function RenterDashboardPage() {
                   3
                 </span>
               </button>
-              <div ref={profileMenuRef} className="relative">
+              <div
+                ref={profileMenuRef}
+                className="relative"
+                onMouseEnter={() => setProfileOpen(true)}
+                onMouseLeave={() => setProfileOpen(false)}
+                onFocus={() => setProfileOpen(true)}
+                onBlur={(event) => {
+                  if (!event.currentTarget.contains(event.relatedTarget))
+                    setProfileOpen(false);
+                }}
+              >
                 <button
                   type="button"
                   onClick={() => setProfileOpen((open) => !open)}
                   className="flex h-12 items-center gap-2 rounded-full pl-1 sm:pr-2"
                   aria-expanded={profileOpen}
+                  aria-haspopup="menu"
                 >
                   <Image
                     src={julienProfile}
@@ -552,7 +563,9 @@ export default function RenterDashboardPage() {
                   <span className="hidden text-sm font-medium sm:block">
                     Julien
                   </span>
-                  <ChevronDown className="hidden size-4 sm:block" />
+                  <ChevronDown
+                    className={`hidden size-4 transition-transform sm:block ${profileOpen ? "rotate-180" : ""}`}
+                  />
                 </button>
                 {profileOpen ? <ProfileMenu /> : null}
               </div>
@@ -945,32 +958,39 @@ function RenterNavDropdown({
 
 function ProfileMenu() {
   return (
-    <div className="absolute top-[calc(100%+0.75rem)] right-0 z-50 w-[290px] overflow-hidden rounded-2xl bg-white text-black shadow-[0_24px_70px_rgba(0,0,0,0.24)]">
-      <div className="border-b border-black/10 px-5 py-5">
-        <p className="font-bricolage text-lg font-medium">Julien Mugisha</p>
-        <p className="text-carbon-500 mt-0.5 text-sm">renter@gmail.com</p>
-      </div>
-      <div className="p-2">
-        {PROFILE_LINKS.map(([label, href]) => (
+    <div className="absolute top-full right-0 z-50 w-[290px] pt-3">
+      <div
+        role="menu"
+        className="overflow-hidden rounded-2xl bg-white text-black shadow-[0_24px_70px_rgba(0,0,0,0.24)]"
+      >
+        <div className="border-b border-black/10 px-5 py-5">
+          <p className="font-bricolage text-lg font-medium">Julien Mugisha</p>
+          <p className="text-carbon-500 mt-0.5 text-sm">renter@gmail.com</p>
+        </div>
+        <div className="p-2">
+          {PROFILE_LINKS.map(([label, href]) => (
+            <Link
+              key={label}
+              href={href}
+              role="menuitem"
+              className="flex h-11 w-full items-center rounded-xl px-3 text-left text-sm transition-colors hover:bg-black/[0.055]"
+            >
+              {label}
+            </Link>
+          ))}
+        </div>
+        <div className="border-t border-black/10 p-2">
           <Link
-            key={label}
-            href={href}
-            className="flex h-11 w-full items-center rounded-xl px-3 text-left text-sm transition-colors hover:bg-black/[0.055]"
+            href="/login"
+            role="menuitem"
+            onClick={() => {
+              window.sessionStorage.removeItem("hauxhunt-authenticated-role");
+            }}
+            className="flex h-11 items-center rounded-xl px-3 text-sm hover:bg-black/[0.055]"
           >
-            {label}
+            Log Out
           </Link>
-        ))}
-      </div>
-      <div className="border-t border-black/10 p-2">
-        <Link
-          href="/login"
-          onClick={() => {
-            window.sessionStorage.removeItem("hauxhunt-authenticated-role");
-          }}
-          className="flex h-11 items-center rounded-xl px-3 text-sm hover:bg-black/[0.055]"
-        >
-          Log Out
-        </Link>
+        </div>
       </div>
     </div>
   );

@@ -510,10 +510,7 @@ function Field({
 }
 function Toast({ children }: { children: React.ReactNode }) {
   return (
-    <div
-      role="status"
-      className="fixed bottom-6 left-1/2 z-[170] min-w-72 -translate-x-1/2 rounded-2xl bg-black px-5 py-4 text-center text-sm font-medium text-white shadow-2xl"
-    >
+    <div role="status" className="feedback-toast">
       {children}
     </div>
   );

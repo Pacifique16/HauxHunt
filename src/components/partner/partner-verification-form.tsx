@@ -1578,16 +1578,9 @@ function VerificationToast() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 14, scale: 0.98 }}
           transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          className="fixed bottom-6 left-1/2 z-[120] min-w-72 -translate-x-1/2 overflow-hidden rounded-2xl border border-white/10 bg-black px-5 py-4 text-center text-sm font-medium whitespace-nowrap text-white shadow-[0_18px_50px_rgba(0,0,0,0.24)]"
+          className="feedback-toast"
         >
           {message}
-          <motion.span
-            aria-hidden="true"
-            initial={{ scaleX: 1 }}
-            animate={{ scaleX: 0 }}
-            transition={{ duration: 3, ease: "linear" }}
-            className="absolute inset-x-0 bottom-0 h-0.5 origin-left bg-white"
-          />
         </motion.div>
       ) : null}
     </AnimatePresence>,

@@ -5,8 +5,10 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
   BadgeCheck,
+  ChevronDown,
   MessageCircle,
   MoreHorizontal,
+  Search,
   Trash2,
   X,
 } from "lucide-react";
@@ -24,10 +26,23 @@ import emptyIllustration from "@/assets/images/empty.png";
 import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
 import {
   RENTER_APPLICATIONS,
+  type ApplicationStatus,
   type RenterApplication,
 } from "@/data/renter-applications";
 
 type Tab = "active" | "drafts" | "past";
+type StatusFilter = "all" | ApplicationStatus;
+const STATUS_OPTIONS: StatusFilter[] = [
+  "all",
+  "Draft",
+  "Submitted",
+  "Under Review",
+  "Action Required",
+  "Decision Pending",
+  "Approved",
+  "Not Selected",
+  "Withdrawn",
+];
 const IMAGES: Record<string, StaticImageData> = {
   "kacyiru-2br": house1,
   "nyarutarama-2br": house2,
@@ -49,6 +64,8 @@ export default function ApplicationsPage() {
     params.get("tab") === "drafts" ? "drafts" : "active",
   );
   const [applications, setApplications] = useState(RENTER_APPLICATIONS);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [propertySearch, setPropertySearch] = useState("");
   const [confirm, setConfirm] = useState<{
     type: "withdraw" | "delete";
     application: RenterApplication;
@@ -96,7 +113,15 @@ export default function ApplicationsPage() {
     }, 0);
     return () => window.clearTimeout(loadDrafts);
   }, []);
-  const shown = applications.filter((item) => tabFor(item.status) === tab);
+  const normalizedSearch = propertySearch.trim().toLocaleLowerCase();
+  const filtersActive = statusFilter !== "all" || normalizedSearch.length > 0;
+  const shown = applications.filter(
+    (item) =>
+      (filtersActive || tabFor(item.status) === tab) &&
+      (statusFilter === "all" || item.status === statusFilter) &&
+      (!normalizedSearch ||
+        item.title.toLocaleLowerCase().includes(normalizedSearch)),
+  );
   const counts = {
     active: applications.filter((item) => tabFor(item.status) === "active")
       .length,
@@ -109,28 +134,72 @@ export default function ApplicationsPage() {
     <>
       <RenterCatalogueTopBar />
       <main className="bg-carbon-50 min-h-svh pt-16 text-black">
-        <section className="border-b border-black/10 bg-white px-5 pt-9 sm:px-6 lg:px-11 xl:px-[52px]">
+        <section className="bg-carbon-50 px-5 pt-9 sm:px-6 lg:px-11 xl:px-[52px]">
           <div className="mx-auto max-w-[1562px]">
             <h1 className="dashboard-page-title">Applications</h1>
             <p className="text-carbon-500 mt-3 text-sm">
               Track your rental applications and see what needs your attention.
             </p>
-            <div className="mt-7 flex gap-7">
-              {(["active", "drafts", "past"] as const).map((item) => (
-                <button
-                  key={item}
-                  onClick={() => setTab(item)}
-                  className={`relative flex h-12 items-center gap-2 text-sm font-medium capitalize ${tab === item ? "text-black" : "text-black/45"}`}
-                >
-                  {item}
-                  <span className="rounded-full bg-black/[0.06] px-2 py-0.5 text-xs">
-                    {counts[item]}
-                  </span>
-                  {tab === item ? (
-                    <span className="absolute inset-x-0 bottom-0 h-0.5 bg-black" />
-                  ) : null}
-                </button>
-              ))}
+            <div className="mt-7 flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
+              <div className="flex gap-7">
+                {(["active", "drafts", "past"] as const).map((item) => (
+                  <button
+                    key={item}
+                    onClick={() => {
+                      setTab(item);
+                      setStatusFilter("all");
+                      setPropertySearch("");
+                    }}
+                    className={`relative flex h-12 items-center gap-2 text-sm font-medium capitalize ${tab === item ? "text-black" : "text-black/45"}`}
+                  >
+                    {item}
+                    <span className="rounded-full bg-black/[0.06] px-2 py-0.5 text-xs">
+                      {counts[item]}
+                    </span>
+                    {tab === item ? (
+                      <span className="absolute inset-x-0 bottom-0 h-0.5 bg-black" />
+                    ) : null}
+                  </button>
+                ))}
+              </div>
+              <div className="flex w-full gap-3 pb-2 md:w-auto">
+                <label className="relative block min-w-0 flex-1 md:w-72 md:flex-none">
+                  <span className="sr-only">Search by property name</span>
+                  <Search
+                    aria-hidden="true"
+                    className="text-carbon-500 pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2"
+                  />
+                  <input
+                    type="search"
+                    value={propertySearch}
+                    onChange={(event) => setPropertySearch(event.target.value)}
+                    placeholder="Search by property name"
+                    className="h-10 w-full rounded-full bg-white pr-4 pl-11 text-sm outline-none"
+                  />
+                </label>
+                <label className="relative block w-44 sm:w-52">
+                  <span className="sr-only">Filter by application status</span>
+                  <select
+                    value={statusFilter}
+                    onChange={(event) => {
+                      const status = event.target.value as StatusFilter;
+                      setStatusFilter(status);
+                      if (status !== "all") setTab(tabFor(status));
+                    }}
+                    className="h-10 w-full appearance-none rounded-full bg-white pr-10 pl-4 text-sm outline-none"
+                  >
+                    {STATUS_OPTIONS.map((status) => (
+                      <option key={status} value={status}>
+                        {status === "all" ? "All statuses" : status}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    aria-hidden="true"
+                    className="text-carbon-500 pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2"
+                  />
+                </label>
+              </div>
             </div>
           </div>
         </section>
@@ -148,6 +217,26 @@ export default function ApplicationsPage() {
                     }
                   />
                 ))}
+              </div>
+            ) : filtersActive ? (
+              <div className="flex min-h-[360px] flex-col items-center justify-center text-center">
+                <Image src={emptyIllustration} alt="" className="h-40 w-auto" />
+                <h2 className="font-bricolage mt-5 text-2xl font-medium">
+                  No matching applications
+                </h2>
+                <p className="text-carbon-500 mt-2 text-sm">
+                  Try another property name or application status.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPropertySearch("");
+                    setStatusFilter("all");
+                  }}
+                  className="mt-6 rounded-full border border-black/15 px-5 py-3 text-sm font-medium"
+                >
+                  Clear filters
+                </button>
               </div>
             ) : (
               <Empty tab={tab} />
@@ -217,7 +306,7 @@ function ApplicationCard({
           : `/renter-dashboard/applications/${application.id}`;
   return (
     <article
-      className={`relative overflow-hidden border bg-white shadow-[0_3px_12px_rgba(0,0,0,0.025)] sm:grid sm:grid-cols-[190px_1fr] ${application.status === "Action Required" ? "border-black" : "border-black/10"}`}
+      className={`relative overflow-hidden rounded-2xl border bg-white/70 shadow-[0_10px_30px_rgba(0,0,0,0.08)] ring-1 ring-white/70 backdrop-blur-xl sm:grid sm:grid-cols-[190px_1fr] ${application.status === "Action Required" ? "border-black/30" : "border-white/80"}`}
     >
       <Image
         src={IMAGES[application.propertyId] ?? house1}

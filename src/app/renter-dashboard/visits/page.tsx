@@ -9,6 +9,7 @@ import {
   Clock3,
   MapPinned,
   MessageCircle,
+  Search,
   X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -52,6 +53,28 @@ type Viewing = {
   cancelledBy?: string;
   note?: string;
 };
+type StatusFilter = "all" | ViewingStatus;
+const STATUS_OPTIONS: StatusFilter[] = [
+  "all",
+  "Confirmed",
+  "Awaiting Confirmation",
+  "New Time Suggested",
+  "Reschedule Requested",
+  "Completed",
+  "Cancelled",
+  "Viewing unavailable",
+  "Not interested",
+];
+const tabForStatus = (status: ViewingStatus): Tab =>
+  status === "Confirmed"
+    ? "upcoming"
+    : [
+          "Awaiting Confirmation",
+          "New Time Suggested",
+          "Reschedule Requested",
+        ].includes(status)
+      ? "pending"
+      : "past";
 
 const INITIAL_VIEWINGS: Viewing[] = [
   {
@@ -171,9 +194,19 @@ export default function MyViewingsPage() {
   );
   const [viewings, setViewings] = useState(INITIAL_VIEWINGS);
   const [tab, setTab] = useState<Tab>("upcoming");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [propertySearch, setPropertySearch] = useState("");
   const [dialog, setDialog] = useState<Dialog>(null);
   const allViewings = [...requestedViewings, ...viewings];
-  const shown = allViewings.filter((viewing) => viewing.tab === tab);
+  const normalizedSearch = propertySearch.trim().toLocaleLowerCase();
+  const filtersActive = statusFilter !== "all" || normalizedSearch.length > 0;
+  const shown = allViewings.filter(
+    (viewing) =>
+      (filtersActive || viewing.tab === tab) &&
+      (statusFilter === "all" || viewing.status === statusFilter) &&
+      (!normalizedSearch ||
+        viewing.title.toLocaleLowerCase().includes(normalizedSearch)),
+  );
   const counts = {
     upcoming: allViewings.filter((item) => item.tab === "upcoming").length,
     pending: allViewings.filter((item) => item.tab === "pending").length,
@@ -190,34 +223,78 @@ export default function MyViewingsPage() {
     <>
       <RenterCatalogueTopBar />
       <main className="bg-carbon-50 min-h-svh pt-16 text-black">
-        <section className="border-b border-black/10 bg-white px-5 pt-9 sm:px-6 lg:px-11 xl:px-[52px]">
+        <section className="bg-carbon-50 px-5 pt-9 sm:px-6 lg:px-11 xl:px-[52px]">
           <div className="mx-auto max-w-[1562px]">
             <h1 className="dashboard-page-title">My Viewings</h1>
             <p className="text-carbon-500 mt-3 max-w-2xl text-sm leading-6">
               Manage your upcoming property visits and keep track of homes
               you&apos;ve already viewed.
             </p>
-            <div className="mt-7 flex gap-7 overflow-x-auto">
-              {(["upcoming", "pending", "past"] as const).map((item) => (
-                <button
-                  key={item}
-                  type="button"
-                  onClick={() => setTab(item)}
-                  className={`relative flex h-12 items-center gap-2 text-sm font-medium capitalize ${tab === item ? "text-black" : "text-black/45"}`}
-                >
-                  {item}
-                  <span className="rounded-full bg-black/[0.06] px-2 py-0.5 text-xs">
-                    {counts[item]}
-                  </span>
-                  {tab === item ? (
-                    <span className="absolute inset-x-0 bottom-0 h-0.5 bg-black" />
-                  ) : null}
-                </button>
-              ))}
+            <div className="mt-7 flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
+              <div className="flex gap-7 overflow-x-auto">
+                {(["upcoming", "pending", "past"] as const).map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => {
+                      setTab(item);
+                      setStatusFilter("all");
+                      setPropertySearch("");
+                    }}
+                    className={`relative flex h-12 items-center gap-2 text-sm font-medium capitalize ${tab === item ? "text-black" : "text-black/45"}`}
+                  >
+                    {item}
+                    <span className="rounded-full bg-black/[0.06] px-2 py-0.5 text-xs">
+                      {counts[item]}
+                    </span>
+                    {tab === item ? (
+                      <span className="absolute inset-x-0 bottom-0 h-0.5 bg-black" />
+                    ) : null}
+                  </button>
+                ))}
+              </div>
+              <div className="flex w-full gap-3 pb-2 md:w-auto">
+                <label className="relative block min-w-0 flex-1 md:w-72 md:flex-none">
+                  <span className="sr-only">Search by property name</span>
+                  <Search
+                    aria-hidden="true"
+                    className="text-carbon-500 pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2"
+                  />
+                  <input
+                    type="search"
+                    value={propertySearch}
+                    onChange={(event) => setPropertySearch(event.target.value)}
+                    placeholder="Search by property name"
+                    className="h-10 w-full rounded-full bg-white pr-4 pl-11 text-sm outline-none"
+                  />
+                </label>
+                <label className="relative block w-44 sm:w-56">
+                  <span className="sr-only">Filter by viewing status</span>
+                  <select
+                    value={statusFilter}
+                    onChange={(event) => {
+                      const status = event.target.value as StatusFilter;
+                      setStatusFilter(status);
+                      if (status !== "all") setTab(tabForStatus(status));
+                    }}
+                    className="h-10 w-full appearance-none rounded-full bg-white pr-10 pl-4 text-sm outline-none"
+                  >
+                    {STATUS_OPTIONS.map((status) => (
+                      <option key={status} value={status}>
+                        {status === "all" ? "All statuses" : status}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    aria-hidden="true"
+                    className="text-carbon-500 pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2"
+                  />
+                </label>
+              </div>
             </div>
           </div>
         </section>
-        <section className="px-5 py-9 sm:px-6 lg:px-11 lg:py-12 xl:px-[52px]">
+        <section className="px-5 pt-5 pb-9 sm:px-6 lg:px-11 lg:pb-12 xl:px-[52px]">
           <div className="mx-auto max-w-[1562px]">
             {shown.length ? (
               <div className="grid gap-5 xl:grid-cols-2">
@@ -242,6 +319,30 @@ export default function MyViewingsPage() {
                     }
                   />
                 ))}
+              </div>
+            ) : filtersActive ? (
+              <div className="flex min-h-[430px] flex-col items-center justify-center text-center">
+                <Image
+                  src={emptyIllustration}
+                  alt=""
+                  className="h-40 w-auto object-contain"
+                />
+                <h2 className="font-bricolage mt-5 text-2xl font-medium">
+                  No matching viewings
+                </h2>
+                <p className="text-carbon-500 mt-2 text-sm">
+                  Try another property name or viewing status.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPropertySearch("");
+                    setStatusFilter("all");
+                  }}
+                  className="mt-6 rounded-full border border-black/15 px-5 py-3 text-sm font-medium"
+                >
+                  Clear filters
+                </button>
               </div>
             ) : (
               <EmptyState tab={tab} />
@@ -280,7 +381,7 @@ function ViewingCard({
 }) {
   const messageHref = `/renter-dashboard/messages?property=${encodeURIComponent(viewing.title)}&host=${encodeURIComponent(viewing.host)}&viewing=${encodeURIComponent(`${viewing.status} · ${viewing.date} · ${viewing.time}`)}`;
   return (
-    <article className="relative overflow-hidden border border-black/10 bg-white shadow-[0_3px_12px_rgba(0,0,0,0.025)] sm:grid sm:grid-cols-[210px_1fr]">
+    <article className="relative overflow-hidden rounded-2xl border border-white/80 bg-white/70 shadow-[0_10px_30px_rgba(0,0,0,0.08)] ring-1 ring-white/70 backdrop-blur-xl sm:grid sm:grid-cols-[210px_1fr]">
       <Image
         src={viewing.image}
         alt={viewing.title}

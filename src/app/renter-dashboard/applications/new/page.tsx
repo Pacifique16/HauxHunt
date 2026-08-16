@@ -299,265 +299,273 @@ export default function NewApplicationPage() {
     <>
       <RenterCatalogueTopBar />
       <main className="bg-carbon-50 min-h-svh pt-16 text-black">
-        <div className="mx-auto max-w-[1120px] px-5 py-8 sm:px-6 lg:py-10">
-          <Link
-            href="/renter-dashboard/applications"
-            className="inline-flex items-center gap-1 text-sm"
-          >
-            <ChevronLeft className="size-4" />
-            Applications
-          </Link>
-          <div className="mt-6 grid gap-6 lg:grid-cols-[250px_1fr]">
-            <aside className="h-fit bg-white p-5">
-              <p className="text-carbon-500 text-xs tracking-[0.12em] uppercase">
-                Applying for
-              </p>
-              <h1 className="font-bricolage mt-2 text-xl font-medium">
-                {property.title}
-              </h1>
-              <p className="text-carbon-500 mt-1 text-sm">
-                {property.location}
-              </p>
-              <div className="mt-6 space-y-1">
-                {steps.map((label, index) => (
-                  <button
-                    key={label}
-                    onClick={() => index <= step && setStep(index)}
-                    className={`flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm ${index === step ? "bg-black text-white" : "text-carbon-500"}`}
-                  >
-                    <span
-                      className={`flex size-5 items-center justify-center rounded-full text-[11px] ${index < step ? "bg-black text-white" : "border border-current"}`}
-                    >
-                      {index < step ? <Check className="size-3" /> : index + 1}
-                    </span>
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </aside>
-            <form
-              ref={formRef}
-              onSubmit={(event) => event.preventDefault()}
-              className="bg-white p-6 shadow-[0_3px_14px_rgba(0,0,0,0.03)] sm:p-8"
+        <div className="px-5 sm:px-6 lg:px-11 xl:px-[52px]">
+          <div className="mx-auto w-full max-w-[1120px] py-8 lg:py-10">
+            <Link
+              href="/renter-dashboard/applications"
+              className="inline-flex items-center gap-1 text-sm"
             >
-              <div className="flex items-start justify-between gap-5">
-                <div>
-                  <p className="text-carbon-500 text-sm">
-                    Step {step + 1} of {steps.length}
-                  </p>
-                  <h2 className="font-bricolage mt-1 text-3xl font-medium">
-                    {steps[step]}
-                  </h2>
-                </div>
-                <button
-                  type="button"
-                  onClick={saveDraft}
-                  className="h-10 shrink-0 rounded-full border border-black/15 px-4 text-sm"
-                >
-                  Save draft
-                </button>
-              </div>
-              <div className="mt-5 h-1 bg-black/10">
-                <div
-                  className="h-full bg-black transition-all"
-                  style={{ width: `${((step + 1) / steps.length) * 100}%` }}
-                />
-              </div>
-              <div className="mt-8 min-h-[310px]">
-                {step <= 4 ? (
-                  <div className="grid gap-5 sm:grid-cols-2">
-                    {fields[step].map(([label, name, placeholder]) => (
-                      <label key={name} className="block">
-                        <span className="mb-2 block text-sm font-medium">
-                          {label} <span className="text-red-600">*</span>
-                        </span>
-                        {name === "employment" ? (
-                          <select
-                            required
-                            value={values[name] ?? ""}
-                            onChange={(event) =>
-                              setValues((current) => ({
-                                ...current,
-                                [name]: event.target.value,
-                              }))
-                            }
-                            className="application-form-input h-11 w-full border-0 border-b border-black/20 bg-transparent px-1 text-sm outline-none focus:border-black focus:ring-0"
-                          >
-                            <option value="">Select employment status</option>
-                            <option>Employed</option>
-                            <option>Self-employed</option>
-                            <option>Student</option>
-                            <option>Retired</option>
-                            <option>Other</option>
-                          </select>
-                        ) : name === "income" ? (
-                          <select
-                            required
-                            value={values[name] ?? ""}
-                            onChange={(event) =>
-                              setValues((current) => ({
-                                ...current,
-                                [name]: event.target.value,
-                              }))
-                            }
-                            className="application-form-input h-11 w-full border-0 border-b border-black/20 bg-transparent px-1 text-sm outline-none focus:border-black focus:ring-0"
-                          >
-                            <option value="">Select monthly income</option>
-                            {incomeRanges.map((range) => (
-                              <option key={range} value={range}>
-                                {range}
-                              </option>
-                            ))}
-                          </select>
-                        ) : name === "incomeSource" ? (
-                          <select
-                            required
-                            value={values[name] ?? ""}
-                            onChange={(event) =>
-                              setValues((current) => ({
-                                ...current,
-                                [name]: event.target.value,
-                              }))
-                            }
-                            className="application-form-input h-11 w-full border-0 border-b border-black/20 bg-transparent px-1 text-sm outline-none focus:border-black focus:ring-0"
-                          >
-                            <option value="">Select source of income</option>
-                            {incomeSources.map((source) => (
-                              <option key={source} value={source}>
-                                {source}
-                              </option>
-                            ))}
-                          </select>
-                        ) : name === "rentPayment" ? (
-                          <select
-                            required
-                            value={values[name] ?? ""}
-                            onChange={(event) =>
-                              setValues((current) => ({
-                                ...current,
-                                [name]: event.target.value,
-                              }))
-                            }
-                            className="application-form-input h-11 w-full border-0 border-b border-black/20 bg-transparent px-1 text-sm outline-none focus:border-black focus:ring-0"
-                          >
-                            <option value="">Select payment method</option>
-                            {rentPaymentMethods.map((method) => (
-                              <option key={method} value={method}>
-                                {method}
-                              </option>
-                            ))}
-                          </select>
+              <ChevronLeft className="size-4" />
+              Applications
+            </Link>
+            <div className="mt-6 grid gap-6 lg:grid-cols-[250px_1fr]">
+              <aside className="h-fit bg-white p-5">
+                <p className="text-carbon-500 text-xs tracking-[0.12em] uppercase">
+                  Applying for
+                </p>
+                <h1 className="font-bricolage mt-2 text-xl font-medium">
+                  {property.title}
+                </h1>
+                <p className="text-carbon-500 mt-1 text-sm">
+                  {property.location}
+                </p>
+                <div className="mt-6 space-y-1">
+                  {steps.map((label, index) => (
+                    <button
+                      key={label}
+                      onClick={() => index <= step && setStep(index)}
+                      className={`flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm ${index === step ? "bg-black text-white" : "text-carbon-500"}`}
+                    >
+                      <span
+                        className={`flex size-5 items-center justify-center rounded-full text-[11px] ${index < step ? "bg-black text-white" : "border border-current"}`}
+                      >
+                        {index < step ? (
+                          <Check className="size-3" />
                         ) : (
-                          <input
-                            required
-                            type={
-                              name === "moveIn"
-                                ? "date"
-                                : name === "email"
-                                  ? "email"
-                                  : name === "occupants"
-                                    ? "number"
-                                    : "text"
-                            }
-                            min={
-                              name === "moveIn"
-                                ? "2026-08-15"
-                                : name === "occupants"
-                                  ? "1"
-                                  : undefined
-                            }
-                            value={values[name] ?? ""}
-                            onChange={(event) =>
-                              setValues((current) => ({
-                                ...current,
-                                [name]: event.target.value,
-                              }))
-                            }
-                            placeholder={
-                              name === "moveIn" ? undefined : placeholder
-                            }
-                            className="application-form-input h-11 w-full border-0 border-b border-black/20 bg-transparent px-1 text-sm outline-none focus:border-black focus:ring-0"
-                          />
+                          index + 1
                         )}
-                        {name === "occupants" ? (
-                          <span className="text-carbon-500 mt-2 block text-xs leading-5">
-                            Include everyone who will live in the home,
-                            including you.
-                          </span>
-                        ) : null}
-                        {name === "coApplicant" ? (
-                          <span className="text-carbon-500 mt-2 block text-xs leading-5">
-                            A co-applicant shares responsibility for the lease
-                            and provides their own details.
-                          </span>
-                        ) : null}
-                      </label>
-                    ))}
-                  </div>
-                ) : null}
-                {step === 5 ? (
-                  <Documents
-                    documents={documents}
-                    onAdd={(name, file) => {
-                      setDocuments((current) =>
-                        current.includes(name) ? current : [...current, name],
-                      );
-                      setDocumentUrls((current) => ({
-                        ...current,
-                        [name]: URL.createObjectURL(file),
-                      }));
-                      setDocumentTypes((current) => ({
-                        ...current,
-                        [name]: file.type,
-                      }));
-                    }}
-                  />
-                ) : null}
-                {step === 6 ? (
-                  <Review
-                    property={property}
-                    values={values}
-                    documents={documents}
-                    consented={consented}
-                    onConsent={setConsented}
-                  />
-                ) : null}
-              </div>
-              <div
-                className={`flex items-center justify-between pt-5 ${step === 6 ? "" : "border-t border-black/10"}`}
+                      </span>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </aside>
+              <form
+                ref={formRef}
+                onSubmit={(event) => event.preventDefault()}
+                className="bg-white p-6 shadow-[0_3px_14px_rgba(0,0,0,0.03)] sm:p-8"
               >
-                <button
-                  type="button"
-                  onClick={() => setStep((current) => Math.max(0, current - 1))}
-                  disabled={step === 0}
-                  className="inline-flex h-10 items-center gap-1 rounded-full px-4 text-sm disabled:opacity-30"
+                <div className="flex items-start justify-between gap-5">
+                  <div>
+                    <p className="text-carbon-500 text-sm">
+                      Step {step + 1} of {steps.length}
+                    </p>
+                    <h2 className="font-bricolage mt-1 text-3xl font-medium">
+                      {steps[step]}
+                    </h2>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={saveDraft}
+                    className="h-10 shrink-0 rounded-full border border-black/15 px-4 text-sm"
+                  >
+                    Save draft
+                  </button>
+                </div>
+                <div className="mt-5 h-1 bg-black/10">
+                  <div
+                    className="h-full bg-black transition-all"
+                    style={{ width: `${((step + 1) / steps.length) * 100}%` }}
+                  />
+                </div>
+                <div className="mt-8 min-h-[310px]">
+                  {step <= 4 ? (
+                    <div className="grid gap-5 sm:grid-cols-2">
+                      {fields[step].map(([label, name, placeholder]) => (
+                        <label key={name} className="block">
+                          <span className="mb-2 block text-sm font-medium">
+                            {label} <span className="text-red-600">*</span>
+                          </span>
+                          {name === "employment" ? (
+                            <select
+                              required
+                              value={values[name] ?? ""}
+                              onChange={(event) =>
+                                setValues((current) => ({
+                                  ...current,
+                                  [name]: event.target.value,
+                                }))
+                              }
+                              className="application-form-input h-11 w-full border-0 border-b border-black/20 bg-transparent px-1 text-sm outline-none focus:border-black focus:ring-0"
+                            >
+                              <option value="">Select employment status</option>
+                              <option>Employed</option>
+                              <option>Self-employed</option>
+                              <option>Student</option>
+                              <option>Retired</option>
+                              <option>Other</option>
+                            </select>
+                          ) : name === "income" ? (
+                            <select
+                              required
+                              value={values[name] ?? ""}
+                              onChange={(event) =>
+                                setValues((current) => ({
+                                  ...current,
+                                  [name]: event.target.value,
+                                }))
+                              }
+                              className="application-form-input h-11 w-full border-0 border-b border-black/20 bg-transparent px-1 text-sm outline-none focus:border-black focus:ring-0"
+                            >
+                              <option value="">Select monthly income</option>
+                              {incomeRanges.map((range) => (
+                                <option key={range} value={range}>
+                                  {range}
+                                </option>
+                              ))}
+                            </select>
+                          ) : name === "incomeSource" ? (
+                            <select
+                              required
+                              value={values[name] ?? ""}
+                              onChange={(event) =>
+                                setValues((current) => ({
+                                  ...current,
+                                  [name]: event.target.value,
+                                }))
+                              }
+                              className="application-form-input h-11 w-full border-0 border-b border-black/20 bg-transparent px-1 text-sm outline-none focus:border-black focus:ring-0"
+                            >
+                              <option value="">Select source of income</option>
+                              {incomeSources.map((source) => (
+                                <option key={source} value={source}>
+                                  {source}
+                                </option>
+                              ))}
+                            </select>
+                          ) : name === "rentPayment" ? (
+                            <select
+                              required
+                              value={values[name] ?? ""}
+                              onChange={(event) =>
+                                setValues((current) => ({
+                                  ...current,
+                                  [name]: event.target.value,
+                                }))
+                              }
+                              className="application-form-input h-11 w-full border-0 border-b border-black/20 bg-transparent px-1 text-sm outline-none focus:border-black focus:ring-0"
+                            >
+                              <option value="">Select payment method</option>
+                              {rentPaymentMethods.map((method) => (
+                                <option key={method} value={method}>
+                                  {method}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <input
+                              required
+                              type={
+                                name === "moveIn"
+                                  ? "date"
+                                  : name === "email"
+                                    ? "email"
+                                    : name === "occupants"
+                                      ? "number"
+                                      : "text"
+                              }
+                              min={
+                                name === "moveIn"
+                                  ? "2026-08-15"
+                                  : name === "occupants"
+                                    ? "1"
+                                    : undefined
+                              }
+                              value={values[name] ?? ""}
+                              onChange={(event) =>
+                                setValues((current) => ({
+                                  ...current,
+                                  [name]: event.target.value,
+                                }))
+                              }
+                              placeholder={
+                                name === "moveIn" ? undefined : placeholder
+                              }
+                              className="application-form-input h-11 w-full border-0 border-b border-black/20 bg-transparent px-1 text-sm outline-none focus:border-black focus:ring-0"
+                            />
+                          )}
+                          {name === "occupants" ? (
+                            <span className="text-carbon-500 mt-2 block text-xs leading-5">
+                              Include everyone who will live in the home,
+                              including you.
+                            </span>
+                          ) : null}
+                          {name === "coApplicant" ? (
+                            <span className="text-carbon-500 mt-2 block text-xs leading-5">
+                              A co-applicant shares responsibility for the lease
+                              and provides their own details.
+                            </span>
+                          ) : null}
+                        </label>
+                      ))}
+                    </div>
+                  ) : null}
+                  {step === 5 ? (
+                    <Documents
+                      documents={documents}
+                      onAdd={(name, file) => {
+                        setDocuments((current) =>
+                          current.includes(name) ? current : [...current, name],
+                        );
+                        setDocumentUrls((current) => ({
+                          ...current,
+                          [name]: URL.createObjectURL(file),
+                        }));
+                        setDocumentTypes((current) => ({
+                          ...current,
+                          [name]: file.type,
+                        }));
+                      }}
+                    />
+                  ) : null}
+                  {step === 6 ? (
+                    <Review
+                      property={property}
+                      values={values}
+                      documents={documents}
+                      consented={consented}
+                      onConsent={setConsented}
+                    />
+                  ) : null}
+                </div>
+                <div
+                  className={`flex items-center justify-between pt-5 ${step === 6 ? "" : "border-t border-black/10"}`}
                 >
-                  <ChevronLeft aria-hidden="true" className="size-4" /> Back
-                </button>
-                {step < steps.length - 1 ? (
                   <button
                     type="button"
-                    onClick={continueForm}
-                    className="inline-flex h-10 items-center gap-2 rounded-full bg-black px-5 text-sm text-white"
+                    onClick={() =>
+                      setStep((current) => Math.max(0, current - 1))
+                    }
+                    disabled={step === 0}
+                    className="inline-flex h-10 items-center gap-1 rounded-full px-4 text-sm disabled:opacity-30"
                   >
-                    Continue <ChevronRight className="size-4" />
+                    <ChevronLeft aria-hidden="true" className="size-4" /> Back
                   </button>
-                ) : (
-                  <button
-                    type="button"
-                    disabled={!consented}
-                    onClick={submitApplication}
-                    className="h-10 rounded-full bg-black px-5 text-sm text-white disabled:opacity-35"
-                  >
-                    Submit Application
-                  </button>
-                )}
-              </div>
-            </form>
+                  {step < steps.length - 1 ? (
+                    <button
+                      type="button"
+                      onClick={continueForm}
+                      className="inline-flex h-10 items-center gap-2 rounded-full bg-black px-5 text-sm text-white"
+                    >
+                      Continue <ChevronRight className="size-4" />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={!consented}
+                      onClick={submitApplication}
+                      className="h-10 rounded-full bg-black px-5 text-sm text-white disabled:opacity-35"
+                    >
+                      Submit Application
+                    </button>
+                  )}
+                </div>
+              </form>
+            </div>
           </div>
         </div>
         {saved ? (
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 rounded-full bg-black px-5 py-3 text-sm text-white shadow-xl">
+          <div role="status" className="feedback-toast">
             Application saved to drafts
           </div>
         ) : null}

@@ -42,7 +42,7 @@ export default function RentalSetupPage() {
     <>
       <RenterCatalogueTopBar />
       <main className="bg-carbon-50 min-h-svh pt-16 text-black">
-        <header className="border-b border-black/10 bg-white px-5 py-7 sm:px-6 lg:px-11">
+        <header className="border-b border-black/10 bg-white px-5 py-7 sm:px-6 lg:px-11 xl:px-[52px]">
           <div className="mx-auto max-w-[1120px]">
             <Link
               href="/renter-dashboard/applications"
@@ -82,65 +82,67 @@ export default function RentalSetupPage() {
             </div>
           </div>
         </header>
-        <div className="mx-auto grid max-w-[1120px] gap-6 px-5 py-8 lg:grid-cols-[240px_1fr]">
-          <aside className="h-fit bg-white p-5">
-            <p className="text-sm font-medium">
-              {Math.min(step, 4)} of 4 requirements complete
-            </p>
-            <div className="mt-4 h-1 bg-black/10">
-              <div
-                className="h-full bg-black"
-                style={{ width: `${step * 25}%` }}
-              />
-            </div>
-            <nav className="mt-5 space-y-1">
-              {steps.map((s, i) => (
-                <button
-                  key={s}
-                  onClick={() => i <= step && setStep(i)}
-                  className={`flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm ${i === step ? "bg-black text-white" : "text-black/55"}`}
-                >
-                  <span className="flex size-5 items-center justify-center rounded-full border border-current text-[10px]">
-                    {i < step ? <Check className="size-3" /> : i + 1}
-                  </span>
-                  {s}
-                </button>
-              ))}
-            </nav>
-          </aside>
-          <section className="bg-white p-6 shadow-[0_3px_14px_rgba(0,0,0,.03)] sm:p-8">
-            {step === 0 ? (
-              <Details
-                reviewed={reviewed}
-                setReviewed={setReviewed}
-                question={() => setModal("question")}
-                next={() => save(1)}
-              />
-            ) : null}
-            {step === 1 ? (
-              <Agreement
-                read={read}
-                understood={understood}
-                setRead={setRead}
-                setUnderstood={setUnderstood}
-                signed={signed}
-                signedAt={signedAt}
-                preview={() => setModal("agreement")}
-                sign={() => setModal("sign")}
-                next={() => save(2)}
-              />
-            ) : null}
-            {step === 2 ? (
-              <Payments
-                paid={paid}
-                pay={() => setModal("payment")}
-                receipt={() => setModal("receipt")}
-                next={() => save(3)}
-              />
-            ) : null}
-            {step === 3 ? <MoveIn next={() => save(4)} /> : null}
-            {step === 4 ? <Complete /> : null}
-          </section>
+        <div className="px-5 sm:px-6 lg:px-11 xl:px-[52px]">
+          <div className="mx-auto grid w-full max-w-[1120px] gap-6 py-8 lg:grid-cols-[240px_1fr]">
+            <aside className="h-fit bg-white p-5">
+              <p className="text-sm font-medium">
+                {Math.min(step, 4)} of 4 requirements complete
+              </p>
+              <div className="mt-4 h-1 bg-black/10">
+                <div
+                  className="h-full bg-black"
+                  style={{ width: `${step * 25}%` }}
+                />
+              </div>
+              <nav className="mt-5 space-y-1">
+                {steps.map((s, i) => (
+                  <button
+                    key={s}
+                    onClick={() => i <= step && setStep(i)}
+                    className={`flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm ${i === step ? "bg-black text-white" : "text-black/55"}`}
+                  >
+                    <span className="flex size-5 items-center justify-center rounded-full border border-current text-[10px]">
+                      {i < step ? <Check className="size-3" /> : i + 1}
+                    </span>
+                    {s}
+                  </button>
+                ))}
+              </nav>
+            </aside>
+            <section className="bg-white p-6 shadow-[0_3px_14px_rgba(0,0,0,.03)] sm:p-8">
+              {step === 0 ? (
+                <Details
+                  reviewed={reviewed}
+                  setReviewed={setReviewed}
+                  question={() => setModal("question")}
+                  next={() => save(1)}
+                />
+              ) : null}
+              {step === 1 ? (
+                <Agreement
+                  read={read}
+                  understood={understood}
+                  setRead={setRead}
+                  setUnderstood={setUnderstood}
+                  signed={signed}
+                  signedAt={signedAt}
+                  preview={() => setModal("agreement")}
+                  sign={() => setModal("sign")}
+                  next={() => save(2)}
+                />
+              ) : null}
+              {step === 2 ? (
+                <Payments
+                  paid={paid}
+                  pay={() => setModal("payment")}
+                  receipt={() => setModal("receipt")}
+                  next={() => save(3)}
+                />
+              ) : null}
+              {step === 3 ? <MoveIn next={() => save(4)} /> : null}
+              {step === 4 ? <Complete /> : null}
+            </section>
+          </div>
         </div>
       </main>
       {modal ? (

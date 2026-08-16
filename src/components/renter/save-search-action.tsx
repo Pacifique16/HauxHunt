@@ -66,7 +66,7 @@ export function SaveSearchAction(criteria: SaveSearchActionProps) {
       {saved ? (
         <div
           role="status"
-          className="fixed bottom-6 left-1/2 z-[180] flex -translate-x-1/2 items-center gap-3 rounded-2xl bg-black px-5 py-4 text-sm text-white shadow-[0_18px_50px_rgba(0,0,0,0.24)]"
+          className="feedback-toast flex items-center justify-center gap-3"
         >
           <Check className="size-4" />
           <span>

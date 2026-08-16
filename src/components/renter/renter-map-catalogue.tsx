@@ -304,9 +304,9 @@ export function RenterMapCatalogue({
   }
 
   return (
-    <section className="flex h-full min-h-0 flex-col border-t border-black/10 bg-white">
+    <section className="bg-carbon-50 flex h-full min-h-0 flex-col border-t border-black/10">
       {filtersUnderTopBar ? (
-        <div className="shrink-0 border-b border-black/10 bg-white px-5 py-3 sm:px-6 lg:px-11 xl:px-[52px]">
+        <div className="bg-carbon-50 shrink-0 px-5 py-3 sm:px-6 lg:px-11 xl:px-[52px]">
           <div className="mx-auto max-w-[1562px]">
             {context}
             <div className="flex items-center gap-3">
@@ -360,7 +360,7 @@ export function RenterMapCatalogue({
         >
           {!filtersUnderTopBar || !mapVisible ? (
             <div
-              className={`mb-5 border-b border-black/10 bg-white py-4 ${
+              className={`bg-carbon-50 border-b border-black/10 ${filtersUnderTopBar ? "mb-3 py-2" : "mb-5 py-4"} ${
                 mapVisible
                   ? "sticky top-0 z-20 -mx-5 px-5 sm:-mx-6 sm:px-6 lg:-mx-7 lg:px-7"
                   : "relative px-0"
@@ -377,7 +377,9 @@ export function RenterMapCatalogue({
                   {filters}
                 </div>
               ) : null}
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+              <div
+                className={`${filtersUnderTopBar ? "mt-1" : "mt-4"} flex flex-wrap items-center justify-between gap-3`}
+              >
                 {!mapVisible ? (
                   <div>
                     <p className="font-bricolage text-lg font-medium">
