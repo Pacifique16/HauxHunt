@@ -154,3 +154,8 @@ Creating turbopack project {
  GET /properties/kibagabaga-modern-family-home?from=renter 200 in 124ms (next.js: 14ms, generate-params: 14ms, application-code: 95ms)
  GET /renter-dashboard/applications/new?property=kacyiru-2br 200 in 113ms (next.js: 7ms, application-code: 106ms)
  GET /renter-dashboard/applications/HH-APP-0248 200 in 1058ms (next.js: 145ms, application-code: 913ms)
+ GET /renter-dashboard/applications/new?property=kacyiru-2br 200 in 129ms (next.js: 14ms, application-code: 115ms)
+ GET /renter-dashboard/applications/new?property=kacyiru-2br 200 in 136ms (next.js: 11ms, application-code: 125ms)
+ GET /renter-dashboard/applications 200 in 138ms (next.js: 71ms, application-code: 67ms)
+ GET /renter-dashboard/applications/HH-APP-0241 200 in 90ms (next.js: 45ms, application-code: 45ms)
+ GET /renter-dashboard/applications/HH-APP-0248 200 in 70ms (next.js: 28ms, application-code: 42ms)

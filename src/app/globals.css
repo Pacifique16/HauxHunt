@@ -710,6 +710,11 @@
   outline: none;
 }
 
+/* Flatmate profile fields show focus through their borders. */
+.profile-field-control:focus-visible {
+  outline: none;
+}
+
 /* Keep filter dropdowns consistent across catalogue and dashboard surfaces. */
 select.catalogue-filter-control {
   height: 2.5rem !important;

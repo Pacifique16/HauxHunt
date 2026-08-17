@@ -33,7 +33,7 @@ export function FlatmatePhotoStatus({
   }
 
   return (
-    <div className="mt-7 flex items-center gap-2 text-sm text-emerald-700 font-medium">
+    <div className="mt-7 flex items-center gap-2 text-sm text-black font-medium">
       <Check aria-hidden="true" className="size-4" />
       Verified profile photo unlocked
     </div>

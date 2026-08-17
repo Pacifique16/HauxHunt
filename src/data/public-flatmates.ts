@@ -42,6 +42,7 @@ export type PublicFlatmate = {
     furnishing: string;
     householdStyle: string[];
   };
+  selectedRentalId?: string;
 };
 
 export const PUBLIC_FLATMATES: PublicFlatmate[] = [
@@ -108,6 +109,7 @@ export const PUBLIC_FLATMATES: PublicFlatmate[] = [
     preferredProperty: "Private bedroom",
     furnishing: "Furnished",
     stay: "12+ months",
+    selectedRentalId: "kibagabaga-modern-family-home",
     lifestyleDetails: [
       ["Cleanliness", "Clean shared spaces"],
       ["Smoking", "No indoor smoking"],
@@ -197,6 +199,7 @@ export const PUBLIC_FLATMATES: PublicFlatmate[] = [
     preferredProperty: "Private bedroom",
     furnishing: "Furnished",
     stay: "6–12 months",
+    selectedRentalId: "remera-3br",
     lifestyleDetails: [
       ["Cleanliness", "Tidy"],
       ["Smoking", "Non-smoker"],
@@ -286,6 +289,7 @@ export const PUBLIC_FLATMATES: PublicFlatmate[] = [
     preferredProperty: "Private bedroom",
     furnishing: "Furnished",
     stay: "6–12 months",
+    selectedRentalId: "lekki-2br",
     lifestyleDetails: [
       ["Cleanliness", "Clean"],
       ["Smoking", "Outdoor only"],
@@ -312,6 +316,45 @@ export const PUBLIC_FLATMATES: PublicFlatmate[] = [
       furnishing: "Furnished",
       householdStyle: ["Balanced", "Clean", "Outdoor smoking only"],
     },
+  },
+  {
+    id: "julien",
+    firstName: "Julien",
+    age: 26,
+    occupation: "Product Designer",
+    city: "Kigali",
+    country: "Rwanda",
+    situation: "looking",
+    portrait: julienPortrait,
+    budgetMin: 450000,
+    budgetMax: 450000,
+    moveIn: "September 2026",
+    moveInValue: "2026-09",
+    areas: ["Kacyiru", "Kimihurura", "Remera"],
+    lifestyleTags: ["Non-smoker", "Very tidy", "Quiet weekdays", "Hybrid professional"],
+    gender: "male",
+    smoking: "non-smoker",
+    lifestyle: "quiet",
+    about: "I'm a designer based in Kigali who values a clean, quiet home environment on weekdays and enjoys sharing meals or socializing on weekends.",
+    preferredProperty: "Apartment",
+    furnishing: "Furnished",
+    stay: "12+ months",
+    lifestyleDetails: [
+      ["Cleanliness", "Very tidy"],
+      ["Smoking", "Non-smoker"],
+      ["Pets", "Okay with cats"],
+      ["Social style", "Quiet weekdays, social weekends"],
+      ["Sleep schedule", "Regular weekday routine"],
+      ["Work / study", "Hybrid professional"],
+      ["Guests", "Occasional visitors"],
+    ],
+    lookingFor: [
+      "Respectful of shared spaces",
+      "Similar monthly budget",
+      "Non-smoker",
+      "Clear communicator",
+      "Long-term housing arrangement",
+    ],
   },
 ];
 

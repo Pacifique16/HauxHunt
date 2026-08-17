@@ -55,6 +55,9 @@ export function AuthenticationForm({
   const [complete, setComplete] = useState(false);
   const isRegister = mode === "register";
   const isDark = variant === "dark";
+  const returnTo = typeof window !== "undefined"
+    ? new URLSearchParams(window.location.search).get("returnTo")
+    : null;
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -81,7 +84,6 @@ export function AuthenticationForm({
     const searchParams = new URLSearchParams(window.location.search);
     const pendingPropertyId = searchParams.get("save");
     const pendingPropertyAlreadySaved = searchParams.get("already") === "1";
-    const returnTo = searchParams.get("returnTo");
 
     const finishPendingRenterSave = () => {
       const newlySaved =
@@ -99,6 +101,7 @@ export function AuthenticationForm({
     if (!isRegister) {
       if (email === "renter@gmail.com") {
         window.sessionStorage.setItem("hauxhunt-authenticated-role", "renter");
+        window.sessionStorage.setItem("hauxhunt-has-flatmate-profile", "true");
         if (pendingPropertyId) {
           finishPendingRenterSave();
         } else {

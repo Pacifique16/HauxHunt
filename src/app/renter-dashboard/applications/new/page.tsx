@@ -207,7 +207,7 @@ export default function NewApplicationPage() {
       <>
         <RenterCatalogueTopBar />
         <main className="bg-carbon-50 flex min-h-svh items-center justify-center px-5 pt-16">
-          <section className="w-full max-w-xl bg-white p-8 text-center shadow-[0_3px_14px_rgba(0,0,0,0.04)]">
+          <section className="w-full max-w-xl p-8 text-center">
             <Image
               src={applicationReceivedIllustration}
               alt="Application already received illustration"
