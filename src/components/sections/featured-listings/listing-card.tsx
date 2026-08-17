@@ -6,8 +6,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Bath, BedDouble, Expand, Heart, MapPin, Sofa, X } from "lucide-react";
-import loginIllustration from "../../../../login.png";
+import loginIllustration from "@/assets/images/login.png";
 import { CurrencyAmount } from "@/components/currency/currency-selector";
+import { useSavedProperty } from "@/hooks/use-saved-properties";
 
 type ListingCardProps = {
   title: string;
@@ -23,6 +24,7 @@ type ListingCardProps = {
   href: string;
   focalPoint?: string;
   requiresLogin?: boolean;
+  propertyId?: string;
 };
 
 export function ListingCard({
@@ -39,10 +41,14 @@ export function ListingCard({
   href,
   focalPoint = "50% 55%",
   requiresLogin = false,
+  propertyId,
 }: ListingCardProps) {
   const usdAmount = Number(price.replace(/[^0-9.]/g, ""));
-  const [liked, setLiked] = useState(false);
-  const [savedCount, setSavedCount] = useState(saves);
+  const resolvedPropertyId =
+    propertyId ?? href.match(/\/properties\/([^?/#]+)/)?.[1] ?? href;
+  const { saved: persistedSaved, toggleSaved: persistSaved } =
+    useSavedProperty(resolvedPropertyId);
+  const liked = !requiresLogin && persistedSaved;
   const [feedback, setFeedback] = useState("");
   const [authPromptOpen, setAuthPromptOpen] = useState(false);
   const [feedbackHost, setFeedbackHost] = useState<HTMLElement | null>(null);
@@ -67,13 +73,12 @@ export function ListingCard({
       return;
     }
 
-    setLiked((current) => {
-      setSavedCount((count) => count + (current ? -1 : 1));
-      setFeedback(
-        current ? "Removed from saved homes" : "House saved to your homes",
-      );
-      return !current;
-    });
+    const nextSaved = persistSaved();
+    setFeedback(
+      nextSaved
+        ? "Home added to your favourites"
+        : "Home removed from your favourites",
+    );
   }
 
   return (
@@ -90,16 +95,9 @@ export function ListingCard({
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 14, scale: 0.98 }}
                     transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                    className="fixed bottom-6 left-1/2 z-[150] min-w-72 -translate-x-1/2 overflow-hidden rounded-2xl border border-white/10 bg-black px-5 py-4 text-center text-sm font-medium whitespace-nowrap text-white shadow-[0_18px_50px_rgba(0,0,0,0.24)]"
+                    className="feedback-toast"
                   >
                     {feedback}
-                    <motion.span
-                      aria-hidden="true"
-                      initial={{ scaleX: 1 }}
-                      animate={{ scaleX: 0 }}
-                      transition={{ duration: 3, ease: "linear" }}
-                      className="absolute inset-x-0 bottom-0 h-0.5 origin-left bg-white"
-                    />
                   </motion.div>
                 ) : null}
               </AnimatePresence>
@@ -143,21 +141,21 @@ export function ListingCard({
                           id="save-auth-title"
                           className="font-bricolage text-3xl leading-tight font-medium tracking-[-0.035em]"
                         >
-                          Save homes with an account.
+                          Keep favourite homes with an account.
                         </h2>
                         <p className="text-carbon-600 mt-3 text-sm leading-6">
-                          Log in or create a HauxHunt account to save this house
-                          and find it again from any device.
+                          Log in or create a HauxHunt account to add this home
+                          to your favourites and find it again from any device.
                         </p>
                         <div className="mt-7 flex gap-3">
                           <Link
-                            href={`/register?returnTo=${encodeURIComponent(href)}`}
+                            href={`/register?returnTo=${encodeURIComponent("/renter-dashboard/saved")}&save=${encodeURIComponent(resolvedPropertyId)}${persistedSaved ? "&already=1" : ""}`}
                             className="font-bricolage flex h-12 flex-1 items-center justify-center rounded-full border border-black/20 px-5 font-medium"
                           >
                             Sign up
                           </Link>
                           <Link
-                            href={`/login?returnTo=${encodeURIComponent(href)}`}
+                            href={`/login?returnTo=${encodeURIComponent("/renter-dashboard/saved")}&save=${encodeURIComponent(resolvedPropertyId)}${persistedSaved ? "&already=1" : ""}`}
                             className="font-bricolage flex h-12 flex-1 items-center justify-center rounded-full bg-black px-5 font-medium text-white"
                           >
                             Log in
@@ -220,7 +218,11 @@ export function ListingCard({
 
       <button
         type="button"
-        aria-label={liked ? `Remove ${title} from favorites` : `Save ${title}`}
+        aria-label={
+          liked
+            ? `Remove ${title} from favourites`
+            : `Add ${title} to favourites`
+        }
         aria-pressed={liked}
         onClick={toggleSaved}
         className="absolute top-4 right-4 z-10 flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-full border border-white/35 bg-black/40 px-3 text-white opacity-100 backdrop-blur-md transition-[background-color,transform,opacity] duration-150 hover:scale-105 hover:bg-black/60 md:opacity-0 md:group-focus-within:opacity-100 md:group-hover:opacity-100"
@@ -231,7 +233,7 @@ export function ListingCard({
           fill={liked ? "currentColor" : "none"}
         />
         <span className="font-bricolage text-xs tabular-nums">
-          {savedCount}
+          {saves + (liked ? 1 : 0)}
         </span>
       </button>
     </article>

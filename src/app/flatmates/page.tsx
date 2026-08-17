@@ -8,17 +8,18 @@ import {
   ChevronDown,
   MapPin,
   Ruler,
+  Search,
   Sofa,
   UsersRound,
 } from "lucide-react";
 
-import house1 from "../../../house1.jpg";
-import house2 from "../../../house2.jpg";
-import house3 from "../../../house3.jpg";
-import house4 from "../../../house4.jpg";
-import house5 from "../../../house5.jpg";
-import house6 from "../../../house6.jpeg";
-import emptyIllustration from "../../../empty.png";
+import house1 from "@/assets/images/house1.jpg";
+import house2 from "@/assets/images/house2.jpg";
+import house3 from "@/assets/images/house3.jpg";
+import house4 from "@/assets/images/house4.jpg";
+import house5 from "@/assets/images/house5.jpg";
+import house6 from "@/assets/images/house6.jpeg";
+import emptyIllustration from "@/assets/images/empty.png";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { AutoSubmitFilterForm } from "@/components/listings/auto-submit-filter-form";
@@ -47,11 +48,7 @@ const SHARED_HOMES: Array<{
   likes: string[];
   dislikes: string[];
   genderPreference: "any" | "female" | "male";
-  occupationPreference:
-    | "any"
-    | "student"
-    | "professional"
-    | "remote-worker";
+  occupationPreference: "any" | "student" | "professional" | "remote-worker";
   image: StaticImageData;
 }> = [
   {
@@ -171,7 +168,8 @@ export default async function FlatmatesPage({
     (Array.isArray(params.view) ? params.view[0] : params.view) === "all";
   const filteredHomes = SHARED_HOMES.filter((home) => {
     const monthlyContribution = Number(home.price.replace(/[^0-9]/g, ""));
-    const searchableHomeType = `${home.title} ${home.amenities.join(" ")}`.toLowerCase();
+    const searchableHomeType =
+      `${home.title} ${home.amenities.join(" ")}`.toLowerCase();
     const locationMatches =
       !locationFilter || home.location.toLowerCase().includes(locationFilter);
     const typeMatches =
@@ -238,12 +236,12 @@ export default async function FlatmatesPage({
   showAllQuery.set("view", "all");
   const hasFilters = Boolean(
     locationFilter ||
-      typeFilter ||
-      priceRangeFilter ||
-      budgetFilter ||
-      (genderFilter && genderFilter !== "any") ||
-      bedroomsFilter ||
-      (occupationFilter && occupationFilter !== "any"),
+    typeFilter ||
+    priceRangeFilter ||
+    budgetFilter ||
+    (genderFilter && genderFilter !== "any") ||
+    bedroomsFilter ||
+    (occupationFilter && occupationFilter !== "any"),
   );
 
   return (
@@ -269,12 +267,9 @@ export default async function FlatmatesPage({
             className="mx-auto grid max-w-[1562px] gap-3 md:grid-cols-2 xl:grid-cols-5"
           >
             <input type="hidden" name="type" value={valueOf(params.type)} />
-            <input
-              type="hidden"
-              name="priceRange"
-              value={priceRangeFilter}
-            />
-            <label className="flex h-12 items-center gap-2 rounded-2xl bg-black/[0.045] px-4">
+            <input type="hidden" name="priceRange" value={priceRangeFilter} />
+            <label className="catalogue-location-filter flex items-center gap-2 px-4">
+              <Search aria-hidden="true" className="text-carbon-500 size-4" />
               <input
                 name="location"
                 defaultValue={valueOf(params.location)}
@@ -589,7 +584,7 @@ function FilterSelect({
         aria-label={label}
         name={name}
         defaultValue={value}
-        className="h-12 w-full appearance-none rounded-2xl border-0 bg-black/[0.045] pr-11 pl-4 text-sm ring-0 outline-none focus:ring-0 focus:outline-none"
+        className="catalogue-filter-control h-12 w-full appearance-none rounded-2xl border-0 bg-black/[0.045] pr-11 pl-4 text-sm ring-0 outline-none focus:ring-0 focus:outline-none"
       >
         <option value="">{label}</option>
         {options.map(([optionValue, optionLabel]) => (

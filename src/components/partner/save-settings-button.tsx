@@ -21,7 +21,7 @@ export function SaveSettingsButton() {
       {saved ? (
         <p
           role="status"
-          className="flex items-center gap-2 text-sm font-medium text-black"
+          className="feedback-toast flex items-center justify-center gap-2"
         >
           <CheckCircle2 aria-hidden="true" className="size-4" />
           Changes saved successfully. Returning to Overview…

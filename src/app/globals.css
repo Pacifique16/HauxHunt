@@ -705,6 +705,50 @@
   outline: none;
 }
 
+/* Application fields indicate focus with their bottom border only. */
+.application-form-input:focus-visible {
+  outline: none;
+}
+
+/* Keep filter dropdowns consistent across catalogue and dashboard surfaces. */
+select.catalogue-filter-control {
+  height: 2.5rem !important;
+  border-radius: 9999px !important;
+}
+
+.catalogue-location-filter {
+  height: 2.5rem;
+  border: 0;
+  border-radius: 9999px;
+  background: rgb(0 0 0 / 4.5%);
+}
+
+/* Keep modal surfaces consistent across every dashboard and public flow. */
+[role="dialog"] {
+  border-radius: 1.5rem;
+}
+
+/* Full-screen photo previews are backdrops, not rounded modal cards. */
+[role="dialog"].property-photo-preview {
+  border-radius: 0;
+}
+
+[role="dialog"] input,
+[role="dialog"] textarea,
+[role="dialog"] select {
+  outline: none;
+}
+
+[role="dialog"] input:focus,
+[role="dialog"] input:focus-visible,
+[role="dialog"] textarea:focus,
+[role="dialog"] textarea:focus-visible,
+[role="dialog"] select:focus,
+[role="dialog"] select:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
 .font-bricolage {
   font-family: "Bricolage Grotesque", sans-serif;
   font-optical-sizing: auto;
@@ -746,6 +790,45 @@
     0 20px 52px rgb(0 0 0 / 0.18),
     inset 0 1px 0 rgb(255 255 255 / 0.22),
     inset 0 -1px 0 rgb(255 255 255 / 0.06);
+}
+
+.feedback-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  z-index: 180;
+  min-width: 18rem;
+  max-width: calc(100% - 2rem);
+  transform: translateX(-50%);
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 1rem;
+  background: #000;
+  padding: 1rem 1.25rem;
+  color: #fff;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: 0 18px 50px rgb(0 0 0 / 0.24);
+}
+
+.feedback-toast::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: #fff;
+  content: "";
+  transform-origin: left;
+  animation: feedback-toast-progress 3s linear forwards;
+}
+
+@keyframes feedback-toast-progress {
+  to {
+    transform: scaleX(0);
+  }
 }
 
 .category-atmosphere {

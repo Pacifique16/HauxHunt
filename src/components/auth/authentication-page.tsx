@@ -7,7 +7,7 @@ import { LoginMosaic } from "@/components/auth/login-mosaic";
 import { Wordmark } from "@/components/layout/wordmark";
 import { HistoryBackButton } from "@/components/navigation/history-back-button";
 
-import registrationImage from "../../../interior.jpg";
+import registrationImage from "@/assets/images/interior.jpg";
 
 type AuthenticationPageProps = {
   mode: "login" | "register";

@@ -113,7 +113,7 @@ export function Navbar() {
 
           {/* --- Account actions, right ---------------------------------- */}
           <div className="flex items-center gap-2 justify-self-end lg:gap-4 xl:gap-5">
-            <CurrencySelector inverse={!solidNav} />
+            <CurrencySelector inverse={!solidNav} openOnHover />
             <Link
               href={authConfig.register.href}
               className={[

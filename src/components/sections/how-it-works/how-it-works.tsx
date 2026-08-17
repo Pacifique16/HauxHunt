@@ -9,8 +9,8 @@ import {
   UsersRound,
 } from "lucide-react";
 
-import appleStoreBadge from "../../../../Apple store badge.png";
-import googlePlayBadge from "../../../../google play store badge.png";
+import appleStoreBadge from "@/assets/images/Apple store badge.png";
+import googlePlayBadge from "@/assets/images/google play store badge.png";
 
 const STEPS = [
   {

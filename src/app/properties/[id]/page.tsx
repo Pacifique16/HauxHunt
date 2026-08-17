@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   BadgeCheck,
@@ -12,13 +13,13 @@ import {
   Ruler,
 } from "lucide-react";
 
-import house1 from "../../../../house1.jpg";
-import house2 from "../../../../house2.jpg";
-import house3 from "../../../../house3.jpg";
-import house4 from "../../../../house4.jpg";
-import house5 from "../../../../house5.jpg";
-import house6 from "../../../../house6.jpeg";
-import julienProfile from "../../../../julien.jpg";
+import house1 from "@/assets/images/house1.jpg";
+import house2 from "@/assets/images/house2.jpg";
+import house3 from "@/assets/images/house3.jpg";
+import house4 from "@/assets/images/house4.jpg";
+import house5 from "@/assets/images/house5.jpg";
+import house6 from "@/assets/images/house6.jpeg";
+import julienProfile from "@/assets/images/julien.jpg";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { ContactPropertyManagerForm } from "@/components/properties/contact-landlord-form";
@@ -26,6 +27,7 @@ import { PropertyGallery } from "@/components/properties/property-gallery";
 import { SavePropertyButton } from "@/components/properties/save-property-button";
 import { CurrencyAmount } from "@/components/currency/currency-selector";
 import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
+import { RequestViewingButton } from "@/components/renter/request-viewing-button";
 import { HistoryBackButton } from "@/components/navigation/history-back-button";
 import { DEMO_LISTINGS } from "@/data/hero-search-demo";
 
@@ -208,7 +210,7 @@ export default async function PropertyPage({
   };
   const startIndex = DEMO_LISTINGS.findIndex((listing) => listing.id === id);
   const gallery = Array.from(
-    { length: 4 },
+    { length: 7 },
     (_, index) => HOUSE_IMAGES[(startIndex + index) % HOUSE_IMAGES.length],
   );
   const { latitude, longitude } = detail.coordinates;
@@ -228,8 +230,8 @@ export default async function PropertyPage({
   return (
     <>
       {renterView ? <RenterCatalogueTopBar /> : <Navbar />}
-      <main className="bg-canvas pt-24">
-        <div className="mx-auto max-w-[1562px] px-5 pt-7 pb-20 sm:px-6 lg:px-11 xl:px-[52px]">
+      <main className="bg-canvas pt-16">
+        <div className="mx-auto max-w-[1562px] px-5 pt-3 pb-20 sm:px-6 lg:px-11 xl:px-[52px]">
           <div className="flex items-center justify-between gap-4">
             <HistoryBackButton
               fallbackHref={
@@ -335,23 +337,23 @@ export default async function PropertyPage({
                 >
                   What this home offers
                 </h2>
-                <ul className="mt-6 grid gap-4 sm:grid-cols-2">
+                <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   {highlightedAmenities.map((amenity) => (
                     <li
                       key={amenity}
                       className="text-carbon-700 flex items-center gap-3"
                     >
-                      <span className="flex size-8 items-center justify-center rounded-full bg-black text-white">
-                        <Check aria-hidden="true" className="size-4" />
+                      <span className="flex size-5 items-center justify-center rounded-full bg-black text-white">
+                        <Check aria-hidden="true" className="size-2.5" />
                       </span>
                       {amenity}
                     </li>
                   ))}
                 </ul>
                 {remainingAmenities.length > 0 ? (
-                  <details className="mt-6 rounded-2xl bg-black/[0.035] px-5 py-4">
-                    <summary className="font-bricolage cursor-pointer list-none font-medium marker:hidden">
-                      Show all {property.amenities.length} amenities
+                  <details className="mt-4">
+                    <summary className="font-bricolage text-carbon-600 hover:text-carbon-900 inline-flex cursor-pointer list-none text-sm font-medium marker:hidden">
+                      See all {property.amenities.length} amenities
                     </summary>
                     <ul className="mt-5 grid gap-4 border-t border-black/10 pt-5 sm:grid-cols-2">
                       {remainingAmenities.map((amenity) => (
@@ -359,8 +361,8 @@ export default async function PropertyPage({
                           key={amenity}
                           className="text-carbon-700 flex items-center gap-3"
                         >
-                          <span className="flex size-8 items-center justify-center rounded-full bg-black text-white">
-                            <Check aria-hidden="true" className="size-4" />
+                          <span className="flex size-5 items-center justify-center rounded-full bg-black text-white">
+                            <Check aria-hidden="true" className="size-2.5" />
                           </span>
                           {amenity}
                         </li>
@@ -374,7 +376,7 @@ export default async function PropertyPage({
                 <h2 className="font-bricolage text-carbon-900 text-2xl font-medium">
                   Location
                 </h2>
-                <div className="mt-5 overflow-hidden rounded-2xl border border-black/8 bg-white shadow-sm">
+                <div className="mt-5 overflow-hidden border border-black/8 bg-white shadow-sm">
                   <iframe
                     title={`Map showing ${property.location}`}
                     src={mapUrl}
@@ -382,12 +384,6 @@ export default async function PropertyPage({
                     referrerPolicy="no-referrer-when-downgrade"
                     className="h-[320px] w-full border-0"
                   />
-                  <div className="flex items-center gap-2 px-5 py-4">
-                    <MapPin aria-hidden="true" className="size-4" />
-                    <p className="font-bricolage text-carbon-900 text-sm font-medium">
-                      {property.location}
-                    </p>
-                  </div>
                 </div>
               </section>
             </div>
@@ -414,6 +410,24 @@ export default async function PropertyPage({
                 Ask a question or arrange a viewing. Your details stay private
                 until you choose to share them.
               </p>
+
+              <div className={renterView ? "mt-6 grid grid-cols-2 gap-3" : ""}>
+                <RequestViewingButton
+                  propertyId={property.id}
+                  title={property.title}
+                  location={property.location}
+                  compact={renterView}
+                />
+
+                {renterView ? (
+                  <Link
+                    href={`/renter-dashboard/applications/new?property=${property.id}`}
+                    className="flex h-11 w-full items-center justify-center rounded-full border border-black/15 px-2 text-sm font-medium whitespace-nowrap transition-colors hover:border-black"
+                  >
+                    Apply Now
+                  </Link>
+                ) : null}
+              </div>
 
               <ContactPropertyManagerForm managerName="Julien" />
             </aside>

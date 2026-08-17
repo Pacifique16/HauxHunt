@@ -17,7 +17,7 @@ const CURRENCIES: Array<{
   { code: "NGN", name: "Nigerian Naira", symbol: "NGN" },
 ];
 
-// Prototype display rates. Production should replace these with a dated rate API.
+// Demo display rates. Production should replace these with a dated rate API.
 const USD_RATES: Record<DisplayCurrency, number> = {
   USD: 1,
   RWF: 1450,
@@ -50,7 +50,8 @@ export function formatDisplayPrice(
   currency: DisplayCurrency,
 ) {
   const converted = usdAmount * USD_RATES[currency];
-  const rounded = currency === "USD" ? Math.round(converted) : Math.round(converted);
+  const rounded =
+    currency === "USD" ? Math.round(converted) : Math.round(converted);
   return `${currency} ${rounded.toLocaleString("en-US")}`;
 }
 
@@ -59,8 +60,10 @@ export function formatCurrencyRange(
   maximumUsd: number | null,
   currency: DisplayCurrency,
 ) {
-  const minimum = minimumUsd == null ? null : formatDisplayPrice(minimumUsd, currency);
-  const maximum = maximumUsd == null ? null : formatDisplayPrice(maximumUsd, currency);
+  const minimum =
+    minimumUsd == null ? null : formatDisplayPrice(minimumUsd, currency);
+  const maximum =
+    maximumUsd == null ? null : formatDisplayPrice(maximumUsd, currency);
   if (minimum === null && maximum) return `Under ${maximum}`;
   if (maximum === null && minimum) return `${minimum}+`;
   return `${minimum} – ${maximum}`;
@@ -80,6 +83,7 @@ export function CurrencyFilterSelect({
   ranges,
   filled = false,
   hideLabel = false,
+  pill = false,
 }: {
   name: string;
   value: string;
@@ -88,6 +92,7 @@ export function CurrencyFilterSelect({
   ranges: CurrencyRange[];
   filled?: boolean;
   hideLabel?: boolean;
+  pill?: boolean;
 }) {
   const currency = useDisplayCurrency();
 
@@ -97,20 +102,16 @@ export function CurrencyFilterSelect({
         aria-label={label}
         name={name}
         defaultValue={value}
-        className={`h-12 w-full appearance-none pr-11 pl-4 text-sm ring-0 outline-none focus:ring-0 focus:outline-none ${
+        className={`catalogue-filter-control ${pill ? "h-10" : "h-12"} w-full appearance-none pr-11 pl-4 text-sm ring-0 outline-none focus:ring-0 focus:outline-none ${
           filled
-            ? "rounded-2xl border-0 bg-black/[0.045]"
-            : "rounded-2xl border border-black/15 bg-white"
+            ? `${pill ? "rounded-full" : "rounded-2xl"} border-0 bg-black/[0.045]`
+            : `${pill ? "rounded-full" : "rounded-2xl"} border border-black/15 bg-white`
         }`}
       >
         <option value="">{placeholder}</option>
         {ranges.map((range) => (
           <option key={range.value} value={range.value}>
-            {formatCurrencyRange(
-              range.minimumUsd,
-              range.maximumUsd,
-              currency,
-            )}
+            {formatCurrencyRange(range.minimumUsd, range.maximumUsd, currency)}
           </option>
         ))}
       </select>
@@ -146,8 +147,10 @@ export function CurrencyAmount({ usdAmount }: { usdAmount: number }) {
 
 export function CurrencySelector({
   inverse = false,
+  openOnHover = false,
 }: {
   inverse?: boolean;
+  openOnHover?: boolean;
 }) {
   const currency = useDisplayCurrency();
   const [isOpen, setIsOpen] = useState(false);
@@ -155,7 +158,8 @@ export function CurrencySelector({
 
   useEffect(() => {
     function closeOnOutsideClick(event: MouseEvent) {
-      if (!containerRef.current?.contains(event.target as Node)) setIsOpen(false);
+      if (!containerRef.current?.contains(event.target as Node))
+        setIsOpen(false);
     }
 
     function closeOnEscape(event: KeyboardEvent) {
@@ -177,7 +181,24 @@ export function CurrencySelector({
   }
 
   return (
-    <div ref={containerRef} className="relative inline-flex h-10 items-center">
+    <div
+      ref={containerRef}
+      className="relative inline-flex h-10 items-center"
+      onMouseEnter={() => {
+        if (openOnHover) setIsOpen(true);
+      }}
+      onMouseLeave={() => {
+        if (openOnHover) setIsOpen(false);
+      }}
+      onFocus={() => {
+        if (openOnHover) setIsOpen(true);
+      }}
+      onBlur={(event) => {
+        if (openOnHover && !event.currentTarget.contains(event.relatedTarget)) {
+          setIsOpen(false);
+        }
+      }}
+    >
       <button
         type="button"
         aria-label="Choose display currency"
@@ -194,36 +215,36 @@ export function CurrencySelector({
       </button>
 
       {isOpen ? (
-        <div
-          role="listbox"
-          aria-label="Currency"
-          className={`absolute top-[calc(100%+0.5rem)] right-0 z-[100] w-64 overflow-hidden rounded-2xl px-2 py-2 font-sans text-black shadow-[0_18px_50px_rgba(0,0,0,0.14)] ${
-            inverse
-              ? "border border-white/50 bg-white/55 backdrop-blur-xl backdrop-saturate-110"
-              : "border border-black/10 bg-white"
-          }`}
-        >
-          <p className="px-3 pb-1.5 text-[11px] font-medium tracking-[0.08em] text-black/45">
-            CURRENCY
-          </p>
-          <div className="space-y-0.5">
-            {CURRENCIES.map((option) => (
-              <button
-                key={option.code}
-                type="button"
-                role="option"
-                aria-selected={currency === option.code}
-                onClick={() => chooseCurrency(option.code)}
-                className="flex w-full items-center justify-between rounded-xl px-3 py-1.5 text-left font-sans transition-colors hover:bg-black/[0.045] focus-visible:bg-black/[0.045] focus-visible:outline-none"
-              >
-                <span>
-                  <span className="block text-sm font-medium leading-5">
-                    {option.name}
+        <div className="absolute top-full right-0 z-[100] w-64 pt-2">
+          <div
+            role="listbox"
+            aria-label="Currency"
+            className="overflow-hidden rounded-2xl border border-black/10 bg-white px-2 py-2 font-sans text-black shadow-[0_18px_50px_rgba(0,0,0,0.14)]"
+          >
+            <p className="px-3 pb-1.5 text-[11px] font-medium tracking-[0.08em] text-black/45">
+              CURRENCY
+            </p>
+            <div className="space-y-0.5">
+              {CURRENCIES.map((option) => (
+                <button
+                  key={option.code}
+                  type="button"
+                  role="option"
+                  aria-selected={currency === option.code}
+                  onClick={() => chooseCurrency(option.code)}
+                  className="flex w-full items-center justify-between rounded-xl px-3 py-1.5 text-left font-sans transition-colors hover:bg-black/[0.045] focus-visible:bg-black/[0.045] focus-visible:outline-none"
+                >
+                  <span>
+                    <span className="block text-sm leading-5 font-normal">
+                      {option.name}
+                    </span>
                   </span>
-                </span>
-                <span className="pl-5 text-sm text-black/45">{option.symbol}</span>
-              </button>
-            ))}
+                  <span className="pl-5 text-sm text-black/45">
+                    {option.symbol}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       ) : null}

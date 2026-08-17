@@ -15,12 +15,12 @@ import {
   MousePointerClick,
 } from "lucide-react";
 
-import houseOne from "../../../house1.jpg";
-import houseTwo from "../../../house2.jpg";
-import houseThree from "../../../house3.jpg";
-import houseFour from "../../../house4.jpg";
-import houseFive from "../../../house5.jpg";
-import houseSix from "../../../house6.jpeg";
+import houseOne from "@/assets/images/house1.jpg";
+import houseTwo from "@/assets/images/house2.jpg";
+import houseThree from "@/assets/images/house3.jpg";
+import houseFour from "@/assets/images/house4.jpg";
+import houseFive from "@/assets/images/house5.jpg";
+import houseSix from "@/assets/images/house6.jpeg";
 
 const METRICS = [
   {

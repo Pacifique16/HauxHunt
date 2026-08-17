@@ -7,9 +7,8 @@ import { Heart, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
-import loginIllustration from "../../../login.png";
-
-const SAVED_PROPERTIES_KEY = "hauxhunt-saved-properties";
+import loginIllustration from "@/assets/images/login.png";
+import { useSavedProperty } from "@/hooks/use-saved-properties";
 
 export function SavePropertyButton({
   propertyId,
@@ -18,17 +17,15 @@ export function SavePropertyButton({
   propertyId: string;
   propertyTitle: string;
 }) {
-  const [saved, setSaved] = useState(false);
+  const { saved, toggleSaved: persistSaved } = useSavedProperty(propertyId);
   const [feedback, setFeedback] = useState("");
   const [authPromptOpen, setAuthPromptOpen] = useState(false);
   const [portalReady, setPortalReady] = useState(false);
 
   useEffect(() => {
-    const stored = window.localStorage.getItem(SAVED_PROPERTIES_KEY);
-    const savedProperties = stored ? (JSON.parse(stored) as string[]) : [];
-    setSaved(savedProperties.includes(propertyId));
-    setPortalReady(true);
-  }, [propertyId]);
+    const connectPortal = window.setTimeout(() => setPortalReady(true), 0);
+    return () => window.clearTimeout(connectPortal);
+  }, []);
 
   useEffect(() => {
     if (!feedback) return;
@@ -45,20 +42,11 @@ export function SavePropertyButton({
       return;
     }
 
-    const stored = window.localStorage.getItem(SAVED_PROPERTIES_KEY);
-    const savedProperties = stored ? (JSON.parse(stored) as string[]) : [];
-    const nextSaved = !saved;
-    const nextProperties = nextSaved
-      ? Array.from(new Set([...savedProperties, propertyId]))
-      : savedProperties.filter((id) => id !== propertyId);
-
-    window.localStorage.setItem(
-      SAVED_PROPERTIES_KEY,
-      JSON.stringify(nextProperties),
-    );
-    setSaved(nextSaved);
+    const nextSaved = persistSaved();
     setFeedback(
-      nextSaved ? "House saved to your homes" : "Removed from saved homes",
+      nextSaved
+        ? "Home added to your favourites"
+        : "Home removed from your favourites",
     );
   }
 
@@ -66,7 +54,11 @@ export function SavePropertyButton({
     <>
       <button
         type="button"
-        aria-label={saved ? `Remove ${propertyTitle} from saved homes` : `Save ${propertyTitle}`}
+        aria-label={
+          saved
+            ? `Remove ${propertyTitle} from favourites`
+            : `Add ${propertyTitle} to favourites`
+        }
         aria-pressed={saved}
         onClick={toggleSaved}
         className="border-border-default text-carbon-900 flex size-10 items-center justify-center rounded-full border bg-white transition-colors hover:bg-black/5"
@@ -88,16 +80,9 @@ export function SavePropertyButton({
                     initial={{ opacity: 0, y: 22, scale: 0.97 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 14, scale: 0.98 }}
-                    className="fixed bottom-6 left-1/2 z-[150] min-w-72 -translate-x-1/2 overflow-hidden rounded-2xl border border-white/10 bg-black px-5 py-4 text-center text-sm font-medium whitespace-nowrap text-white shadow-[0_18px_50px_rgba(0,0,0,0.24)]"
+                    className="feedback-toast"
                   >
                     {feedback}
-                    <motion.span
-                      aria-hidden="true"
-                      initial={{ scaleX: 1 }}
-                      animate={{ scaleX: 0 }}
-                      transition={{ duration: 3, ease: "linear" }}
-                      className="absolute inset-x-0 bottom-0 h-0.5 origin-left bg-white"
-                    />
                   </motion.div>
                 ) : null}
               </AnimatePresence>
@@ -141,21 +126,21 @@ export function SavePropertyButton({
                           id="property-save-auth-title"
                           className="font-bricolage text-3xl leading-tight font-medium tracking-[-0.035em]"
                         >
-                          Save homes with an account.
+                          Keep favourite homes with an account.
                         </h2>
                         <p className="text-carbon-600 mt-3 text-sm leading-6">
-                          Log in or create a HauxHunt account to save this house
-                          and find it again later.
+                          Log in or create a HauxHunt account to add this home
+                          to your favourites and find it again later.
                         </p>
                         <div className="mt-7 flex gap-3">
                           <Link
-                            href={`/register?returnTo=/properties/${propertyId}`}
+                            href={`/register?returnTo=${encodeURIComponent("/renter-dashboard/saved")}&save=${encodeURIComponent(propertyId)}${saved ? "&already=1" : ""}`}
                             className="font-bricolage flex h-12 flex-1 items-center justify-center rounded-full border border-black/20 px-5 font-medium"
                           >
                             Sign up
                           </Link>
                           <Link
-                            href={`/login?returnTo=/properties/${propertyId}`}
+                            href={`/login?returnTo=${encodeURIComponent("/renter-dashboard/saved")}&save=${encodeURIComponent(propertyId)}${saved ? "&already=1" : ""}`}
                             className="font-bricolage flex h-12 flex-1 items-center justify-center rounded-full bg-black px-5 font-medium text-white"
                           >
                             Log in

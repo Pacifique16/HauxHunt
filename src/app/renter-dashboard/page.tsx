@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowUpRight,
   ArrowLeft,
@@ -13,7 +14,7 @@ import {
   ChevronDown,
   Clock3,
   FileCheck2,
-  LocateFixed,
+  MapPin,
   Mic,
   Search,
 } from "lucide-react";
@@ -28,15 +29,15 @@ import { ListingCard } from "@/components/sections/featured-listings/listing-car
 import { VoiceInputButton } from "@/components/listings/voice-input-button";
 import { TrendingLocations } from "@/components/sections/trending-locations/trending-locations";
 import { useScrolled } from "@/hooks/use-scrolled";
-import heroImage from "../../../house-isolated-field.jpg";
-import houseOne from "../../../house1.jpg";
-import houseTwo from "../../../house2.jpg";
-import houseThree from "../../../house3.jpg";
-import houseFour from "../../../house4.jpg";
-import houseFive from "../../../house5.jpg";
-import houseSix from "../../../house6.jpeg";
-import julienProfile from "../../../julien.jpg";
-import emptyIllustration from "../../../empty.png";
+import heroImage from "@/assets/images/house-isolated-field.jpg";
+import houseOne from "@/assets/images/house1.jpg";
+import houseTwo from "@/assets/images/house2.jpg";
+import houseThree from "@/assets/images/house3.jpg";
+import houseFour from "@/assets/images/house4.jpg";
+import houseFive from "@/assets/images/house5.jpg";
+import houseSix from "@/assets/images/house6.jpeg";
+import julienProfile from "@/assets/images/julien.jpg";
+import emptyIllustration from "@/assets/images/empty.png";
 
 const LISTINGS = [
   {
@@ -209,14 +210,39 @@ const LISTINGS = [
   },
 ] as const;
 
+const RENTER_NAV_GROUPS = [
+  {
+    label: "Find a Home",
+    links: [
+      ["Listings", "/renter-dashboard/properties"],
+      ["My Favourites", "/renter-dashboard/saved"],
+      ["Saved Searches", "/renter-dashboard/saved-searches"],
+      ["My Viewings", "/renter-dashboard/visits"],
+      ["Applications", "/renter-dashboard/applications"],
+    ],
+  },
+  {
+    label: "My Home",
+    links: [
+      ["My Rentals", "/renter-dashboard/rentals"],
+      ["Payments", "/renter-dashboard/payments"],
+      ["Maintenance", "/renter-dashboard/maintenance"],
+    ],
+  },
+  {
+    label: "Find a Flatmate",
+    links: [
+      ["Browse Flatmates", "/flatmates"],
+      ["My Flatmate Profile", "/renter-dashboard/flatmates/profile"],
+      ["Matches / Interested People", "/renter-dashboard/flatmates/matches"],
+    ],
+  },
+] as const;
+
 const PROFILE_LINKS = [
-  "Saved homes",
-  "Saved searches",
-  "Applications",
-  "Property visits",
-  "Property requests",
-  "Messages",
-  "Account settings",
+  ["My Account", "/renter-dashboard/account"],
+  ["Help Center", "/help"],
+  ["Send Feedback", "/feedback"],
 ] as const;
 
 type SpeechRecognitionEventLike = {
@@ -251,9 +277,11 @@ type ReverseGeocodeResult = {
 };
 
 export default function RenterDashboardPage() {
+  const router = useRouter();
   const displayCurrency = useDisplayCurrency();
   const { scrolled, sentinelRef, threshold } = useScrolled(40);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [openNavMenu, setOpenNavMenu] = useState<string | null>(null);
   const [listingPage, setListingPage] = useState(1);
   const [locationFilter, setLocationFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("Any Type");
@@ -263,6 +291,8 @@ export default function RenterDashboardPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [locationLoading, setLocationLoading] = useState(false);
   const [listening, setListening] = useState(false);
+  const [usingCurrentLocation, setUsingCurrentLocation] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const voiceTranscriptRef = useRef("");
   const filteredListings = LISTINGS.filter((listing) => {
@@ -314,9 +344,22 @@ export default function RenterDashboardPage() {
     ...filteredListings.slice(0, listingOffset),
   ];
 
+  useEffect(() => {
+    const closeProfileOnOutsideClick = (event: MouseEvent) => {
+      if (!profileMenuRef.current?.contains(event.target as Node)) {
+        setProfileOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", closeProfileOnOutsideClick);
+    return () =>
+      document.removeEventListener("mousedown", closeProfileOnOutsideClick);
+  }, []);
+
   const useCurrentLocation = () => {
-    const prototypeAddress = "31 KG 152 St, Kigali";
-    setSearchQuery(prototypeAddress);
+    const demoAddress = "31 KG 152 St, Kigali";
+    setUsingCurrentLocation(true);
+    setSearchQuery(demoAddress);
 
     if (!navigator.geolocation) {
       return;
@@ -354,7 +397,7 @@ export default function RenterDashboardPage() {
           if (!readableAddress) throw new Error("No street address found");
           setSearchQuery(readableAddress);
         } catch {
-          setSearchQuery(prototypeAddress);
+          setSearchQuery(demoAddress);
         } finally {
           setLocationLoading(false);
         }
@@ -380,6 +423,7 @@ export default function RenterDashboardPage() {
       browserWindow.SpeechRecognition ?? browserWindow.webkitSpeechRecognition;
 
     if (!Recognition) {
+      setUsingCurrentLocation(false);
       setSearchQuery("Voice search is not supported in this browser");
       return;
     }
@@ -396,6 +440,7 @@ export default function RenterDashboardPage() {
     };
     recognition.onend = () => {
       if (voiceTranscriptRef.current) {
+        setUsingCurrentLocation(false);
         setSearchQuery(voiceTranscriptRef.current);
       }
       setListening(false);
@@ -405,6 +450,15 @@ export default function RenterDashboardPage() {
     voiceTranscriptRef.current = "";
     setListening(true);
     recognition.start();
+  };
+
+  const submitHomeSearch = () => {
+    const query = searchQuery.trim();
+    if (!query) return;
+
+    const params = new URLSearchParams({ q: query, from: "renter" });
+    if (usingCurrentLocation) params.set("source", "location");
+    router.push(`/search?${params.toString()}`);
   };
 
   const clearExploreFilters = () => {
@@ -446,49 +500,30 @@ export default function RenterDashboardPage() {
             >
               <Wordmark height={scrolled ? 38 : 48} />
             </Link>
-            <nav className="hidden items-center gap-8 justify-self-center text-sm font-medium lg:flex xl:gap-10">
-              <Link
-                href="#explore-homes"
-                onClick={(event) => {
-                  event.preventDefault();
-                  document
-                    .getElementById("explore-homes")
-                    ?.scrollIntoView({ behavior: "smooth" });
-                }}
-                className="relative inline-flex items-center transition-opacity hover:opacity-60"
-              >
-                Discover
-                <span
-                  className={`absolute top-[calc(100%+0.28rem)] left-1/2 size-1.5 -translate-x-1/2 rounded-full ${scrolled ? "bg-black" : "bg-white"}`}
+            <nav className="hidden items-center gap-5 justify-self-center text-sm font-medium lg:flex xl:gap-7">
+              {RENTER_NAV_GROUPS.map((group) => (
+                <RenterNavDropdown
+                  key={group.label}
+                  group={group}
+                  open={openNavMenu === group.label}
+                  onToggle={() =>
+                    setOpenNavMenu((current) =>
+                      current === group.label ? null : group.label,
+                    )
+                  }
+                  onOpen={() => setOpenNavMenu(group.label)}
+                  onClose={() => setOpenNavMenu(null)}
                 />
-              </Link>
-              <Link
-                href="/renter-dashboard/saved"
-                className="transition-opacity hover:opacity-60"
-              >
-                Saved homes
-              </Link>
-              <Link
-                href="/property-request"
-                className="transition-opacity hover:opacity-60"
-              >
-                My requests
-              </Link>
-              <Link
-                href="/renter-dashboard/visits"
-                className="transition-opacity hover:opacity-60"
-              >
-                Visits
-              </Link>
+              ))}
               <Link
                 href="/renter-dashboard/messages"
-                className="transition-opacity hover:opacity-60"
+                className="relative inline-flex items-center transition-opacity hover:opacity-60"
               >
                 Messages
               </Link>
             </nav>
             <div className="flex items-center gap-2 justify-self-end sm:gap-4">
-              <CurrencySelector inverse={!scrolled} />
+              <CurrencySelector inverse={!scrolled} openOnHover />
               <button
                 type="button"
                 aria-label="Notifications"
@@ -501,12 +536,23 @@ export default function RenterDashboardPage() {
                   3
                 </span>
               </button>
-              <div className="relative">
+              <div
+                ref={profileMenuRef}
+                className="relative"
+                onMouseEnter={() => setProfileOpen(true)}
+                onMouseLeave={() => setProfileOpen(false)}
+                onFocus={() => setProfileOpen(true)}
+                onBlur={(event) => {
+                  if (!event.currentTarget.contains(event.relatedTarget))
+                    setProfileOpen(false);
+                }}
+              >
                 <button
                   type="button"
                   onClick={() => setProfileOpen((open) => !open)}
                   className="flex h-12 items-center gap-2 rounded-full pl-1 sm:pr-2"
                   aria-expanded={profileOpen}
+                  aria-haspopup="menu"
                 >
                   <Image
                     src={julienProfile}
@@ -516,7 +562,9 @@ export default function RenterDashboardPage() {
                   <span className="hidden text-sm font-medium sm:block">
                     Julien
                   </span>
-                  <ChevronDown className="hidden size-4 sm:block" />
+                  <ChevronDown
+                    className={`hidden size-4 transition-transform sm:block ${profileOpen ? "rotate-180" : ""}`}
+                  />
                 </button>
                 {profileOpen ? <ProfileMenu /> : null}
               </div>
@@ -529,7 +577,10 @@ export default function RenterDashboardPage() {
             Find a home that fits your life.
           </h1>
           <form
-            onSubmit={(event) => event.preventDefault()}
+            onSubmit={(event) => {
+              event.preventDefault();
+              submitHomeSearch();
+            }}
             className="mt-9 flex w-full max-w-[900px] flex-col overflow-hidden rounded-[1.35rem] bg-white text-black shadow-[0_24px_70px_rgba(0,0,0,0.28)] sm:h-16 sm:flex-row sm:rounded-full"
           >
             <div className="relative flex min-w-0 flex-1 items-center">
@@ -541,14 +592,17 @@ export default function RenterDashboardPage() {
                 title="Use my current location"
                 className="text-carbon-400 ml-3 flex size-10 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-black/[0.055] hover:text-black disabled:opacity-40"
               >
-                <LocateFixed className="size-5" />
+                <MapPin aria-hidden="true" className="size-5" />
               </button>
               <input
                 type="search"
                 aria-label="Search homes"
                 placeholder="Try ‘3-bedroom apartment in Kacyiru under USD 800’"
                 value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
+                onChange={(event) => {
+                  setUsingCurrentLocation(false);
+                  setSearchQuery(event.target.value);
+                }}
                 style={{ border: 0, boxShadow: "none", outline: "none" }}
                 className="h-16 min-w-0 flex-1 appearance-none border-0 bg-transparent px-4 text-sm shadow-none ring-0 outline-none placeholder:text-black/35 focus:border-0 focus:shadow-none focus:ring-0 focus:outline-none focus-visible:border-0 focus-visible:ring-0 focus-visible:outline-none sm:text-base [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden"
               />
@@ -566,8 +620,9 @@ export default function RenterDashboardPage() {
             </button>
             <button
               type="submit"
+              disabled={!searchQuery.trim()}
               aria-label="Search"
-              className="m-2 flex h-12 items-center justify-center rounded-full bg-black px-6 text-white transition-opacity hover:opacity-75"
+              className="m-2 flex h-12 items-center justify-center rounded-full bg-black px-6 text-white transition-opacity hover:opacity-75 disabled:pointer-events-none disabled:opacity-35"
             >
               <Search className="size-5" />
             </button>
@@ -625,16 +680,8 @@ export default function RenterDashboardPage() {
             ]}
             optionLabels={{
               "Any Price": "Any Price",
-              "Under USD 500": formatCurrencyRange(
-                null,
-                500,
-                displayCurrency,
-              ),
-              "USD 500–1,000": formatCurrencyRange(
-                500,
-                1000,
-                displayCurrency,
-              ),
+              "Under USD 500": formatCurrencyRange(null, 500, displayCurrency),
+              "USD 500–1,000": formatCurrencyRange(500, 1000, displayCurrency),
               "USD 1,000–2,000": formatCurrencyRange(
                 1000,
                 2000,
@@ -746,7 +793,7 @@ export default function RenterDashboardPage() {
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <h2 className="font-bricolage text-3xl font-medium tracking-[-0.04em] sm:text-4xl">
-                Your saved homes
+                Your favourite homes
               </h2>
               <p className="text-carbon-500 mt-3 text-sm">
                 Keep your strongest options close while you compare.
@@ -756,7 +803,7 @@ export default function RenterDashboardPage() {
               href="/renter-dashboard/saved"
               className="font-bricolage border-carbon-900 text-carbon-900 hover:bg-muted inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border px-5 text-sm font-medium transition-colors duration-150"
             >
-              View saved homes <ArrowUpRight className="size-4" />
+              View favourite homes <ArrowUpRight className="size-4" />
             </Link>
           </div>
           <div className="mt-8 grid gap-4 lg:grid-cols-3">
@@ -850,34 +897,99 @@ export default function RenterDashboardPage() {
   );
 }
 
+function RenterNavDropdown({
+  group,
+  open,
+  onToggle,
+  onOpen,
+  onClose,
+}: {
+  group: (typeof RENTER_NAV_GROUPS)[number];
+  open: boolean;
+  onToggle: () => void;
+  onOpen: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      className="relative"
+      onMouseEnter={onOpen}
+      onMouseLeave={onClose}
+      onFocus={onOpen}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) onClose();
+      }}
+    >
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        aria-haspopup="menu"
+        className="relative inline-flex items-center gap-1.5 transition-opacity hover:opacity-60"
+      >
+        {group.label}
+        <ChevronDown
+          className={`size-3.5 transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+      {open ? (
+        <div className="absolute top-full left-1/2 z-50 w-64 -translate-x-1/2 pt-[0.8rem]">
+          <div
+            role="menu"
+            className="overflow-hidden rounded-2xl bg-white p-2 text-black shadow-[0_24px_70px_rgba(0,0,0,0.24)]"
+          >
+            {group.links.map(([label, href]) => (
+              <Link
+                key={label}
+                href={href}
+                role="menuitem"
+                className="flex min-h-11 items-center rounded-xl px-3 text-sm font-normal transition-colors hover:bg-black/[0.055] focus:bg-black/[0.055] focus:outline-none"
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function ProfileMenu() {
   return (
-    <div className="absolute top-[calc(100%+0.75rem)] right-0 z-50 w-[290px] overflow-hidden rounded-2xl bg-white text-black shadow-[0_24px_70px_rgba(0,0,0,0.24)]">
-      <div className="border-b border-black/10 px-5 py-5">
-        <p className="font-bricolage text-lg font-medium">Julien Mugisha</p>
-        <p className="text-carbon-500 mt-0.5 text-sm">renter@gmail.com</p>
-      </div>
-      <div className="p-2">
-        {PROFILE_LINKS.map((item) => (
-          <button
-            key={item}
-            type="button"
-            className="flex h-11 w-full items-center rounded-xl px-3 text-left text-sm transition-colors hover:bg-black/[0.055]"
+    <div className="absolute top-full right-0 z-50 w-[290px] pt-3">
+      <div
+        role="menu"
+        className="overflow-hidden rounded-2xl bg-white text-black shadow-[0_24px_70px_rgba(0,0,0,0.24)]"
+      >
+        <div className="border-b border-black/10 px-5 py-5">
+          <p className="font-bricolage text-lg font-medium">Julien Mugisha</p>
+          <p className="text-carbon-500 mt-0.5 text-sm">renter@gmail.com</p>
+        </div>
+        <div className="p-2">
+          {PROFILE_LINKS.map(([label, href]) => (
+            <Link
+              key={label}
+              href={href}
+              role="menuitem"
+              className="flex h-11 w-full items-center rounded-xl px-3 text-left text-sm transition-colors hover:bg-black/[0.055]"
+            >
+              {label}
+            </Link>
+          ))}
+        </div>
+        <div className="border-t border-black/10 p-2">
+          <Link
+            href="/login"
+            role="menuitem"
+            onClick={() => {
+              window.sessionStorage.removeItem("hauxhunt-authenticated-role");
+            }}
+            className="flex h-11 items-center rounded-xl px-3 text-sm hover:bg-black/[0.055]"
           >
-            {item}
-          </button>
-        ))}
-      </div>
-      <div className="border-t border-black/10 p-2">
-        <Link
-          href="/login"
-          onClick={() => {
-            window.sessionStorage.removeItem("hauxhunt-authenticated-role");
-          }}
-          className="flex h-11 items-center rounded-xl px-3 text-sm hover:bg-black/[0.055]"
-        >
-          Sign out
-        </Link>
+            Log Out
+          </Link>
+        </div>
       </div>
     </div>
   );
@@ -899,8 +1011,8 @@ function FilterTextField({
       <span className="text-carbon-900 mb-2 block text-sm font-medium">
         {label}
       </span>
-      <span className="flex h-12 items-center gap-3 rounded-xl border border-black/15 px-4 transition-colors focus-within:border-black">
-        <Search aria-hidden="true" className="text-carbon-500 size-5" />
+      <span className="catalogue-location-filter flex items-center gap-2 px-4">
+        <Search aria-hidden="true" className="text-carbon-500 size-4" />
         <input
           type="search"
           placeholder={placeholder}

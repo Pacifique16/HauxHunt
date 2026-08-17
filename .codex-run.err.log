@@ -1,0 +1,343 @@
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+⨯ ./src/app/renter-dashboard/rental-setup/[id]/page.tsx:7:1
+Error: Module not found: Can't resolve '../../../../../agreed (1).png'
+  [90m 5 |[0m [36mimport[0m { [33mCheck[0m, [33mChevronLeft[0m, [33mChevronRight[0m, [33mFileText[0m, [33mX[0m } [36mfrom[0m [32m"lucide-react"[0m;
+  [90m 6 |[0m [36mimport[0m { useEffect, useState } [36mfrom[0m [32m"react"[0m;
+[31m[1m>[0m [90m 7 |[0m [36mimport[0m agreedIllustration [36mfrom[0m [32m"../../../../../agreed (1).png"[0m;
+  [90m   |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m 8 |[0m [36mimport[0m managerAvatar [36mfrom[0m [32m"../../../../../julien.jpg"[0m;
+  [90m 9 |[0m [36mimport[0m { [33mRenterCatalogueTopBar[0m } [36mfrom[0m [32m"@/components/renter/renter-catalogue-top-bar"[0m;
+  [90m10 |[0m [36mconst[0m steps = [
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Client Component Browser]
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Client Component SSR]
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[browser] ./src/app/renter-dashboard/rental-setup/[id]/page.tsx:7:1
+Error: Module not found: Can't resolve '../../../../../agreed (1).png'
+   5 | import { Check, ChevronLeft, ChevronRight, FileText, X } from "lucide-react";
+   6 | import { useEffect, useState } from "react";
+>  7 | import agreedIllustration from "../../../../../agreed (1).png";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 | import managerAvatar from "../../../../../julien.jpg";
+   9 | import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
+  10 | const steps = [
+
+Import traces:
+  Client Component Browser:
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Client Component Browser]
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Client Component SSR]
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found 
+[browser] ./src/app/renter-dashboard/rental-setup/[id]/page.tsx:7:1
+Error: Module not found: Can't resolve '../../../../../agreed (1).png'
+   5 | import { Check, ChevronLeft, ChevronRight, FileText, X } from "lucide-react";
+   6 | import { useEffect, useState } from "react";
+>  7 | import agreedIllustration from "../../../../../agreed (1).png";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 | import managerAvatar from "../../../../../julien.jpg";
+   9 | import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
+  10 | const steps = [
+
+Import traces:
+  Client Component Browser:
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Client Component Browser]
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Client Component SSR]
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found 
+[browser] ./src/app/renter-dashboard/rental-setup/[id]/page.tsx:7:1
+Error: Module not found: Can't resolve '../../../../../agreed (1).png'
+   5 | import { Check, ChevronLeft, ChevronRight, FileText, X } from "lucide-react";
+   6 | import { useEffect, useState } from "react";
+>  7 | import agreedIllustration from "../../../../../agreed (1).png";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 | import managerAvatar from "../../../../../julien.jpg";
+   9 | import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
+  10 | const steps = [
+
+Import traces:
+  Client Component Browser:
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Client Component Browser]
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Client Component SSR]
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found 
+[browser] ./src/app/renter-dashboard/rental-setup/[id]/page.tsx:7:1
+Error: Module not found: Can't resolve '../../../../../agreed (1).png'
+   5 | import { Check, ChevronLeft, ChevronRight, FileText, X } from "lucide-react";
+   6 | import { useEffect, useState } from "react";
+>  7 | import agreedIllustration from "../../../../../agreed (1).png";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 | import managerAvatar from "../../../../../julien.jpg";
+   9 | import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
+  10 | const steps = [
+
+Import traces:
+  Client Component Browser:
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Client Component Browser]
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Client Component SSR]
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found 
+⨯ ./src/app/renter-dashboard/rental-setup/[id]/page.tsx:7:1
+Error: Module not found: Can't resolve '../../../../../agreed (1).png'
+  [90m 5 |[0m [36mimport[0m { [33mCheck[0m, [33mChevronLeft[0m, [33mChevronRight[0m, [33mFileText[0m, [33mX[0m } [36mfrom[0m [32m"lucide-react"[0m;
+  [90m 6 |[0m [36mimport[0m { useEffect, useState } [36mfrom[0m [32m"react"[0m;
+[31m[1m>[0m [90m 7 |[0m [36mimport[0m agreedIllustration [36mfrom[0m [32m"../../../../../agreed (1).png"[0m;
+  [90m   |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m 8 |[0m [36mimport[0m managerAvatar [36mfrom[0m [32m"../../../../../julien.jpg"[0m;
+  [90m 9 |[0m [36mimport[0m { [33mRenterCatalogueTopBar[0m } [36mfrom[0m [32m"@/components/renter/renter-catalogue-top-bar"[0m;
+  [90m10 |[0m [36mconst[0m steps = [
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Client Component Browser]
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Client Component SSR]
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[browser] ./src/app/renter-dashboard/rental-setup/[id]/page.tsx:7:1
+Error: Module not found: Can't resolve '../../../../../agreed (1).png'
+   5 | import { Check, ChevronLeft, ChevronRight, FileText, X } from "lucide-react";
+   6 | import { useEffect, useState } from "react";
+>  7 | import agreedIllustration from "../../../../../agreed (1).png";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 | import managerAvatar from "../../../../../julien.jpg";
+   9 | import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
+  10 | const steps = [
+
+Import traces:
+  Client Component Browser:
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Client Component Browser]
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Client Component SSR]
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found 
+[browser] Uncaught Error: ./src/app/renter-dashboard/rental-setup/[id]/page.tsx:7:1
+Error: Module not found: Can't resolve '../../../../../agreed (1).png'
+   5 | import { Check, ChevronLeft, ChevronRight, FileText, X } from "lucide-react";
+   6 | import { useEffect, useState } from "react";
+>  7 | import agreedIllustration from "../../../../../agreed (1).png";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 | import managerAvatar from "../../../../../julien.jpg";
+   9 | import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
+  10 | const steps = [
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Client Component Browser]
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Client Component SSR]
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+    at <unknown> (Error: ./src/app/renter-dashboard/rental-setup/[id]/page.tsx:7:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (Error: (./src/app/renter-dashboard/rental-setup/[id]/page.tsx:7:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+[browser] ./src/app/renter-dashboard/rental-setup/[id]/page.tsx:7:1
+Error: Module not found: Can't resolve '../../../../../agreed (1).png'
+   5 | import { Check, ChevronLeft, ChevronRight, FileText, X } from "lucide-react";
+   6 | import { useEffect, useState } from "react";
+>  7 | import agreedIllustration from "../../../../../agreed (1).png";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 | import managerAvatar from "../../../../../julien.jpg";
+   9 | import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
+  10 | const steps = [
+
+Import traces:
+  Client Component Browser:
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Client Component Browser]
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Client Component SSR]
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found 
+⨯ ./src/app/renter-dashboard/rental-setup/[id]/page.tsx:7:1
+Error: Module not found: Can't resolve '../../../../../agreed (1).png'
+  [90m 5 |[0m [36mimport[0m { [33mCheck[0m, [33mChevronLeft[0m, [33mChevronRight[0m, [33mFileText[0m, [33mX[0m } [36mfrom[0m [32m"lucide-react"[0m;
+  [90m 6 |[0m [36mimport[0m { useEffect, useState } [36mfrom[0m [32m"react"[0m;
+[31m[1m>[0m [90m 7 |[0m [36mimport[0m agreedIllustration [36mfrom[0m [32m"../../../../../agreed (1).png"[0m;
+  [90m   |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m 8 |[0m [36mimport[0m managerAvatar [36mfrom[0m [32m"../../../../../julien.jpg"[0m;
+  [90m 9 |[0m [36mimport[0m { [33mRenterCatalogueTopBar[0m } [36mfrom[0m [32m"@/components/renter/renter-catalogue-top-bar"[0m;
+  [90m10 |[0m [36mconst[0m steps = [
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Client Component Browser]
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Client Component SSR]
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[browser] ./src/app/renter-dashboard/rental-setup/[id]/page.tsx:7:1
+Error: Module not found: Can't resolve '../../../../../agreed (1).png'
+   5 | import { Check, ChevronLeft, ChevronRight, FileText, X } from "lucide-react";
+   6 | import { useEffect, useState } from "react";
+>  7 | import agreedIllustration from "../../../../../agreed (1).png";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 | import managerAvatar from "../../../../../julien.jpg";
+   9 | import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
+  10 | const steps = [
+
+Import traces:
+  Client Component Browser:
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Client Component Browser]
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Client Component SSR]
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found 
+[browser] ./src/app/renter-dashboard/rental-setup/[id]/page.tsx:7:1
+Error: Module not found: Can't resolve '../../../../../agreed (1).png'
+   5 | import { Check, ChevronLeft, ChevronRight, FileText, X } from "lucide-react";
+   6 | import { useEffect, useState } from "react";
+>  7 | import agreedIllustration from "../../../../../agreed (1).png";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 | import managerAvatar from "../../../../../julien.jpg";
+   9 | import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
+  10 | const steps = [
+
+Import traces:
+  Client Component Browser:
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Client Component Browser]
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Client Component SSR]
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found 
+[browser] Uncaught Error: ./src/app/renter-dashboard/rental-setup/[id]/page.tsx:7:1
+Error: Module not found: Can't resolve '../../../../../agreed (1).png'
+   5 | import { Check, ChevronLeft, ChevronRight, FileText, X } from "lucide-react";
+   6 | import { useEffect, useState } from "react";
+>  7 | import agreedIllustration from "../../../../../agreed (1).png";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 | import managerAvatar from "../../../../../julien.jpg";
+   9 | import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
+  10 | const steps = [
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Client Component Browser]
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Client Component SSR]
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+    at <unknown> (Error: ./src/app/renter-dashboard/rental-setup/[id]/page.tsx:7:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (Error: (./src/app/renter-dashboard/rental-setup/[id]/page.tsx:7:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+[browser] ./src/app/renter-dashboard/rental-setup/[id]/page.tsx:7:1
+Error: Module not found: Can't resolve '../../../../../agreed (1).png'
+   5 | import { Check, ChevronLeft, ChevronRight, FileText, X } from "lucide-react";
+   6 | import { useEffect, useState } from "react";
+>  7 | import agreedIllustration from "../../../../../agreed (1).png";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 | import managerAvatar from "../../../../../julien.jpg";
+   9 | import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
+  10 | const steps = [
+
+Import traces:
+  Client Component Browser:
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Client Component Browser]
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Client Component SSR]
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found 
+[browser] ./src/app/renter-dashboard/rental-setup/[id]/page.tsx:7:1
+Error: Module not found: Can't resolve '../../../../../agreed (1).png'
+   5 | import { Check, ChevronLeft, ChevronRight, FileText, X } from "lucide-react";
+   6 | import { useEffect, useState } from "react";
+>  7 | import agreedIllustration from "../../../../../agreed (1).png";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 | import managerAvatar from "../../../../../julien.jpg";
+   9 | import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
+  10 | const steps = [
+
+Import traces:
+  Client Component Browser:
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Client Component Browser]
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Client Component SSR]
+    ./src/app/renter-dashboard/rental-setup/[id]/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found 
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[browser] Image with src "/_next/static/media/house1.20uokkkykor8r.jpg" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[browser] Image with src "/_next/static/media/house1.20uokkkykor8r.jpg" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[browser] Image with src "/_next/static/media/empty.0yiilqfado3m7.png" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior

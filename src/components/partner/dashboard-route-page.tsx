@@ -36,13 +36,13 @@ import {
 import { DashboardShell } from "@/components/partner/dashboard-shell";
 import { usePartnerRole } from "@/components/partner/use-partner-role";
 import { ListingOptionsMenu } from "@/components/partner/listing-options-menu";
-import houseOne from "../../../house1.jpg";
-import houseTwo from "../../../house2.jpg";
-import houseThree from "../../../house3.jpg";
-import houseFour from "../../../house4.jpg";
-import houseFive from "../../../house5.jpg";
-import houseSix from "../../../house6.jpeg";
-import noDataIllustration from "../../../empty.png";
+import houseOne from "@/assets/images/house1.jpg";
+import houseTwo from "@/assets/images/house2.jpg";
+import houseThree from "@/assets/images/house3.jpg";
+import houseFour from "@/assets/images/house4.jpg";
+import houseFive from "@/assets/images/house5.jpg";
+import houseSix from "@/assets/images/house6.jpeg";
+import noDataIllustration from "@/assets/images/empty.png";
 
 type ListingStatus = "Live" | "In review" | "Draft" | "Archived";
 
@@ -671,16 +671,9 @@ function AllListings() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 14, scale: 0.98 }}
                   transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                  className="fixed bottom-6 left-1/2 z-[120] min-w-72 -translate-x-1/2 overflow-hidden rounded-2xl border border-white/10 bg-black px-5 py-4 text-center text-sm font-medium whitespace-nowrap text-white shadow-[0_18px_50px_rgba(0,0,0,0.24)]"
+                  className="feedback-toast"
                 >
                   {actionFeedback}
-                  <motion.span
-                    aria-hidden="true"
-                    initial={{ scaleX: 1 }}
-                    animate={{ scaleX: 0 }}
-                    transition={{ duration: 3, ease: "linear" }}
-                    className="absolute inset-x-0 bottom-0 h-0.5 origin-left bg-white"
-                  />
                 </motion.div>
               ) : null}
             </AnimatePresence>,

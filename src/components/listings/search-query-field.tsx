@@ -78,7 +78,7 @@ export function SearchQueryField({ defaultValue }: { defaultValue: string }) {
         aria-label="Search"
         className="text-carbon-500 hover:text-carbon-900 shrink-0 transition-colors"
       >
-        <Search aria-hidden="true" className="size-5" />
+        <Search aria-hidden="true" className="size-4" />
       </button>
       <input
         ref={inputRef}
@@ -99,7 +99,7 @@ export function SearchQueryField({ defaultValue }: { defaultValue: string }) {
           listening ? "text-red-600" : "text-carbon-500 hover:text-carbon-900"
         }`}
       >
-        <Mic aria-hidden="true" className="size-5" />
+        <Mic aria-hidden="true" className="size-4" />
       </button>
     </>
   );
