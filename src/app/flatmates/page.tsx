@@ -1,153 +1,32 @@
 import type { Metadata } from "next";
-import Image, { type StaticImageData } from "next/image";
+import Image from "next/image";
 import Link from "next/link";
 import {
-  Bath,
-  BedDouble,
-  CalendarDays,
+  BadgeCheck,
   ChevronDown,
-  MapPin,
-  Ruler,
   Search,
-  Sofa,
-  UsersRound,
+  SlidersHorizontal,
 } from "lucide-react";
 
-import house1 from "@/assets/images/house1.jpg";
-import house2 from "@/assets/images/house2.jpg";
-import house3 from "@/assets/images/house3.jpg";
-import house4 from "@/assets/images/house4.jpg";
-import house5 from "@/assets/images/house5.jpg";
-import house6 from "@/assets/images/house6.jpeg";
 import emptyIllustration from "@/assets/images/empty.png";
+import { CurrencyFilterSelect } from "@/components/currency/currency-selector";
+import { FlatmateAuthAction } from "@/components/flatmates/flatmate-auth-action";
+import { FlatmatePortrait } from "@/components/flatmates/flatmate-portrait";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { AutoSubmitFilterForm } from "@/components/listings/auto-submit-filter-form";
 import { VoiceInputButton } from "@/components/listings/voice-input-button";
-import {
-  CurrencyAmount,
-  CurrencyFilterSelect,
-} from "@/components/currency/currency-selector";
+import { PUBLIC_FLATMATES, type PublicFlatmate } from "@/data/public-flatmates";
 
 export const metadata: Metadata = {
   title: "Find a flatmate | HauxHunt",
   description:
-    "Find compatible flatmates and shared rental homes across Rwanda, Nigeria, and Kenya.",
+    "Find someone compatible to share a home and rent with across Rwanda, Kenya, and Nigeria.",
 };
 
-const SHARED_HOMES: Array<{
-  title: string;
-  location: string;
-  price: string;
-  available: string;
-  household: string;
-  bedrooms: number;
-  bathrooms: number;
-  area: number;
-  amenities: string[];
-  likes: string[];
-  dislikes: string[];
-  genderPreference: "any" | "female" | "male";
-  occupationPreference: "any" | "student" | "professional" | "remote-worker";
-  image: StaticImageData;
-}> = [
-  {
-    title: "Room in a calm 3-bedroom apartment",
-    location: "Kacyiru, Kigali",
-    price: "USD 280 / month",
-    available: "Available 1 Sep",
-    household: "2 people currently living here",
-    bedrooms: 3,
-    bathrooms: 2,
-    area: 118,
-    amenities: ["Furnished", "Wi-Fi", "Parking"],
-    likes: ["Quiet evenings", "Shared cooking"],
-    dislikes: ["Smoking", "Loud parties"],
-    genderPreference: "any",
-    occupationPreference: "student",
-    image: house1,
-  },
-  {
-    title: "Share a furnished apartment near town",
-    location: "Kilimani, Nairobi",
-    price: "USD 340 / month",
-    available: "Available now",
-    household: "1 person currently living here",
-    bedrooms: 2,
-    bathrooms: 2,
-    area: 94,
-    amenities: ["Furnished", "Gym", "Security"],
-    likes: ["Clean shared spaces", "Social weekends"],
-    dislikes: ["Indoor smoking", "Unannounced guests"],
-    genderPreference: "female",
-    occupationPreference: "professional",
-    image: house2,
-  },
-  {
-    title: "Private room in a secure compound",
-    location: "Lekki, Lagos",
-    price: "USD 420 / month",
-    available: "Available 15 Sep",
-    household: "2 people currently living here",
-    bedrooms: 4,
-    bathrooms: 3,
-    area: 176,
-    amenities: ["Backup power", "Parking", "Air conditioning"],
-    likes: ["Professionals", "Occasional visitors"],
-    dislikes: ["Smoking", "Poor communication"],
-    genderPreference: "male",
-    occupationPreference: "professional",
-    image: house3,
-  },
-  {
-    title: "Bright room close to offices and transit",
-    location: "Remera, Kigali",
-    price: "USD 230 / month",
-    available: "Available now",
-    household: "1 person currently living here",
-    bedrooms: 2,
-    bathrooms: 1,
-    area: 82,
-    amenities: ["Wi-Fi", "Water tank", "Balcony"],
-    likes: ["Early mornings", "Quiet home"],
-    dislikes: ["Pets", "Late-night noise"],
-    genderPreference: "any",
-    occupationPreference: "student",
-    image: house4,
-  },
-  {
-    title: "Room in a modern shared duplex",
-    location: "Wuse II, Abuja",
-    price: "USD 390 / month",
-    available: "Available 5 Oct",
-    household: "3 people currently living here",
-    bedrooms: 5,
-    bathrooms: 4,
-    area: 214,
-    amenities: ["Furnished", "Backup power", "Security"],
-    likes: ["Social dinners", "Shared cooking"],
-    dislikes: ["Smoking indoors", "Messy common areas"],
-    genderPreference: "any",
-    occupationPreference: "professional",
-    image: house5,
-  },
-  {
-    title: "Lake-side home seeking one flatmate",
-    location: "Gisenyi, Rwanda",
-    price: "USD 260 / month",
-    available: "Available 20 Sep",
-    household: "1 person currently living here",
-    bedrooms: 3,
-    bathrooms: 2,
-    area: 126,
-    amenities: ["Lake view", "Furnished", "Parking"],
-    likes: ["Remote workers", "Quiet routines"],
-    dislikes: ["Smoking", "Frequent parties"],
-    genderPreference: "any",
-    occupationPreference: "remote-worker",
-    image: house6,
-  },
-];
+function valueOf(value: string | string[] | undefined) {
+  return Array.isArray(value) ? (value[0] ?? "") : (value ?? "");
+}
 
 export default async function FlatmatesPage({
   searchParams,
@@ -155,415 +34,347 @@ export default async function FlatmatesPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  const valueOf = (value: string | string[] | undefined) =>
-    Array.isArray(value) ? (value[0] ?? "") : (value ?? "");
-  const locationFilter = valueOf(params.location).trim().toLowerCase();
-  const typeFilter = valueOf(params.type).trim().toLowerCase();
-  const priceRangeFilter = valueOf(params.priceRange);
-  const budgetFilter = valueOf(params.budget);
-  const genderFilter = valueOf(params.gender);
-  const bedroomsFilter = valueOf(params.bedrooms);
-  const occupationFilter = valueOf(params.occupation);
-  const showAll =
-    (Array.isArray(params.view) ? params.view[0] : params.view) === "all";
-  const filteredHomes = SHARED_HOMES.filter((home) => {
-    const monthlyContribution = Number(home.price.replace(/[^0-9]/g, ""));
-    const searchableHomeType =
-      `${home.title} ${home.amenities.join(" ")}`.toLowerCase();
-    const locationMatches =
-      !locationFilter || home.location.toLowerCase().includes(locationFilter);
-    const typeMatches =
-      !typeFilter || searchableHomeType.includes(typeFilter.toLowerCase());
-    const priceRangeMatches =
-      !priceRangeFilter ||
-      (priceRangeFilter === "USD 50 – 100" && monthlyContribution <= 100) ||
-      (priceRangeFilter === "USD 100 – 150" &&
-        monthlyContribution >= 100 &&
-        monthlyContribution <= 150) ||
-      (priceRangeFilter === "USD 150 – 250" &&
-        monthlyContribution >= 150 &&
-        monthlyContribution <= 250) ||
-      (priceRangeFilter === "USD 250 – 500" &&
-        monthlyContribution >= 250 &&
-        monthlyContribution <= 500) ||
-      (priceRangeFilter === "USD 500 – 1,000" &&
-        monthlyContribution >= 500 &&
-        monthlyContribution <= 1000) ||
-      (priceRangeFilter === "USD 1,000+" && monthlyContribution >= 1000);
-    const budgetMatches =
-      !budgetFilter ||
-      (budgetFilter === "under-250" && monthlyContribution < 250) ||
-      (budgetFilter === "250-400" &&
-        monthlyContribution >= 250 &&
-        monthlyContribution <= 400) ||
-      (budgetFilter === "above-400" && monthlyContribution > 400);
-    const genderMatches =
-      !genderFilter ||
-      genderFilter === "any" ||
-      home.genderPreference === "any" ||
-      home.genderPreference === genderFilter;
-    const bedroomsMatches =
-      !bedroomsFilter ||
-      (bedroomsFilter === "4+"
-        ? home.bedrooms >= 4
-        : home.bedrooms === Number(bedroomsFilter));
-    const occupationMatches =
-      !occupationFilter ||
-      occupationFilter === "any" ||
-      home.occupationPreference === "any" ||
-      home.occupationPreference === occupationFilter;
+  const location = valueOf(params.location).trim();
+  const budget = valueOf(params.budget);
+  const moveIn = valueOf(params.moveIn);
+  const situation = valueOf(params.situation);
+  const gender = valueOf(params.gender);
+  const occupation = valueOf(params.occupation);
+  const smoking = valueOf(params.smoking);
+  const lifestyle = valueOf(params.lifestyle);
+  const showAll = valueOf(params.view) === "all";
 
+  const filtered = PUBLIC_FLATMATES.filter((flatmate) => {
+    const searchableLocation =
+      `${flatmate.city} ${flatmate.country} ${flatmate.areas.join(" ")}`.toLowerCase();
+    const locationMatch =
+      !location || searchableLocation.includes(location.toLowerCase());
+    const budgetMatch =
+      !budget ||
+      (budget === "under-300" && flatmate.budgetMin < 300000) ||
+      (budget === "300-450" &&
+        flatmate.budgetMin <= 450000 &&
+        flatmate.budgetMax >= 300000) ||
+      (budget === "450-600" &&
+        flatmate.budgetMin <= 600000 &&
+        flatmate.budgetMax >= 450000) ||
+      (budget === "above-600" && flatmate.budgetMax > 600000);
     return (
-      locationMatches &&
-      typeMatches &&
-      priceRangeMatches &&
-      budgetMatches &&
-      genderMatches &&
-      bedroomsMatches &&
-      occupationMatches
+      locationMatch &&
+      budgetMatch &&
+      (!moveIn || flatmate.moveInValue === moveIn) &&
+      (!situation || flatmate.situation === situation) &&
+      (!gender || flatmate.gender === gender) &&
+      (!occupation ||
+        flatmate.occupation.toLowerCase().includes(occupation.toLowerCase())) &&
+      (!smoking || flatmate.smoking === smoking) &&
+      (!lifestyle || flatmate.lifestyle === lifestyle)
     );
   });
-  const visibleHomes = showAll ? filteredHomes : filteredHomes.slice(0, 4);
-  const filterQuery = new URLSearchParams();
-  if (locationFilter) filterQuery.set("location", valueOf(params.location));
-  if (typeFilter) filterQuery.set("type", valueOf(params.type));
-  if (priceRangeFilter) filterQuery.set("priceRange", priceRangeFilter);
-  if (budgetFilter) filterQuery.set("budget", budgetFilter);
-  if (genderFilter) filterQuery.set("gender", genderFilter);
-  if (bedroomsFilter) filterQuery.set("bedrooms", bedroomsFilter);
-  if (occupationFilter) filterQuery.set("occupation", occupationFilter);
-  const showAllQuery = new URLSearchParams(filterQuery);
-  showAllQuery.set("view", "all");
-  const hasFilters = Boolean(
-    locationFilter ||
-    typeFilter ||
-    priceRangeFilter ||
-    budgetFilter ||
-    (genderFilter && genderFilter !== "any") ||
-    bedroomsFilter ||
-    (occupationFilter && occupationFilter !== "any"),
-  );
+
+  const visible = showAll ? filtered : filtered.slice(0, 6);
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries({
+    location,
+    budget,
+    moveIn,
+    situation,
+    gender,
+    occupation,
+    smoking,
+    lifestyle,
+  })) {
+    if (value) query.set(key, value);
+  }
+  const allQuery = new URLSearchParams(query);
+  allQuery.set("view", "all");
 
   return (
     <>
       <Navbar />
-      <main className="bg-carbon-50 min-h-svh pt-16">
-        <section className="bg-white px-5 pt-10 pb-8 sm:px-6 lg:px-11 xl:px-[52px]">
+      <main className="bg-carbon-50 min-h-svh pt-16 text-black">
+        <section className="bg-carbon-50 px-5 pt-8 pb-6 sm:px-6 lg:px-11 xl:px-[52px]">
           <div className="mx-auto max-w-[1562px]">
             <h1 className="dashboard-page-title text-carbon-900">
-              Find a flatmate
+              Find a Flatmate
             </h1>
-            <p className="text-carbon-600 mt-4 max-w-3xl text-lg leading-7">
-              Join a shared rental posted by the people already living there,
-              compare your contribution, and understand the home and household
-              before deciding.
+            <p className="text-carbon-600 mt-3 max-w-3xl text-base leading-6">
+              Find people whose budget, location, move-in plans, and lifestyle
+              could work with yours.
             </p>
           </div>
         </section>
 
-        <section className="border-y border-black/10 bg-white px-5 py-5 sm:px-6 lg:px-11 xl:px-[52px]">
+        <section
+          id="flatmate-filters"
+          className="bg-carbon-50 px-5 py-4 sm:px-6 lg:px-11 xl:px-[52px]"
+        >
           <AutoSubmitFilterForm
             action="/flatmates"
             className="mx-auto grid max-w-[1562px] gap-3 md:grid-cols-2 xl:grid-cols-5"
           >
-            <input type="hidden" name="type" value={valueOf(params.type)} />
-            <input type="hidden" name="priceRange" value={priceRangeFilter} />
-            <label className="catalogue-location-filter flex items-center gap-2 px-4">
+            <label className="catalogue-location-filter flex h-12 items-center gap-2 bg-white px-4 shadow-[0_6px_18px_rgba(0,0,0,0.09)]">
               <Search aria-hidden="true" className="text-carbon-500 size-4" />
               <input
                 name="location"
-                defaultValue={valueOf(params.location)}
+                defaultValue={location}
                 data-no-auto-submit="true"
                 data-submit-when-empty="true"
                 placeholder="Location"
-                style={{ border: 0, boxShadow: "none", outline: "none" }}
-                className="min-w-0 flex-1 border-0 bg-transparent text-sm shadow-none ring-0 outline-none focus:border-0 focus:shadow-none focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:outline-none"
+                className="min-w-0 flex-1 border-0 bg-transparent text-sm shadow-none ring-0 outline-none"
               />
               <VoiceInputButton />
             </label>
-            <FilterSelect
-              name="gender"
-              label="Gender"
-              value={genderFilter}
-              options={[
-                ["any", "Any gender"],
-                ["female", "Female"],
-                ["male", "Male"],
-              ]}
-            />
             <CurrencyFilterSelect
               name="budget"
-              label="Monthly budget"
-              value={budgetFilter}
-              placeholder="Monthly budget"
-              filled
+              label="Monthly Budget"
+              value={budget}
+              placeholder="Budget"
+              hideLabel
+              pill
               ranges={[
-                { value: "under-250", minimumUsd: null, maximumUsd: 250 },
-                { value: "250-400", minimumUsd: 250, maximumUsd: 400 },
-                { value: "above-400", minimumUsd: 400, maximumUsd: null },
+                { value: "under-300", minimumUsd: null, maximumUsd: 215 },
+                { value: "300-450", minimumUsd: 215, maximumUsd: 325 },
+                { value: "450-600", minimumUsd: 325, maximumUsd: 430 },
+                { value: "above-600", minimumUsd: 430, maximumUsd: null },
               ]}
             />
             <FilterSelect
-              name="bedrooms"
-              label="Bedrooms"
-              value={bedroomsFilter}
+              name="moveIn"
+              label="Move-in"
+              value={moveIn}
               options={[
-                ["1", "1 bedroom"],
-                ["2", "2 bedrooms"],
-                ["3", "3 bedrooms"],
-                ["4+", "4+ bedrooms"],
+                ["2026-08", "Available now"],
+                ["2026-09", "September 2026"],
+                ["2026-10", "October 2026"],
+                ["2026-11", "November 2026"],
               ]}
             />
             <FilterSelect
-              name="occupation"
-              label="Occupation"
-              value={occupationFilter}
+              name="situation"
+              label="Housing Situation"
+              value={situation}
               options={[
-                ["any", "Any occupation"],
-                ["student", "Student"],
-                ["professional", "Professional"],
-                ["remote-worker", "Remote worker"],
-                ["self-employed", "Self-employed"],
+                ["", "Any"],
+                ["looking", "Looking for a place"],
+                ["has-place", "Already has a place"],
               ]}
             />
+            <details className="group relative z-20">
+              <summary className="flex h-12 cursor-pointer list-none items-center justify-between rounded-full bg-white px-4 text-sm font-medium shadow-[0_8px_24px_rgba(0,0,0,0.09)] [&::-webkit-details-marker]:hidden">
+                <span className="inline-flex items-center gap-2">
+                  <SlidersHorizontal aria-hidden="true" className="size-4" />
+                  More Filters
+                </span>
+                <ChevronDown className="size-4 transition-transform group-open:rotate-180" />
+              </summary>
+              <div className="absolute top-[calc(100%+0.65rem)] right-0 grid w-[min(88vw,560px)] gap-3 rounded-2xl bg-white p-4 shadow-[0_20px_60px_rgba(0,0,0,0.16)] sm:grid-cols-2">
+                <FilterSelect
+                  name="gender"
+                  label="Gender preference"
+                  value={gender}
+                  options={[
+                    ["female", "Female"],
+                    ["male", "Male"],
+                  ]}
+                />
+                <FilterSelect
+                  name="occupation"
+                  label="Occupation"
+                  value={occupation}
+                  options={[
+                    ["professional", "Professional"],
+                    ["engineer", "Engineer"],
+                    ["designer", "Designer"],
+                    ["student", "Student"],
+                  ]}
+                />
+                <FilterSelect
+                  name="smoking"
+                  label="Smoking"
+                  value={smoking}
+                  options={[
+                    ["non-smoker", "Non-smoker"],
+                    ["outdoor-only", "Outdoor only"],
+                  ]}
+                />
+                <FilterSelect
+                  name="lifestyle"
+                  label="Lifestyle"
+                  value={lifestyle}
+                  options={[
+                    ["quiet", "Quiet"],
+                    ["balanced", "Balanced"],
+                    ["social", "Social"],
+                  ]}
+                />
+              </div>
+            </details>
           </AutoSubmitFilterForm>
         </section>
 
-        <section className="px-5 py-10 sm:px-6 lg:px-11 xl:px-[52px]">
+        <section className="px-5 py-8 sm:px-6 lg:px-11 xl:px-[52px]">
           <div className="mx-auto max-w-[1562px]">
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <h2 className="font-bricolage text-carbon-900 text-2xl font-medium">
-                  Shared homes looking for a flatmate
-                </h2>
-                <p className="text-carbon-500 mt-1 text-sm">
-                  {filteredHomes.length}{" "}
-                  {filteredHomes.length === 1 ? "home" : "homes"} match your
-                  filters. Discuss routines, budgets, and house rules before
-                  deciding.
-                </p>
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                {hasFilters ? (
-                  <Link
-                    href="/flatmates"
-                    className="inline-flex h-11 items-center rounded-full border border-black/20 px-5 text-sm font-medium transition-colors hover:bg-black hover:text-white"
-                  >
-                    Clear filters
-                  </Link>
-                ) : null}
+            {query.size ? (
+              <div className="mb-5 flex justify-end">
                 <Link
-                  href="/login"
-                  className="inline-flex h-11 items-center rounded-full bg-black px-5 text-sm font-medium text-white"
+                  href="/flatmates"
+                  className="inline-flex h-11 items-center rounded-full border border-black/20 px-5 text-sm font-medium transition-colors hover:bg-black hover:text-white"
                 >
-                  Post a shared home
+                  Clear Filters
                 </Link>
               </div>
-            </div>
+            ) : null}
 
-            {visibleHomes.length > 0 ? (
-              <div className="mt-7 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                {visibleHomes.map((home) => (
-                  <article
-                    key={`${home.location}-${home.title}`}
-                    className="flex overflow-hidden rounded-2xl border border-black/10 bg-white"
-                  >
-                    <div className="flex w-full flex-col">
-                      <div className="relative h-52 shrink-0">
-                        <Image
-                          src={home.image}
-                          alt={home.title}
-                          fill
-                          className="object-cover"
-                        />
-                        <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-medium text-black shadow-sm">
-                          <CalendarDays
-                            aria-hidden="true"
-                            className="size-3.5"
-                          />
-                          {home.available}
-                        </span>
-                      </div>
-
-                      <div className="flex flex-1 flex-col p-5">
-                        <div className="border-b border-black/10 pb-4">
-                          <p className="text-carbon-500 text-[0.68rem] font-medium tracking-[0.12em] uppercase">
-                            Your share of the rent
-                          </p>
-                          <p className="font-bricolage mt-1 text-xl font-medium">
-                            <CurrencyAmount
-                              usdAmount={Number(
-                                home.price.replace(/[^0-9.]/g, ""),
-                              )}
-                            />{" "}
-                            / month
-                          </p>
-                        </div>
-
-                        <h3 className="font-bricolage mt-4 text-xl leading-6 font-medium">
-                          {home.title}
-                        </h3>
-                        <p className="text-carbon-500 mt-2 flex items-center gap-2 text-sm">
-                          <MapPin
-                            aria-hidden="true"
-                            className="size-4 shrink-0"
-                          />
-                          {home.location}
-                        </p>
-
-                        <div className="text-carbon-600 mt-4 grid grid-cols-4 text-xs">
-                          <span className="flex flex-col items-center gap-1 px-2 py-3">
-                            <BedDouble aria-hidden="true" className="size-4" />
-                            {home.bedrooms} beds
-                          </span>
-                          <span className="flex flex-col items-center gap-1 px-2 py-3">
-                            <Bath aria-hidden="true" className="size-4" />
-                            {home.bathrooms} baths
-                          </span>
-                          <span className="flex flex-col items-center gap-1 px-2 py-3">
-                            <Ruler aria-hidden="true" className="size-4" />
-                            {home.area} m²
-                          </span>
-                          <span className="flex flex-col items-center gap-1 px-2 py-3 text-center">
-                            <Sofa aria-hidden="true" className="size-4" />
-                            {home.amenities.includes("Furnished")
-                              ? "Furnished"
-                              : "Unfurnished"}
-                          </span>
-                        </div>
-
-                        <div className="mt-4 border-t border-black/10 pt-4">
-                          <p className="text-carbon-500 text-[0.68rem] font-medium tracking-[0.1em] uppercase">
-                            Current household
-                          </p>
-                          <p className="mt-2 flex items-start gap-2 text-sm leading-5 font-medium">
-                            <UsersRound
-                              aria-hidden="true"
-                              className="mt-0.5 size-4 shrink-0"
-                            />
-                            {home.household}
-                          </p>
-                        </div>
-
-                        <div className="mt-4 border-t border-black/10 pt-4">
-                          <p className="text-carbon-500 text-[0.68rem] font-medium tracking-[0.1em] uppercase">
-                            House includes
-                          </p>
-                          <div className="mt-2 flex flex-wrap gap-1.5">
-                            {home.amenities.map((amenity) => (
-                              <span
-                                key={amenity}
-                                className="rounded-full bg-black/[0.055] px-2.5 py-1 text-xs"
-                              >
-                                {amenity}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="mt-4 grid grid-cols-2 gap-2 border-t border-black/10 pt-4 text-xs">
-                          <p className="text-carbon-500 col-span-2 text-[0.68rem] font-medium tracking-[0.1em] uppercase">
-                            Likes and dislikes
-                          </p>
-                          <div>
-                            <p className="font-medium text-black">They like</p>
-                            <ul className="text-carbon-500 mt-2 space-y-1.5 leading-4">
-                              {home.likes.map((like) => (
-                                <li key={like}>+ {like}</li>
-                              ))}
-                            </ul>
-                          </div>
-                          <div>
-                            <p className="font-medium text-black">
-                              They don&apos;t like
-                            </p>
-                            <ul className="text-carbon-500 mt-2 space-y-1.5 leading-4">
-                              {home.dislikes.map((dislike) => (
-                                <li key={dislike}>– {dislike}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-
-                        <div className="mt-4 border-t border-black/10 pt-4 text-xs">
-                          <p className="text-carbon-500 text-[0.68rem] font-medium tracking-[0.1em] uppercase">
-                            Preferred flatmate
-                          </p>
-                          <dl className="mt-3 grid grid-cols-2 gap-3">
-                            <div>
-                              <dt className="text-carbon-500">Gender needed</dt>
-                              <dd className="mt-1 font-medium text-black">
-                                {home.genderPreference === "any"
-                                  ? "Any gender"
-                                  : home.genderPreference === "female"
-                                    ? "Female"
-                                    : "Male"}
-                              </dd>
-                            </div>
-                            <div>
-                              <dt className="text-carbon-500">
-                                Occupation needed
-                              </dt>
-                              <dd className="mt-1 font-medium text-black">
-                                {home.occupationPreference === "any"
-                                  ? "Any occupation"
-                                  : home.occupationPreference ===
-                                      "remote-worker"
-                                    ? "Remote worker"
-                                    : home.occupationPreference
-                                        .charAt(0)
-                                        .toUpperCase() +
-                                      home.occupationPreference.slice(1)}
-                              </dd>
-                            </div>
-                          </dl>
-                        </div>
-
-                        <Link
-                          href="/login"
-                          className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-full bg-black text-sm font-medium text-white transition-opacity hover:opacity-75"
-                        >
-                          View home & household
-                        </Link>
-                      </div>
-                    </div>
-                  </article>
+            {visible.length ? (
+              <div className="grid auto-rows-fr gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {visible.map((flatmate, index) => (
+                  <FlatmateCard
+                    key={flatmate.id}
+                    flatmate={flatmate}
+                    priority={index < 3}
+                  />
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center py-16 text-center">
-                <Image
-                  src={emptyIllustration}
-                  alt="No shared homes found"
-                  className="h-36 w-auto object-contain"
-                />
+              <div className="flex min-h-[440px] flex-col items-center justify-center text-center">
+                <Image src={emptyIllustration} alt="" className="h-40 w-auto" />
                 <h3 className="font-bricolage mt-5 text-2xl font-medium">
-                  No shared homes match these filters
+                  No Flatmates Match These Filters
                 </h3>
                 <p className="text-carbon-500 mt-2 text-sm">
-                  Try another location, budget, bedroom count, or occupation.
+                  Try adjusting your location, budget, move-in date, or
+                  preferences.
                 </p>
+                <div className="mt-6 flex gap-3">
+                  <Link
+                    href="/flatmates"
+                    className="h-11 rounded-full bg-black px-5 py-3 text-sm font-medium text-white"
+                  >
+                    Clear Filters
+                  </Link>
+                  <a
+                    href="#flatmate-filters"
+                    className="h-11 rounded-full border border-black/20 px-5 py-3 text-sm font-medium"
+                  >
+                    Adjust Filters
+                  </a>
+                </div>
               </div>
             )}
-            {filteredHomes.length > 4 ? (
-              <div className="mt-8 flex justify-center">
+
+            {filtered.length > 6 ? (
+              <div className="mt-9 flex justify-center">
                 <Link
                   href={
                     showAll
-                      ? `/flatmates${filterQuery.size ? `?${filterQuery.toString()}` : ""}`
-                      : `/flatmates?${showAllQuery.toString()}`
+                      ? `/flatmates${query.size ? `?${query}` : ""}`
+                      : `/flatmates?${allQuery}`
                   }
-                  className="inline-flex h-11 items-center justify-center px-6 text-sm font-medium text-black transition-opacity hover:opacity-60"
+                  className="inline-flex h-11 items-center px-6 text-sm font-medium transition-opacity hover:opacity-55"
                 >
-                  {showAll ? "Show fewer" : "View all"}
+                  {showAll ? "Show fewer" : "View more people"}
                 </Link>
               </div>
             ) : null}
           </div>
         </section>
+
+        <section className="px-5 pb-14 sm:px-6 lg:px-11 lg:pb-20 xl:px-[52px]">
+          <div className="mx-auto flex max-w-[1562px] flex-col items-start justify-between gap-6 rounded-3xl bg-black px-7 py-9 text-white sm:px-10 sm:py-11 lg:flex-row lg:items-center">
+            <div>
+              <h2 className="font-bricolage text-3xl font-medium tracking-[-0.035em]">
+                Looking for someone to share rent with?
+              </h2>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-white/65">
+                Create your Flatmate Profile and tell people what kind of living
+                arrangement you&apos;re looking for.
+              </p>
+            </div>
+            <FlatmateAuthAction
+              label="Create Flatmate Profile"
+              returnTo="/flatmates"
+              title="Sign in to create your profile"
+              className="font-bricolage h-12 shrink-0 rounded-full bg-white px-6 font-medium text-black"
+            />
+          </div>
+        </section>
       </main>
       <Footer />
     </>
+  );
+}
+
+function FlatmateCard({
+  flatmate,
+  priority,
+}: {
+  flatmate: PublicFlatmate;
+  priority: boolean;
+}) {
+  const isLooking = flatmate.situation === "looking";
+  const compactBudget = (value: number) =>
+    `${Math.round(value / 1000).toLocaleString("en-US")}K`;
+  return (
+    <Link
+      href={`/flatmates/${flatmate.id}`}
+      aria-label={`View ${flatmate.firstName}'s profile`}
+      className="group block h-full"
+    >
+      <article className="relative h-full min-h-[460px] overflow-hidden rounded-[2rem] bg-black shadow-[0_14px_42px_rgba(0,0,0,0.13)] transition-[transform,box-shadow] duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_20px_55px_rgba(0,0,0,0.18)]">
+        <div className="absolute inset-0 transition-transform duration-500 group-hover:scale-[1.025]">
+          <FlatmatePortrait
+            src={flatmate.portrait}
+            name={flatmate.firstName}
+            priority={priority}
+          />
+        </div>
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/95" />
+        <div className="absolute inset-x-0 bottom-0 p-4 text-white sm:p-5">
+          <div className="min-w-0">
+            <h3 className="font-bricolage flex items-center gap-1.5 text-xl leading-none font-medium tracking-[-0.03em]">
+              <span>
+                {flatmate.firstName}, {flatmate.age}
+              </span>
+              <BadgeCheck
+                aria-label="Verified profile"
+                className="size-[18px] shrink-0 fill-white text-[#242424] drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]"
+              />
+            </h3>
+            <p className="mt-0.5 truncate text-xs text-white/72">
+              {flatmate.occupation} · {flatmate.city}
+            </p>
+          </div>
+
+          <div className="mt-2 flex items-center justify-between gap-2">
+            <span className="inline-flex rounded-full border border-white/25 bg-white/12 px-2.5 py-1 text-[10px] font-medium text-white backdrop-blur-md">
+              {isLooking ? "Looking for a place" : "Already has a place"}
+            </span>
+            <p className="flex shrink-0 items-baseline gap-1 text-sm font-medium">
+              <span>
+                {isLooking
+                  ? `RWF ${compactBudget(flatmate.budgetMin)}–${compactBudget(flatmate.budgetMax)}`
+                  : `~ RWF ${compactBudget(flatmate.budgetMin)}`}
+              </span>
+              <span className="text-[9px] font-normal text-white/60">
+                Per month
+              </span>
+            </p>
+          </div>
+
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {flatmate.lifestyleTags.slice(0, 4).map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full bg-white/14 px-2 py-0.5 text-[10px] text-white/90 backdrop-blur-sm"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+      </article>
+    </Link>
   );
 }
 
@@ -584,11 +395,11 @@ function FilterSelect({
         aria-label={label}
         name={name}
         defaultValue={value}
-        className="catalogue-filter-control h-12 w-full appearance-none rounded-full border-0 bg-white pr-11 pl-4 text-sm font-medium shadow-[0_8px_24px_rgba(0,0,0,0.06)] ring-0 outline-none focus:ring-0 focus:outline-none"
+        className="catalogue-filter-control h-12 w-full appearance-none rounded-full border-0 bg-white pr-11 pl-4 text-sm font-medium shadow-[0_8px_24px_rgba(0,0,0,0.09)] ring-0 outline-none focus:ring-0"
       >
         <option value="">{label}</option>
         {options.map(([optionValue, optionLabel]) => (
-          <option key={optionValue} value={optionValue}>
+          <option key={`${name}-${optionValue || "any"}`} value={optionValue}>
             {optionLabel}
           </option>
         ))}

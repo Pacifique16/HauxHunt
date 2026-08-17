@@ -34,7 +34,7 @@ export default function MaintenancePage() {
   const [requests, setRequests] = useState(
     demoState === "empty" ? [] : MAINTENANCE_REQUESTS,
   );
-  const [tab, setTab] = useState<Tab>("open");
+  const [tab, setTab] = useState<Tab>("all");
   const [rentalFilter, setRentalFilter] = useState("all");
   const [reportOpen, setReportOpen] = useState(
     searchParams.get("report") === "1",
@@ -86,7 +86,7 @@ export default function MaintenancePage() {
             {hasActiveRental && requests.length ? (
               <div className="mt-7 flex flex-wrap items-end justify-between gap-4">
                 <div className="flex gap-7">
-                  {(["open", "resolved", "all"] as const).map((item) => (
+                  {(["all", "open", "resolved"] as const).map((item) => (
                     <button
                       key={item}
                       type="button"
@@ -194,7 +194,7 @@ function RequestCard({ request }: { request: MaintenanceRequest }) {
   const quiet = ["Resolved", "Cancelled"].includes(request.status);
   return (
     <article
-      className={`rounded-2xl border border-white/80 p-5 shadow-[0_10px_30px_rgba(0,0,0,0.08)] ring-1 ring-white/70 backdrop-blur-xl ${quiet ? "bg-white/55" : "bg-white/70"}`}
+      className={`maintenance-card rounded-2xl border border-transparent p-5 shadow-[0_10px_30px_rgba(0,0,0,0.08)] ring-1 ring-white/70 backdrop-blur-xl ${quiet ? "bg-white/55" : "bg-white/70"}`}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">

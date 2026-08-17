@@ -4,9 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
-  ArrowLeft,
   CalendarDays,
   Check,
+  ChevronLeft,
   Clock3,
   MoreHorizontal,
   X,
@@ -72,12 +72,13 @@ export default function MaintenanceDetailPage() {
           <div className="mx-auto max-w-[1200px]">
             <Link
               href="/renter-dashboard/maintenance"
-              className="inline-flex items-center gap-2 text-sm text-black/55 hover:text-black"
+              className="mb-6 inline-flex items-center gap-1 text-sm text-black/65 transition-colors hover:text-black"
             >
-              <ArrowLeft className="size-4" /> Maintenance
+              <ChevronLeft aria-hidden="true" className="size-4" />
+              Back to Maintenance
             </Link>
 
-            <header className="mt-7 flex flex-wrap items-start justify-between gap-5 border-b border-black/10 pb-8">
+            <header className="flex flex-wrap items-start justify-between gap-5 border-b border-black/10 pb-8">
               <div>
                 <div className="flex flex-wrap items-center gap-2">
                   <Status status={status} />
@@ -467,7 +468,11 @@ function MaintenanceDialog({
           ) : null}
           <label className="mt-5 block">
             <span className="mb-2 block text-sm">
-              {type === "cancel" ? "Reason" : "Note"}
+              {type === "cancel"
+                ? "Reason"
+                : type === "reschedule"
+                  ? "Reason for requesting another time"
+                  : "Note"}
             </span>
             <textarea
               value={note}
@@ -476,7 +481,9 @@ function MaintenanceDialog({
               placeholder={
                 type === "cancel"
                   ? "Issue fixed itself, no longer needed..."
-                  : "Add a helpful note"
+                  : type === "reschedule"
+                    ? "Explain why the current appointment no longer works..."
+                    : "Add a helpful note"
               }
               className="w-full resize-none rounded-xl bg-black/[0.035] p-4 text-sm outline-none"
             />
