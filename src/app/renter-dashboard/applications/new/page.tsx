@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Check, ChevronLeft, ChevronRight, FileUp } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 
 import applicationReceivedIllustration from "@/assets/images/application-received.png";
 import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
@@ -89,6 +89,14 @@ const fields: Record<number, Array<[string, string, string]>> = {
 };
 
 export default function NewApplicationPage() {
+  return (
+    <Suspense>
+      <NewApplicationPageInner />
+    </Suspense>
+  );
+}
+
+function NewApplicationPageInner() {
   const params = useSearchParams();
   const router = useRouter();
   const propertyId = params.get("property") ?? "kacyiru-2br";

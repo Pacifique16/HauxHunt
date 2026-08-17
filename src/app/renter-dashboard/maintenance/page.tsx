@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Camera, Check, ChevronDown, ClipboardX, MessageSquare, ClipboardList, Plus, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, Suspense } from "react";
 
 import emptyIllustration from "@/assets/images/empty.png";
 import maintenanceIllustration from "@/assets/images/maintenance.png";
@@ -29,6 +29,14 @@ const OPEN_STATUSES = [
 ];
 
 export default function MaintenancePage() {
+  return (
+    <Suspense>
+      <MaintenancePageInner />
+    </Suspense>
+  );
+}
+
+function MaintenancePageInner() {
   const searchParams = useSearchParams();
   const demoState = searchParams.get("state");
   const hasActiveRental = demoState !== "no-rental";

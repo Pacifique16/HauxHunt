@@ -13,11 +13,20 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Suspense } from "react";
 
 import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
 import { RENTER_APPLICATIONS } from "@/data/renter-applications";
 
 export default function ApplicationDetailPage() {
+  return (
+    <Suspense>
+      <ApplicationDetailPageInner />
+    </Suspense>
+  );
+}
+
+function ApplicationDetailPageInner() {
   const { id } = useParams<{ id: string }>();
   const query = useSearchParams();
   const storedApplication = RENTER_APPLICATIONS.find((item) => item.id === id);

@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Suspense } from "react";
 
 import house1 from "@/assets/images/house1.jpg";
 import house2 from "@/assets/images/house2.jpg";
@@ -58,6 +59,14 @@ const tabFor = (status: RenterApplication["status"]): Tab =>
       : "active";
 
 export default function ApplicationsPage() {
+  return (
+    <Suspense>
+      <ApplicationsPageInner />
+    </Suspense>
+  );
+}
+
+function ApplicationsPageInner() {
   const params = useSearchParams();
   const [tab, setTab] = useState<Tab>(() =>
     params.get("tab") === "drafts" ? "drafts" : "active",
