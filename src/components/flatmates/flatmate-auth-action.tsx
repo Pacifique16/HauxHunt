@@ -20,11 +20,15 @@ export function FlatmateAuthAction({
   returnTo,
   className,
   title = "Sign in to connect",
+  flatmateName,
+  flatmateId,
 }: {
   label: string;
   returnTo: string;
   className: string;
   title?: string;
+  flatmateName?: string;
+  flatmateId?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -47,7 +51,20 @@ export function FlatmateAuthAction({
         router.push(returnTo);
         return;
       }
-      setFeedback("Interest recorded for this preview");
+      
+      // Record interest in sessionStorage!
+      if (flatmateId) {
+        const key = "hauxhunt-flatmate-interests";
+        const currentInterests = JSON.parse(window.sessionStorage.getItem(key) || "[]");
+        if (!currentInterests.includes(flatmateId)) {
+          currentInterests.push(flatmateId);
+          window.sessionStorage.setItem(key, JSON.stringify(currentInterests));
+          window.dispatchEvent(new Event("storage"));
+        }
+      }
+
+      const name = flatmateName || "The owner";
+      setFeedback(`Interest sent! ${name} has been notified and you can now start messaging to decide everything.`);
       window.setTimeout(() => setFeedback(""), 3000);
       return;
     }
