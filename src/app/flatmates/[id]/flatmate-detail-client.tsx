@@ -200,7 +200,7 @@ export function FlatmateDetailClient({
               Back to Flatmates
             </Link>
 
-            <div className="grid gap-6 lg:grid-cols-[220px_1fr] max-w-[820px]">
+            <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,480px)_1fr] max-w-[1280px]">
               <div className="overflow-hidden rounded-3xl border border-black/5 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.06)] h-[260px] lg:h-full lg:min-h-[320px]">
                 <FlatmatePortrait
                   src={flatmate.portrait}
@@ -293,6 +293,16 @@ export function FlatmateDetailClient({
                   </div>
                 )}
               </div>
+
+              {isAuthenticated && (
+                <ProfileSection title="Lifestyle">
+                  <dl className="grid gap-5 sm:grid-cols-2">
+                    {displayLifestyleDetails.map(([label, value]) => (
+                      <Detail key={label} label={label} value={value} />
+                    ))}
+                  </dl>
+                </ProfileSection>
+              )}
             </div>
 
             {isAuthenticated ? (
@@ -382,13 +392,6 @@ export function FlatmateDetailClient({
                     </ProfileSection>
                   ) : null}
 
-                  <ProfileSection title="Lifestyle">
-                    <dl className="grid gap-5 sm:grid-cols-2">
-                      {displayLifestyleDetails.map(([label, value]) => (
-                        <Detail key={label} label={label} value={value} />
-                      ))}
-                    </dl>
-                  </ProfileSection>
                 </div>
 
                 <aside className="space-y-6">

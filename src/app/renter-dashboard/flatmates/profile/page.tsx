@@ -436,6 +436,23 @@ export default function RenterFlatmateProfilePage() {
                   </div>
                   <div>
                     <label className="text-carbon-700 text-xs font-semibold">
+                      Country
+                    </label>
+                    <span className="relative block mt-1.5">
+                      <select
+                        value={country}
+                        onChange={(e) => setCountry(e.target.value)}
+                        className="profile-field-control h-11 w-full rounded-xl border border-black/15 bg-white pl-3.5 pr-10 text-sm font-normal outline-none focus:border-black appearance-none transition-colors"
+                      >
+                        <option value="Rwanda">Rwanda</option>
+                        <option value="Kenya">Kenya</option>
+                        <option value="Nigeria">Nigeria</option>
+                      </select>
+                      <ChevronDown className="text-black/40 pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2" />
+                    </span>
+                  </div>
+                  <div>
+                    <label className="text-carbon-700 text-xs font-semibold">
                       Current City
                     </label>
                     <input

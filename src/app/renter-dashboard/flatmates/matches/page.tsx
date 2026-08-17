@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Check, ChevronLeft, MessageSquare, X, Info, HelpCircle } from "lucide-react";
+import { ChevronLeft, MessageSquare, X, Info, HelpCircle } from "lucide-react";
 import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
 import { PUBLIC_FLATMATES, type PublicFlatmate, formatRwf } from "@/data/public-flatmates";
 import emptyImage from "@/assets/images/empty.png";
+import matchImage from "@/assets/images/match.png";
 
 export default function RenterFlatmateMatchesPage() {
   const [activeTab, setActiveTab] = useState<"matches" | "received" | "sent">("matches");
@@ -432,17 +433,25 @@ export default function RenterFlatmateMatchesPage() {
 
       {/* Mutual Match Modal Popup */}
       {showMatchModal && modalFlatmate && (
-        <div className="fixed inset-0 z-[250] flex items-center justify-center bg-black/60 backdrop-blur-md p-5">
-          <div className="relative w-full max-w-md overflow-hidden rounded-3xl bg-white text-black shadow-[0_28px_90px_rgba(0,0,0,0.3)] p-8">
-            <button
-              type="button"
-              onClick={() => setShowMatchModal(false)}
-              aria-label="Close"
-              className="absolute top-5 right-5 flex size-9 items-center justify-center rounded-full border border-black/15 bg-white transition-colors hover:bg-neutral-50"
-            >
-              <X className="size-4" />
-            </button>
+        <div className="fixed inset-0 z-[250] flex items-center justify-center bg-black/35 p-5">
+          <div className="relative w-full max-w-md overflow-hidden rounded-3xl bg-white text-black shadow-[0_28px_90px_rgba(0,0,0,0.3)]">
+            <div className="relative flex min-h-48 items-center justify-center bg-black/[0.06] p-6">
+              <button
+                type="button"
+                onClick={() => setShowMatchModal(false)}
+                aria-label="Close"
+                className="absolute top-4 right-4 flex size-9 items-center justify-center rounded-full border border-black/20 text-black/55 hover:border-black/40 hover:text-black"
+              >
+                <X className="size-5" />
+              </button>
+              <Image
+                src={matchImage}
+                alt="You're a match illustration"
+                className="h-40 w-auto object-contain"
+              />
+            </div>
 
+            <div className="p-8">
             <span className="text-[10px] tracking-[0.15em] font-extrabold text-neutral-400 uppercase block">
               Co-living Connection
             </span>
@@ -524,6 +533,7 @@ export default function RenterFlatmateMatchesPage() {
                   Close
                 </button>
               )}
+            </div>
             </div>
           </div>
         </div>

@@ -34,6 +34,7 @@ export function FlatmatesPageClient({
   const smoking = valueOf(params.smoking);
   const lifestyle = valueOf(params.lifestyle);
   const showAll = valueOf(params.view) === "all";
+  const country = valueOf(params.country);
 
   // Client states
   const [hasProfile, setHasProfile] = useState(false);
@@ -77,6 +78,7 @@ export function FlatmatesPageClient({
       `${f.city} ${f.country} ${f.areas.join(" ")}`.toLowerCase();
     const locationMatch =
       !location || searchableLocation.includes(location.toLowerCase());
+    const countryMatch = !country || f.country.toLowerCase() === country.toLowerCase();
     const budgetMatch =
       !budget ||
       (budget === "under-300" && f.budgetMin < 300000) ||
@@ -89,6 +91,7 @@ export function FlatmatesPageClient({
       (budget === "above-600" && f.budgetMax > 600000);
     return (
       locationMatch &&
+      countryMatch &&
       budgetMatch &&
       (!moveIn || f.moveInValue === moveIn) &&
       (!situation || f.situation === situation) &&
@@ -105,9 +108,26 @@ export function FlatmatesPageClient({
     (flatmate) => flatmate.id !== "julien" || hasProfile
   );
 
+  // Compute "People matching your needs" — only when viewer has a published profile
+  const suggestedFlatmates = hasProfile && customProfileData
+    ? PUBLIC_FLATMATES.filter((f) => {
+        if (f.id === "julien") return false; // exclude self
+        const viewerBudget = Number(customProfileData.budget) || 450000;
+        const viewerAreas: string[] = customProfileData.areas || [];
+        const viewerTags: string[] = customProfileData.lifestyleTags || [];
+        const viewerSituation: string = customProfileData.situation || "looking";
+        const budgetOverlap = f.budgetMin <= viewerBudget * 1.3 && f.budgetMax >= viewerBudget * 0.7;
+        const areaOverlap = viewerAreas.length === 0 || f.areas.some((a) => viewerAreas.includes(a));
+        const tagOverlap = viewerTags.length === 0 || f.lifestyleTags.some((t) => viewerTags.includes(t));
+        const situationMatch = viewerSituation === "looking" ? f.situation === "looking" : f.situation === "looking";
+        return budgetOverlap && areaOverlap && tagOverlap && situationMatch;
+      }).slice(0, 4)
+    : [];
+
   const visible = showAll ? withoutUnpublishedJulien : withoutUnpublishedJulien.slice(0, 6);
   const hasFilters = Boolean(
     location ||
+      country ||
       budget ||
       moveIn ||
       situation ||
@@ -120,6 +140,7 @@ export function FlatmatesPageClient({
   if (renterView) query.set("from", "renter");
   for (const [key, value] of Object.entries({
     location,
+    country,
     budget,
     moveIn,
     situation,
@@ -185,7 +206,7 @@ export function FlatmatesPageClient({
         >
           <AutoSubmitFilterForm
             action="/flatmates"
-            className="mx-auto grid max-w-[1562px] gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-[1.5fr_1fr_1fr_1fr_1fr_1fr]"
+            className="mx-auto grid max-w-[1562px] gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-[1.5fr_1fr_1fr_1fr_1fr_1fr_1fr]"
           >
             {renterView ? <input type="hidden" name="from" value="renter" /> : null}
             <label className="catalogue-location-filter flex h-10 items-center gap-2 bg-white px-4 shadow-[0_8px_24px_rgba(0,0,0,0.09)]">
@@ -243,6 +264,17 @@ export function FlatmatesPageClient({
                 ["male", "Male"],
               ]}
             />
+            <FilterSelect
+              name="country"
+              label="Country"
+              value={country}
+              options={[
+                ["Rwanda", "Rwanda"],
+                ["Kenya", "Kenya"],
+                ["Nigeria", "Nigeria"],
+                ["Uganda", "Uganda"],
+              ]}
+            />
             <details className="group relative z-20 block w-full">
               <summary className="flex h-10 w-full cursor-pointer list-none items-center justify-between rounded-full bg-white px-4 text-sm font-medium shadow-[0_8px_24px_rgba(0,0,0,0.09)] ring-0 outline-none [&::-webkit-details-marker]:hidden">
                 <span className="inline-flex items-center gap-2 truncate">
@@ -290,7 +322,11 @@ export function FlatmatesPageClient({
         <section className="px-5 py-8 sm:px-6 lg:px-11 xl:px-[52px]">
           <div className="mx-auto max-w-[1562px]">
             {finalFlatmates.length ? (
-              <div className="grid auto-rows-fr gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <>
+                <div className="mb-5">
+                  <h2 className="font-bricolage text-xl font-semibold text-neutral-900">People looking for flatmates</h2>
+                </div>
+                <div className="grid auto-rows-fr gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {finalFlatmates.map((flatmate, index) => (
                   <FlatmateCard
                     key={flatmate.id}
@@ -300,6 +336,7 @@ export function FlatmatesPageClient({
                   />
                 ))}
               </div>
+              </>
             ) : (
               <div className="flex min-h-[440px] flex-col items-center justify-center text-center">
                 <Image src={emptyIllustration} alt="" className="h-40 w-auto" />
@@ -343,6 +380,26 @@ export function FlatmatesPageClient({
             ) : null}
           </div>
         </section>
+
+        {suggestedFlatmates.length > 0 && (
+          <section className="px-5 pb-10 sm:px-6 lg:px-11 xl:px-[52px]">
+            <div className="mx-auto max-w-[1562px]">
+              <div className="mb-5">
+                <h2 className="font-bricolage text-xl font-semibold text-neutral-900">People matching your needs in a flatmate</h2>
+              </div>
+              <div className="grid auto-rows-fr gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {suggestedFlatmates.map((flatmate, index) => (
+                  <FlatmateCard
+                    key={flatmate.id}
+                    flatmate={flatmate}
+                    priority={false}
+                    renterView={renterView}
+                  />
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         <FlatmateBanner initialRenterView={renterView} />
       </main>

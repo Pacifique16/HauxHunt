@@ -3,10 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Camera, Check, ChevronDown, Plus, X } from "lucide-react";
+import { Camera, Check, ChevronDown, ClipboardX, MessageSquare, ClipboardList, Plus, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import emptyIllustration from "@/assets/images/empty.png";
+import maintenanceIllustration from "@/assets/images/maintenance.png";
 import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
 import {
   ACTIVE_RENTALS,
@@ -142,18 +143,7 @@ export default function MaintenancePage() {
                 }}
               />
             ) : !requests.length ? (
-              <EmptyState
-                title="No Maintenance Requests"
-                description="If something in your rental needs attention, report it here and track the progress."
-                primary={{
-                  label: "Report an Issue",
-                  action: () => setReportOpen(true),
-                }}
-                secondary={{
-                  label: "View My Rentals",
-                  href: "/renter-dashboard/rentals",
-                }}
-              />
+              <MaintenanceEmptyState onReport={() => setReportOpen(true)} />
             ) : shownRequests.length ? (
               <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                 {shownRequests.map((request) => (
@@ -641,6 +631,44 @@ function ChoiceSection({
         ))}
       </div>
     </fieldset>
+  );
+}
+
+function MaintenanceEmptyState({ onReport }: { onReport: () => void }) {
+  return (
+    <div className="flex min-h-[520px] flex-col items-center justify-center text-center">
+      <Image src={maintenanceIllustration} alt="" className="h-36 w-auto" />
+      <h2 className="font-bricolage mt-6 text-2xl font-medium">Get Maintenance Help Fast</h2>
+      <div className="mt-8 flex flex-col gap-6 text-left max-w-sm w-full">
+        <div className="flex gap-4 items-start">
+          <ClipboardX className="size-6 shrink-0 text-black mt-0.5" />
+          <div>
+            <p className="font-semibold text-sm text-neutral-900">Create and Send Repair Requests</p>
+            <p className="text-carbon-500 text-sm mt-0.5">Send your landlord requests for maintenance as soon as issues arise.</p>
+          </div>
+        </div>
+        <div className="flex gap-4 items-start">
+          <MessageSquare className="size-6 shrink-0 text-black mt-0.5" />
+          <div>
+            <p className="font-semibold text-sm text-neutral-900">Clear Communication</p>
+            <p className="text-carbon-500 text-sm mt-0.5">Get quick feedback on maintenance requests without having to play the waiting game.</p>
+          </div>
+        </div>
+        <div className="flex gap-4 items-start">
+          <ClipboardList className="size-6 shrink-0 text-black mt-0.5" />
+          <div>
+            <p className="font-semibold text-sm text-neutral-900">Track Progress</p>
+            <p className="text-carbon-500 text-sm mt-0.5">Get updates about your repair progress from start to finish.</p>
+          </div>
+        </div>
+      </div>
+      <button
+        onClick={onReport}
+        className="mt-10 inline-flex h-11 items-center rounded-full bg-black px-8 text-sm font-medium text-white"
+      >
+        Start a Request
+      </button>
+    </div>
   );
 }
 
