@@ -232,7 +232,7 @@ const RENTER_NAV_GROUPS = [
   {
     label: "Find a Flatmate",
     links: [
-      ["Browse Flatmates", "/flatmates"],
+      ["Browse Flatmates", "/flatmates?from=renter"],
       ["My Flatmate Profile", "/renter-dashboard/flatmates/profile"],
       ["Matches / Interested People", "/renter-dashboard/flatmates/matches"],
     ],
@@ -1049,7 +1049,7 @@ function FilterSelect({
         <select
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          className="catalogue-filter-control text-carbon-900 h-12 w-full appearance-none rounded-xl border border-black/15 bg-white pr-11 pl-4 text-sm transition-colors outline-none focus:border-black"
+          className="catalogue-filter-control text-carbon-900 h-12 w-full appearance-none rounded-full border-0 bg-white pr-11 pl-4 text-sm font-medium shadow-[0_8px_24px_rgba(0,0,0,0.06)] ring-0 outline-none focus:ring-0"
         >
           {options.map((option) => (
             <option key={option} value={option}>

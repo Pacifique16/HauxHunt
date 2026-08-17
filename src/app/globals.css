@@ -710,6 +710,11 @@
   outline: none;
 }
 
+/* Flatmate profile fields show focus through their borders. */
+.profile-field-control:focus-visible {
+  outline: none;
+}
+
 /* Keep filter dropdowns consistent across catalogue and dashboard surfaces. */
 select.catalogue-filter-control {
   height: 2.5rem !important;
@@ -721,6 +726,14 @@ select.catalogue-filter-control {
   border: 0;
   border-radius: 9999px;
   background: rgb(0 0 0 / 4.5%);
+}
+
+/* White filter pills need slightly more separation on white surfaces. Filters
+   on tinted dashboard backgrounds retain their existing lighter shadow. */
+.bg-white select[class*="shadow-"] {
+  box-shadow:
+    0 6px 18px rgb(0 0 0 / 0.09),
+    0 1px 3px rgb(0 0 0 / 0.04);
 }
 
 /* Keep modal surfaces consistent across every dashboard and public flow. */
@@ -1305,6 +1318,52 @@ select.catalogue-filter-control {
   line-height: 0.95;
   font-weight: 500;
   letter-spacing: -0.045em;
+}
+
+@property --maintenance-outline-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.maintenance-card {
+  position: relative;
+}
+
+.maintenance-card::before {
+  position: absolute;
+  z-index: 1;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--maintenance-outline-angle),
+    transparent 0deg 235deg,
+    rgb(0 0 0 / 0.08) 255deg,
+    rgb(0 0 0 / 0.55) 290deg,
+    rgb(255 255 255 / 0.95) 320deg,
+    transparent 360deg
+  );
+  content: "";
+  pointer-events: none;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: maintenance-outline-orbit 4.5s linear infinite;
+}
+
+@keyframes maintenance-outline-orbit {
+  to {
+    --maintenance-outline-angle: 360deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .maintenance-card::before {
+    animation: none;
+  }
 }
 
 .hauxhunt-map-popup .leaflet-popup-content-wrapper {

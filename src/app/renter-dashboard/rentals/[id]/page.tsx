@@ -8,7 +8,6 @@ import {
   Check,
   ChevronLeft,
   FileText,
-  MessageCircle,
   X,
 } from "lucide-react";
 import { useState } from "react";
@@ -74,9 +73,8 @@ export default function RentalDetail() {
                 <div className="mt-5 flex gap-3">
                   <Link
                     href={`/renter-dashboard/messages?host=${encodeURIComponent(r.manager)}&rental=${r.id}`}
-                    className="inline-flex h-10 items-center gap-2 rounded-full bg-black px-4 text-sm text-white"
+                    className="inline-flex h-10 items-center rounded-full bg-black px-4 text-sm text-white"
                   >
-                    <MessageCircle className="size-4" />
                     Message Manager
                   </Link>
                 </div>
@@ -227,12 +225,22 @@ export default function RentalDetail() {
                       ? "Maintenance history available"
                       : "Leaking kitchen tap · In Progress"}
                   </p>
-                  <Link
-                    href="/renter-dashboard/maintenance"
-                    className="mt-5 inline-flex h-10 items-center gap-2 rounded-full border border-black/15 px-4 text-sm font-medium transition-colors hover:border-black/35 hover:bg-black/[0.04]"
-                  >
-                    View Maintenance
-                  </Link>
+                  <div className="mt-5 flex flex-wrap gap-3">
+                    <Link
+                      href="/renter-dashboard/maintenance"
+                      className="inline-flex h-10 items-center gap-2 rounded-full border border-black/15 px-4 text-sm font-medium transition-colors hover:border-black/35 hover:bg-black/[0.04]"
+                    >
+                      View Maintenance
+                    </Link>
+                    {!ended ? (
+                      <Link
+                        href="/renter-dashboard/maintenance?report=1"
+                        className="inline-flex h-10 items-center rounded-full bg-black px-4 text-sm font-medium text-white transition-opacity hover:opacity-75"
+                      >
+                        Report an Issue
+                      </Link>
+                    ) : null}
+                  </div>
                 </Section>
               </div>
               <Section title="Documents">

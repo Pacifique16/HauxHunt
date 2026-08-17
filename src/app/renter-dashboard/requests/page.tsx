@@ -10,7 +10,6 @@ import {
   CircleEllipsis,
   Droplets,
   Home,
-  MessageCircle,
   Plus,
   Search,
   Wrench,
@@ -174,7 +173,7 @@ export default function RequestsPage() {
                   onChange={(event) =>
                     setStatus(event.target.value as typeof status)
                   }
-                  className="catalogue-filter-control h-11 appearance-none rounded-xl border border-black/15 bg-white pr-10 pl-4 text-sm font-normal outline-none focus:border-black"
+                  className="catalogue-filter-control h-11 appearance-none rounded-full border-0 bg-white pr-10 pl-4 text-sm font-medium shadow-[0_8px_24px_rgba(0,0,0,0.06)] ring-0 outline-none focus:ring-0"
                 >
                   {STATUS_OPTIONS.map((option) => (
                     <option key={option}>{option}</option>
@@ -273,9 +272,9 @@ function RequestCard({ request }: { request: RequestItem }) {
         </div>
         <button
           type="button"
-          className="inline-flex h-10 items-center gap-2 rounded-full border border-black/15 bg-white px-4 text-sm font-medium"
+          className="inline-flex h-10 items-center rounded-full border border-black/15 bg-white px-4 text-sm font-medium"
         >
-          <MessageCircle aria-hidden="true" className="size-4" /> Message
+          Message
         </button>
       </div>
       <p className="text-carbon-400 mt-4 text-xs">
