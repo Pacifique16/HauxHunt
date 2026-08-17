@@ -1,9 +1,9 @@
 "use client";
 
-import { use, useState, useEffect } from "react";
+import { use, useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronDown, Search, SlidersHorizontal } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Search, SlidersHorizontal } from "lucide-react";
 import emptyIllustration from "@/assets/images/empty.png";
 import { CurrencyFilterSelect } from "@/components/currency/currency-selector";
 import { FlatmateBanner } from "@/components/flatmates/flatmate-banner";
@@ -123,6 +123,20 @@ export function FlatmatesPageClient({
         return budgetOverlap && areaOverlap && tagOverlap && situationMatch;
       }).slice(0, 4)
     : [];
+
+  const computeMatchScore = (f: PublicFlatmate): number => {
+    if (!customProfileData) return 0;
+    const viewerBudget = Number(customProfileData.budget) || 450000;
+    const viewerAreas: string[] = customProfileData.areas || [];
+    const viewerTags: string[] = customProfileData.lifestyleTags || [];
+    const budgetDiff = Math.abs(f.budgetMin - viewerBudget) / viewerBudget;
+    const budgetScore = Math.max(0, 40 - Math.round(budgetDiff * 40));
+    const areaMatches = viewerAreas.filter((a) => f.areas.includes(a)).length;
+    const areaScore = viewerAreas.length > 0 ? Math.round((areaMatches / viewerAreas.length) * 35) : 25;
+    const tagMatches = viewerTags.filter((t) => f.lifestyleTags.includes(t)).length;
+    const tagScore = viewerTags.length > 0 ? Math.round((tagMatches / viewerTags.length) * 25) : 15;
+    return Math.min(99, budgetScore + areaScore + tagScore);
+  };
 
   const visible = showAll ? withoutUnpublishedJulien : withoutUnpublishedJulien.slice(0, 6);
   const hasFilters = Boolean(
@@ -319,23 +333,25 @@ export function FlatmatesPageClient({
           </AutoSubmitFilterForm>
         </section>
 
-        <section className="px-5 py-8 sm:px-6 lg:px-11 xl:px-[52px]">
+        <section className="bg-carbon-50 px-5 py-8 sm:px-6 lg:px-11 xl:px-[52px]">
           <div className="mx-auto max-w-[1562px]">
             {finalFlatmates.length ? (
               <>
-                <div className="mb-5">
-                  <h2 className="font-bricolage text-xl font-semibold text-neutral-900">People looking for flatmates</h2>
-                </div>
-                <div className="grid auto-rows-fr gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {finalFlatmates.map((flatmate, index) => (
-                  <FlatmateCard
-                    key={flatmate.id}
-                    flatmate={flatmate}
-                    priority={index < 3}
-                    renterView={renterView}
-                  />
-                ))}
-              </div>
+                <ScrollRow
+                  title="People Looking for Flatmates"
+                  viewMoreHref={withoutUnpublishedJulien.length > 6 ? (showAll ? `/flatmates${query.size ? `?${query}` : ""}` : `/flatmates?${allQuery}`) : undefined}
+                  viewMoreLabel={showAll ? "Show fewer" : "View more"}
+                >
+                  {finalFlatmates.map((flatmate, index) => (
+                    <div key={flatmate.id} className="w-[calc((100vw-10rem)/4-0.5rem)] min-w-[300px] shrink-0 h-[460px]">
+                      <FlatmateCard
+                        flatmate={flatmate}
+                        priority={index < 3}
+                        renterView={renterView}
+                      />
+                    </div>
+                  ))}
+                </ScrollRow>
               </>
             ) : (
               <div className="flex min-h-[440px] flex-col items-center justify-center text-center">
@@ -363,40 +379,28 @@ export function FlatmatesPageClient({
                 </div>
               </div>
             )}
-
-            {withoutUnpublishedJulien.length > 6 ? (
-              <div className="mt-9 flex justify-center">
-                <Link
-                  href={
-                    showAll
-                      ? `/flatmates${query.size ? `?${query}` : ""}`
-                      : `/flatmates?${allQuery}`
-                  }
-                  className="inline-flex h-11 items-center px-6 text-sm font-medium transition-opacity hover:opacity-55"
-                >
-                  {showAll ? "Show fewer" : "View more people"}
-                </Link>
-              </div>
-            ) : null}
           </div>
         </section>
 
         {suggestedFlatmates.length > 0 && (
-          <section className="px-5 pb-10 sm:px-6 lg:px-11 xl:px-[52px]">
+          <section className="bg-carbon-50 px-5 pb-10 sm:px-6 lg:px-11 xl:px-[52px]">
             <div className="mx-auto max-w-[1562px]">
-              <div className="mb-5">
-                <h2 className="font-bricolage text-xl font-semibold text-neutral-900">People matching your needs in a flatmate</h2>
-              </div>
-              <div className="grid auto-rows-fr gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {suggestedFlatmates.map((flatmate, index) => (
-                  <FlatmateCard
-                    key={flatmate.id}
-                    flatmate={flatmate}
-                    priority={false}
-                    renterView={renterView}
-                  />
+              <ScrollRow
+                title="Flatmates Who Match What You're Looking For"
+                viewMoreHref={`/flatmates${renterView ? "?from=renter" : ""}`}
+                viewMoreLabel="View more"
+              >
+                {suggestedFlatmates.map((flatmate) => (
+                  <div key={flatmate.id} className="w-[calc((100vw-10rem)/4-0.5rem)] min-w-[300px] shrink-0 h-[460px]">
+                    <FlatmateCard
+                      flatmate={flatmate}
+                      priority={false}
+                      renterView={renterView}
+                      matchScore={computeMatchScore(flatmate)}
+                    />
+                  </div>
                 ))}
-              </div>
+              </ScrollRow>
             </div>
           </section>
         )}
@@ -439,5 +443,87 @@ function FilterSelect({
         className="pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2 text-black/55"
       />
     </label>
+  );
+}
+
+function ScrollRow({
+  title,
+  viewMoreHref,
+  viewMoreLabel,
+  children,
+}: {
+  title: string;
+  viewMoreHref?: string;
+  viewMoreLabel?: string;
+  children: React.ReactNode;
+}) {
+  const rowRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScroll = () => {
+    const el = rowRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 0);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+  };
+
+  useEffect(() => {
+    checkScroll();
+    const el = rowRef.current;
+    el?.addEventListener("scroll", checkScroll);
+    window.addEventListener("resize", checkScroll);
+    return () => {
+      el?.removeEventListener("scroll", checkScroll);
+      window.removeEventListener("resize", checkScroll);
+    };
+  }, []);
+
+  const scroll = (dir: "left" | "right") => {
+    rowRef.current?.scrollBy({ left: dir === "left" ? -300 : 300, behavior: "smooth" });
+  };
+
+  return (
+    <div className="relative">
+      <div className="mb-5 flex items-center justify-between gap-4">
+        <h2 className="font-bricolage text-2xl font-bold text-neutral-900">{title}</h2>
+        <div className="flex items-center gap-2 shrink-0">
+          {viewMoreHref && (
+            <Link
+              href={viewMoreHref}
+              className="text-sm font-medium text-black/60 hover:text-black transition-colors"
+            >
+              {viewMoreLabel ?? "View more"}
+            </Link>
+          )}
+          <button
+            type="button"
+            onClick={() => scroll("left")}
+            disabled={!canScrollLeft}
+            className="flex size-8 items-center justify-center rounded-full border border-black/15 bg-white shadow-sm transition-all hover:bg-neutral-50 disabled:opacity-25"
+          >
+            <ChevronLeft className="size-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => scroll("right")}
+            disabled={!canScrollRight}
+            className="flex size-8 items-center justify-center rounded-full border border-black/15 bg-white shadow-sm transition-all hover:bg-neutral-50 disabled:opacity-25"
+          >
+            <ChevronRight className="size-4" />
+          </button>
+        </div>
+      </div>
+      <div className="relative" style={{ overflowY: "visible" }}>
+        <div
+          ref={rowRef}
+          className="flex gap-4 overflow-x-auto py-3"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none", overflowY: "visible", background: "none" }}
+          onScroll={checkScroll}
+        >
+          {children}
+        </div>
+      </div>
+    </div>
   );
 }
