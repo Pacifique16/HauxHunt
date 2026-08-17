@@ -4,9 +4,10 @@ import { Check, ChevronLeft, LockKeyhole } from "lucide-react";
 import { notFound } from "next/navigation";
 
 import { FlatmateAuthAction } from "@/components/flatmates/flatmate-auth-action";
+import { FlatmatePhotoStatus } from "@/components/flatmates/flatmate-photo-status";
 import { FlatmatePortrait } from "@/components/flatmates/flatmate-portrait";
+import { FlatmatesNavigation } from "@/components/flatmates/flatmates-navigation";
 import { Footer } from "@/components/layout/footer";
-import { Navbar } from "@/components/layout/navbar";
 import {
   formatRwf,
   getPublicFlatmate,
@@ -16,6 +17,11 @@ import {
 export function generateStaticParams() {
   return PUBLIC_FLATMATES.map(({ id }) => ({ id }));
 }
+
+type FlatmateProfileProps = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ from?: string }>;
+};
 
 export async function generateMetadata({
   params,
@@ -34,22 +40,22 @@ export async function generateMetadata({
 
 export default async function PublicFlatmateProfile({
   params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+  searchParams,
+}: FlatmateProfileProps) {
   const { id } = await params;
+  const renterView = (await searchParams).from === "renter";
   const flatmate = getPublicFlatmate(id);
   if (!flatmate) notFound();
   const looking = flatmate.situation === "looking";
 
   return (
     <>
-      <Navbar />
+      <FlatmatesNavigation initialRenterView={renterView} />
       <main className="bg-carbon-50 min-h-svh pt-16 text-black">
         <section className="px-5 pt-8 pb-14 sm:px-6 lg:px-11 xl:px-[52px]">
           <div className="mx-auto max-w-[1280px]">
             <Link
-              href="/flatmates"
+              href={renterView ? "/flatmates?from=renter" : "/flatmates"}
               className="mb-6 inline-flex items-center gap-1 text-sm text-black/65 transition-colors hover:text-black"
             >
               <ChevronLeft aria-hidden="true" className="size-4" />
@@ -77,13 +83,13 @@ export default async function PublicFlatmateProfile({
                 <p className="text-carbon-500 mt-1">
                   {flatmate.city}, {flatmate.country}
                 </p>
-                <div className="mt-7 flex items-center gap-2 text-sm text-black/60">
-                  <LockKeyhole aria-hidden="true" className="size-4" />
-                  Sign in to view {flatmate.firstName}&apos;s photo
-                </div>
+                <FlatmatePhotoStatus
+                  firstName={flatmate.firstName}
+                  initialRenterView={renterView}
+                />
                 <FlatmateAuthAction
                   label="I'm Interested"
-                  returnTo={`/flatmates/${flatmate.id}`}
+                  returnTo={`/flatmates/${flatmate.id}${renterView ? "?from=renter" : ""}`}
                   className="font-bricolage mt-7 h-12 w-fit rounded-full bg-black px-7 font-medium text-white"
                 />
               </div>
@@ -216,7 +222,7 @@ export default async function PublicFlatmateProfile({
           </div>
         </section>
       </main>
-      <Footer />
+      {renterView ? null : <Footer />}
     </>
   );
 }

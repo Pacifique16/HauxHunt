@@ -32,7 +32,7 @@ export function FlatmatePortrait({
         fill
         priority={priority}
         sizes="(min-width: 1280px) 30vw, (min-width: 640px) 50vw, 100vw"
-        className={`object-cover transition-[filter,transform] duration-500 ${isGuest ? "scale-110 blur-xl" : "blur-0 scale-100"}`}
+        className={`object-cover transition-[filter,transform] duration-500 ${isGuest ? "scale-105 blur-[9px]" : "scale-100 blur-0"}`}
       />
     </div>
   );

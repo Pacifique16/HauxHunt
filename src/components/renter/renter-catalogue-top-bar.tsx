@@ -31,7 +31,7 @@ const RENTER_NAV_GROUPS = [
   {
     label: "Find a Flatmate",
     links: [
-      ["Browse Flatmates", "/flatmates"],
+      ["Browse Flatmates", "/flatmates?from=renter"],
       ["My Flatmate Profile", "/renter-dashboard/flatmates/profile"],
       ["Matches / Interested People", "/renter-dashboard/flatmates/matches"],
     ],
