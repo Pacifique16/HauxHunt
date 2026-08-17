@@ -287,22 +287,20 @@ export default function RenterFlatmateProfilePage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("edit")}
-                  className={`rounded-full px-4 py-1.5 text-xs font-medium transition-all ${
-                    activeTab === "edit"
+                  className={`rounded-full px-4 py-1.5 text-xs font-medium transition-all ${activeTab === "edit"
                       ? "bg-black text-white"
                       : "text-black/70 hover:text-black"
-                  }`}
+                    }`}
                 >
                   Edit Profile
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveTab("preview")}
-                  className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium transition-all ${
-                    activeTab === "preview"
+                  className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium transition-all ${activeTab === "preview"
                       ? "bg-black text-white"
                       : "text-black/70 hover:text-black"
-                  }`}
+                    }`}
                 >
                   <Eye className="size-3.5" />
                   Live Preview
@@ -324,34 +322,29 @@ export default function RenterFlatmateProfilePage() {
           <AnimatePresence>
             {savedToast && (
               <motion.div
-                initial={{ opacity: 0, y: 50, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                className="fixed bottom-6 right-6 z-[250] flex items-center gap-2.5 rounded-2xl bg-black px-5 py-4 text-sm font-semibold text-white shadow-2xl"
+                role="status"
+                initial={{ opacity: 0, y: 20, x: "-50%" }}
+                animate={{ opacity: 1, y: 0, x: "-50%" }}
+                exit={{ opacity: 0, y: 20, x: "-50%" }}
+                className="feedback-toast flex items-center justify-center z-[250]"
               >
-                <div className="flex size-5 items-center justify-center rounded-full bg-white/20">
-                  <Check className="size-3 text-white" />
-                </div>
-                Your Flatmate Profile is published and active!
+                <span>Your Flatmate Profile is published and active!</span>
               </motion.div>
             )}
           </AnimatePresence>
 
           {/* Split Builder Layout */}
           <div className="mt-8 lg:grid lg:grid-cols-[1.25fr_0.75fr] xl:grid-cols-[1.3fr_0.7fr] lg:gap-8">
-            
+
             {/* 1. Left Column: Form Editor */}
             <div className={`${activeTab === "edit" ? "block" : "hidden lg:block"} space-y-8`}>
-              
+
               {/* Basic Information section */}
               <section className="rounded-3xl border border-white/80 bg-white/75 p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] ring-1 ring-white/60 backdrop-blur-xl sm:p-8">
                 <div>
                   <h2 className="font-bricolage text-xl font-medium tracking-tight">
-                    Basic Profile Details
+                    Personal Profile
                   </h2>
-                  <p className="text-carbon-500 text-xs">
-                    Public information shown to potential flatmates
-                  </p>
                 </div>
 
                 <div className="mt-6 flex flex-col gap-6 sm:flex-row sm:items-center">
@@ -443,6 +436,23 @@ export default function RenterFlatmateProfilePage() {
                   </div>
                   <div>
                     <label className="text-carbon-700 text-xs font-semibold">
+                      Country
+                    </label>
+                    <span className="relative block mt-1.5">
+                      <select
+                        value={country}
+                        onChange={(e) => setCountry(e.target.value)}
+                        className="profile-field-control h-11 w-full rounded-xl border border-black/15 bg-white pl-3.5 pr-10 text-sm font-normal outline-none focus:border-black appearance-none transition-colors"
+                      >
+                        <option value="Rwanda">Rwanda</option>
+                        <option value="Kenya">Kenya</option>
+                        <option value="Nigeria">Nigeria</option>
+                      </select>
+                      <ChevronDown className="text-black/40 pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2" />
+                    </span>
+                  </div>
+                  <div>
+                    <label className="text-carbon-700 text-xs font-semibold">
                       Current City
                     </label>
                     <input
@@ -475,11 +485,10 @@ export default function RenterFlatmateProfilePage() {
                     <button
                       type="button"
                       onClick={() => setSituation("looking")}
-                      className={`group flex flex-col items-start rounded-2xl border p-5 text-left transition-all ${
-                        situation === "looking"
+                      className={`group flex flex-col items-start rounded-2xl border p-5 text-left transition-all ${situation === "looking"
                           ? "border-black bg-black text-white shadow-md shadow-black/5"
                           : "border-black/15 bg-white text-black hover:border-black/35 hover:bg-neutral-50/50"
-                      }`}
+                        }`}
                     >
                       <div className="flex w-full items-center justify-between">
                         <span className="font-bricolage text-base font-semibold">
@@ -497,11 +506,10 @@ export default function RenterFlatmateProfilePage() {
                     <button
                       type="button"
                       onClick={() => setSituation("has-place")}
-                      className={`group flex flex-col items-start rounded-2xl border p-5 text-left transition-all ${
-                        situation === "has-place"
+                      className={`group flex flex-col items-start rounded-2xl border p-5 text-left transition-all ${situation === "has-place"
                           ? "border-black bg-black text-white shadow-md shadow-black/5"
                           : "border-black/15 bg-white text-black hover:border-black/35 hover:bg-neutral-50/50"
-                      }`}
+                        }`}
                     >
                       <div className="flex w-full items-center justify-between">
                         <span className="font-bricolage text-base font-semibold">
@@ -521,7 +529,7 @@ export default function RenterFlatmateProfilePage() {
                 {situation === "has-place" && (
                   <div className="mt-6 border-t border-black/5 pt-6">
                     <label className="text-carbon-700 text-xs font-semibold">
-                      Active Rental (Accommodating Property)
+                      Which of your current rentals are you sharing?
                     </label>
                     <span className="relative block mt-1.5 max-w-md">
                       <select
@@ -537,8 +545,8 @@ export default function RenterFlatmateProfilePage() {
                       </select>
                       <ChevronDown className="text-black/40 pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2" />
                     </span>
-                    <p className="mt-2 text-xs text-carbon-450 leading-normal">
-                      Select which of your active rental listings you want to find flatmates for.
+                    <p className="mt-2 text-xs text-carbon-450 leading-normal font-normal">
+                      Associates your flatmate profile with your current rental (will not be publicly listed again).
                     </p>
                   </div>
                 )}
@@ -546,7 +554,7 @@ export default function RenterFlatmateProfilePage() {
                 <div className="mt-8 grid gap-5 sm:grid-cols-3">
                   <div>
                     <label className="text-carbon-700 text-xs font-semibold">
-                      Monthly Budget (RWF)
+                      {situation === "looking" ? "Monthly Budget (RWF)" : "Expected Share (RWF)"}
                     </label>
                     <input
                       type="number"
@@ -555,6 +563,11 @@ export default function RenterFlatmateProfilePage() {
                       className="profile-field-control mt-1.5 h-11 w-full rounded-xl border border-black/15 bg-white px-3.5 text-sm font-normal outline-none focus:border-black transition-colors"
                       placeholder="e.g. 450000"
                     />
+                    <p className="mt-1 text-[10px] text-carbon-450 leading-normal">
+                      {situation === "looking"
+                        ? "Maximum rent you are willing to contribute."
+                        : "Monthly rent you expect the flatmate to pay."}
+                    </p>
                   </div>
                   <div>
                     <label className="text-carbon-700 text-xs font-semibold">
@@ -594,127 +607,150 @@ export default function RenterFlatmateProfilePage() {
                 </div>
 
                 <div className="mt-6 grid gap-5 sm:grid-cols-3">
-                  <div>
-                    <label className="text-carbon-700 text-xs font-semibold">
-                      Preferred Property Type
-                    </label>
-                    <span className="relative block mt-1.5">
-                      <select
-                        value={preferredProperty}
-                        onChange={(e) => setPreferredProperty(e.target.value)}
-                        className="profile-field-control h-11 w-full rounded-xl border border-black/15 bg-white pl-3.5 pr-10 text-sm font-normal outline-none focus:border-black appearance-none transition-colors"
-                      >
-                        <option value="Apartment">Apartment</option>
-                        <option value="House / Villa">House / Villa</option>
-                        <option value="Shared Duplex">Shared Duplex</option>
-                        <option value="Penthouse">Penthouse</option>
-                      </select>
-                      <ChevronDown className="text-black/40 pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2" />
-                    </span>
-                  </div>
-                  <div>
-                    <label className="text-carbon-700 text-xs font-semibold">
-                      Furnishing
-                    </label>
-                    <span className="relative block mt-1.5">
-                      <select
-                        value={furnishing}
-                        onChange={(e) => setFurnishing(e.target.value)}
-                        className="profile-field-control h-11 w-full rounded-xl border border-black/15 bg-white pl-3.5 pr-10 text-sm font-normal outline-none focus:border-black appearance-none transition-colors"
-                      >
-                        <option value="Furnished">Furnished preferred</option>
-                        <option value="Semi-furnished">Semi-furnished</option>
-                        <option value="Unfurnished">Unfurnished</option>
-                      </select>
-                      <ChevronDown className="text-black/40 pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2" />
-                    </span>
-                  </div>
-                  <div>
-                    <label className="text-carbon-700 text-xs font-semibold">
-                      Gender Preference
-                    </label>
-                    <span className="relative block mt-1.5">
-                      <select
-                        value={genderPreference}
-                        onChange={(e) => setGenderPreference(e.target.value)}
-                        className="profile-field-control h-11 w-full rounded-xl border border-black/15 bg-white pl-3.5 pr-10 text-sm font-normal outline-none focus:border-black appearance-none transition-colors"
-                      >
-                        <option value="any">Any</option>
-                        <option value="female">Female</option>
-                        <option value="male">Male</option>
-                      </select>
-                      <ChevronDown className="text-black/40 pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2" />
-                    </span>
-                  </div>
+                  {situation === "looking" ? (
+                    <>
+                      <div>
+                        <label className="text-carbon-700 text-xs font-semibold">
+                          Preferred Property Type
+                        </label>
+                        <span className="relative block mt-1.5">
+                          <select
+                            value={preferredProperty}
+                            onChange={(e) => setPreferredProperty(e.target.value)}
+                            className="profile-field-control h-11 w-full rounded-xl border border-black/15 bg-white pl-3.5 pr-10 text-sm font-normal outline-none focus:border-black appearance-none transition-colors"
+                          >
+                            <option value="Apartment">Apartment</option>
+                            <option value="House / Villa">House / Villa</option>
+                            <option value="Shared Duplex">Shared Duplex</option>
+                            <option value="Penthouse">Penthouse</option>
+                          </select>
+                          <ChevronDown className="text-black/40 pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2" />
+                        </span>
+                      </div>
+                      <div>
+                        <label className="text-carbon-700 text-xs font-semibold">
+                          Furnishing
+                        </label>
+                        <span className="relative block mt-1.5">
+                          <select
+                            value={furnishing}
+                            onChange={(e) => setFurnishing(e.target.value)}
+                            className="profile-field-control h-11 w-full rounded-xl border border-black/15 bg-white pl-3.5 pr-10 text-sm font-normal outline-none focus:border-black appearance-none transition-colors"
+                          >
+                            <option value="Furnished">Furnished preferred</option>
+                            <option value="Semi-furnished">Semi-furnished</option>
+                            <option value="Unfurnished">Unfurnished</option>
+                          </select>
+                          <ChevronDown className="text-black/40 pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2" />
+                        </span>
+                      </div>
+                      <div>
+                        <label className="text-carbon-700 text-xs font-semibold">
+                          Gender Preference
+                        </label>
+                        <span className="relative block mt-1.5">
+                          <select
+                            value={genderPreference}
+                            onChange={(e) => setGenderPreference(e.target.value)}
+                            className="profile-field-control h-11 w-full rounded-xl border border-black/15 bg-white pl-3.5 pr-10 text-sm font-normal outline-none focus:border-black appearance-none transition-colors"
+                          >
+                            <option value="any">Any</option>
+                            <option value="female">Female</option>
+                            <option value="male">Male</option>
+                          </select>
+                          <ChevronDown className="text-black/40 pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2" />
+                        </span>
+                      </div>
+                    </>
+                  ) : (
+                    <div>
+                      <label className="text-carbon-700 text-xs font-semibold">
+                        Gender Preference
+                      </label>
+                      <span className="relative block mt-1.5">
+                        <select
+                          value={genderPreference}
+                          onChange={(e) => setGenderPreference(e.target.value)}
+                          className="profile-field-control h-11 w-full rounded-xl border border-black/15 bg-white pl-3.5 pr-10 text-sm font-normal outline-none focus:border-black appearance-none transition-colors"
+                        >
+                          <option value="any">Any</option>
+                          <option value="female">Female</option>
+                          <option value="male">Male</option>
+                        </select>
+                        <ChevronDown className="text-black/40 pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2" />
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Preferred areas */}
-                <div className="mt-8">
-                  <label className="text-carbon-700 text-xs font-semibold">
-                    Preferred Areas / Neighborhoods
-                  </label>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {Array.from(new Set([...AVAILABLE_AREAS, ...selectedAreas])).map((area) => {
-                      const isSelected = selectedAreas.includes(area);
-                      return (
-                        <button
-                          key={area}
-                          type="button"
-                          onClick={() => toggleArea(area)}
-                          className={`group flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-medium transition-all duration-200 active:scale-95 ${
-                            isSelected
-                              ? "bg-black/5 border border-black/35 text-black shadow-sm"
-                              : "border border-black/15 bg-white text-black/75 hover:border-black/35 hover:bg-neutral-50/50"
-                          }`}
-                        >
-                          <span className="flex items-center justify-center">
-                            {isSelected ? (
-                              <Check className="size-3 text-black" />
-                            ) : (
-                              <Plus className="size-3 text-black/40 group-hover:text-black" />
-                            )}
-                          </span>
-                          {area}
-                        </button>
-                      );
-                    })}
-                  </div>
+                {situation === "looking" && (
+                  <div className="mt-8">
+                    <label className="text-carbon-700 text-xs font-semibold">
+                      Preferred Areas / Neighborhoods
+                    </label>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {Array.from(new Set([...AVAILABLE_AREAS, ...selectedAreas])).map((area) => {
+                        const isSelected = selectedAreas.includes(area);
+                        return (
+                          <button
+                            key={area}
+                            type="button"
+                            onClick={() => toggleArea(area)}
+                            className={`group flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-medium transition-all duration-200 active:scale-95 ${isSelected
+                                ? "bg-black/5 border border-black/35 text-black shadow-sm"
+                                : "border border-black/15 bg-white text-black/75 hover:border-black/35 hover:bg-neutral-50/50"
+                              }`}
+                          >
+                            <span className="flex items-center justify-center">
+                              {isSelected ? (
+                                <Check className="size-3 text-black" />
+                              ) : (
+                                <Plus className="size-3 text-black/40 group-hover:text-black" />
+                              )}
+                            </span>
+                            {area}
+                          </button>
+                        );
+                      })}
+                    </div>
 
-                  {/* Add custom area control */}
-                  <div className="mt-4 flex gap-2 max-w-sm">
-                    <input
-                      type="text"
-                      placeholder="Add other area/neighborhood..."
-                      value={customArea}
-                      onChange={(e) => setCustomArea(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          addCustomArea();
-                        }
-                      }}
-                      className="profile-field-control h-10 flex-1 rounded-xl border border-black/15 bg-white px-3.5 text-xs outline-none focus:border-black transition-colors font-normal"
-                    />
-                    <button
-                      type="button"
-                      onClick={addCustomArea}
-                      className="inline-flex h-10 items-center gap-1 rounded-xl bg-black px-4 text-xs font-semibold text-white hover:bg-neutral-800 active:scale-95 transition-all"
-                    >
-                      <Plus className="size-3.5" />
-                      Add
-                    </button>
+                    {/* Add custom area control */}
+                    <div className="mt-4 flex gap-2 max-w-sm">
+                      <input
+                        type="text"
+                        placeholder="Add other area/neighborhood..."
+                        value={customArea}
+                        onChange={(e) => setCustomArea(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            addCustomArea();
+                          }
+                        }}
+                        className="profile-field-control h-10 flex-1 rounded-xl border border-black/15 bg-white px-3.5 text-xs outline-none focus:border-black transition-colors font-normal"
+                      />
+                      <button
+                        type="button"
+                        onClick={addCustomArea}
+                        className="inline-flex h-10 items-center gap-1 rounded-xl bg-black px-4 text-xs font-semibold text-white hover:bg-neutral-800 active:scale-95 transition-all"
+                      >
+                        <Plus className="size-3.5" />
+                        Add
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
               </section>
 
               {/* Lifestyle & Compatibility section */}
               <section className="rounded-3xl border border-white/80 bg-white/75 p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] ring-1 ring-white/60 backdrop-blur-xl sm:p-8">
                 <div>
                   <h2 className="font-bricolage text-xl font-medium tracking-tight">
-                    Lifestyle & Compatibility Tags
+                    What Best Describes You
                   </h2>
-                  <p className="text-carbon-500 text-xs">
-                    Choose the tags that best describe your lifestyle routine and habits.
+                  <p className="text-carbon-500 text-xs font-normal">
+                    Choose the tags that best describe your lifestyle, routines, and habits (maximum three). These tags will be shown on your profile card.
                   </p>
                 </div>
 
@@ -726,11 +762,10 @@ export default function RenterFlatmateProfilePage() {
                         key={tag}
                         type="button"
                         onClick={() => toggleTag(tag)}
-                        className={`group flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-medium transition-all duration-200 active:scale-95 ${
-                          isSelected
+                        className={`group flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-medium transition-all duration-200 active:scale-95 ${isSelected
                             ? "bg-black/5 border border-black/35 text-black shadow-sm"
                             : "border border-black/15 bg-white text-black/75 hover:border-black/35 hover:bg-neutral-50/50"
-                        }`}
+                          }`}
                       >
                         <span className="flex items-center justify-center">
                           {isSelected ? (
@@ -770,12 +805,17 @@ export default function RenterFlatmateProfilePage() {
                   </button>
                 </div>
 
-                {/* Lifestyle Details Dropdowns */}
-                <div className="mt-8">
-                  <h3 className="font-bricolage text-base font-semibold text-black/85 mb-3">
-                    Lifestyle Profile Details
-                  </h3>
-                  <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {/* Lifestyle & Compatibility details section */}
+                <div className="mt-8 border-t border-black/5 pt-8">
+                  <div>
+                    <h3 className="font-bricolage text-lg font-medium tracking-tight text-neutral-900">
+                      Lifestyle & Compatibility Details
+                    </h3>
+                    <p className="text-carbon-450 text-xs font-normal">
+                      Set your routines and preferences to find compatible roommate matches.
+                    </p>
+                  </div>
+                  <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                     <div>
                       <label className="text-carbon-700 text-xs font-semibold">
                         Cleanliness
@@ -888,60 +928,66 @@ export default function RenterFlatmateProfilePage() {
                     placeholder="Tell potential flatmates about your routine, hobbies, and what you value in a shared home..."
                   />
                 </div>
+              </section>
 
-                <div className="mt-8">
-                  <label className="text-carbon-700 text-xs font-semibold">
+              {/* Target Flatmate Preferences section */}
+              <section className="rounded-3xl border border-white/80 bg-white/75 p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] ring-1 ring-white/60 backdrop-blur-xl sm:p-8">
+                <div>
+                  <h2 className="font-bricolage text-xl font-medium tracking-tight">
                     What You Look for in a Flatmate
-                  </label>
-                  
-                  <div className="mt-3 space-y-2.5">
-                    <AnimatePresence initial={false}>
-                      {lookingFor.map((item, index) => (
-                        <motion.div
-                          key={item}
-                          initial={{ opacity: 0, height: 0, y: -10 }}
-                          animate={{ opacity: 1, height: "auto", y: 0 }}
-                          exit={{ opacity: 0, height: 0, y: -10 }}
-                          className="flex items-center justify-between rounded-2xl border border-black/[0.04] bg-black/[0.03] px-4 py-3 text-xs font-medium text-black/85"
-                        >
-                          <span className="flex items-center gap-2">
-                            <span className="size-1.5 rounded-full bg-black/40" />
-                            {item}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => removeLookingForItem(index)}
-                            className="text-black/40 hover:text-black active:scale-90 transition-transform"
-                          >
-                            <Trash2 className="size-4" />
-                          </button>
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
+                  </h2>
+                  <p className="text-carbon-500 text-xs">
+                    Define the qualities, habits, and criteria you expect from your future flatmate.
+                  </p>
+                </div>
 
-                    <div className="flex gap-2 pt-2">
-                      <input
-                        type="text"
-                        placeholder="Add a requirement..."
-                        value={newLookingForItem}
-                        onChange={(e) => setNewLookingForItem(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            addLookingForItem();
-                          }
-                        }}
-                        className="profile-field-control h-11 flex-1 rounded-xl border border-black/15 bg-white px-3.5 text-xs outline-none focus:border-black transition-colors"
-                      />
-                      <button
-                        type="button"
-                        onClick={addLookingForItem}
-                        className="inline-flex h-11 items-center gap-1.5 rounded-xl bg-black px-5 text-xs font-semibold text-white hover:bg-neutral-800 transition-colors"
+                <div className="mt-6 space-y-2.5">
+                  <AnimatePresence initial={false}>
+                    {lookingFor.map((item, index) => (
+                      <motion.div
+                        key={item}
+                        initial={{ opacity: 0, height: 0, y: -10 }}
+                        animate={{ opacity: 1, height: "auto", y: 0 }}
+                        exit={{ opacity: 0, height: 0, y: -10 }}
+                        className="flex items-center justify-between rounded-2xl border border-black/[0.04] bg-black/[0.03] px-4 py-3 text-xs font-medium text-black/85"
                       >
-                        <Plus className="size-4" />
-                        Add
-                      </button>
-                    </div>
+                        <span className="flex items-center gap-2">
+                          <span className="size-1.5 rounded-full bg-black/40" />
+                          {item}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeLookingForItem(index)}
+                          className="text-black/40 hover:text-black active:scale-90 transition-transform"
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+
+                  <div className="flex gap-2 pt-2">
+                    <input
+                      type="text"
+                      placeholder="Add a requirement..."
+                      value={newLookingForItem}
+                      onChange={(e) => setNewLookingForItem(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addLookingForItem();
+                        }
+                      }}
+                      className="profile-field-control h-11 flex-1 rounded-xl border border-black/15 bg-white px-3.5 text-xs outline-none focus:border-black transition-colors"
+                    />
+                    <button
+                      type="button"
+                      onClick={addLookingForItem}
+                      className="inline-flex h-11 items-center gap-1.5 rounded-xl bg-black px-5 text-xs font-semibold text-white hover:bg-neutral-800 transition-colors"
+                    >
+                      <Plus className="size-4" />
+                      Add
+                    </button>
                   </div>
                 </div>
               </section>
@@ -950,7 +996,7 @@ export default function RenterFlatmateProfilePage() {
             {/* 2. Right Column: Sticky Live Profile Card Preview */}
             <div className={`${activeTab === "preview" ? "block" : "hidden lg:block"} lg:col-span-1 lg:w-full`}>
               <div className="sticky top-20 self-start w-full flex flex-col items-center">
-                
+
                 {/* Title */}
                 <div className="text-center mb-6">
                   <h2 className="font-bricolage text-xl font-bold text-black/85">
@@ -973,10 +1019,10 @@ export default function RenterFlatmateProfilePage() {
                       quality={100}
                     />
                   </div>
-                  
+
                   {/* Shadow overlay */}
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/95" />
-                  
+
                   {/* Details Overlay */}
                   <div className="absolute inset-x-0 bottom-0 p-6 text-white">
                     <div className="min-w-0">

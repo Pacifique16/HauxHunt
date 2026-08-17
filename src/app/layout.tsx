@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { MotionConfig } from "framer-motion";
 import { siteConfig } from "@/config/site";
+import { PrototypeReset } from "@/components/prototype-reset";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           ring both become Martian 800. Components reference roles only, so
           none of them needed changing. */}
       <body className="theme-paper bg-canvas text-fg flex min-h-full flex-col">
+        <PrototypeReset />
         {/* `reducedMotion="user"` makes every Framer Motion transform/layout
             animation sitewide respect prefers-reduced-motion automatically
             (2026-08-05 motion decision) — one place to enforce it, not a

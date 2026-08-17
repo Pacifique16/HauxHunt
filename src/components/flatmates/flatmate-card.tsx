@@ -160,7 +160,9 @@ export function FlatmateCard({
               <p className="flex shrink-0 items-baseline gap-1 text-sm font-medium">
                 <span>
                   {isLooking
-                    ? `RWF ${compactBudget(flatmate.budgetMin)}–${compactBudget(flatmate.budgetMax)}`
+                    ? flatmate.budgetMin === flatmate.budgetMax
+                      ? `RWF ${compactBudget(flatmate.budgetMin)}`
+                      : `RWF ${compactBudget(flatmate.budgetMin)}–${compactBudget(flatmate.budgetMax)}`
                     : `~ RWF ${compactBudget(flatmate.budgetMin)}`}
                 </span>
                 <span className="text-[9px] font-normal text-white/60">
