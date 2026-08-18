@@ -30,6 +30,11 @@ import { VoiceInputButton } from "@/components/listings/voice-input-button";
 import { TrendingLocations } from "@/components/sections/trending-locations/trending-locations";
 import { useScrolled } from "@/hooks/use-scrolled";
 import { getTotalUnreadCount } from "@/lib/message-threads";
+import {
+  getUnreadNotificationCount,
+  subscribeToNotifications,
+} from "@/lib/notifications";
+import { NotificationsDrawer } from "@/components/renter/notifications-drawer";
 import heroImage from "@/assets/images/house-isolated-field.jpg";
 import houseOne from "@/assets/images/house1.jpg";
 import houseTwo from "@/assets/images/house2.jpg";
@@ -242,7 +247,7 @@ const RENTER_NAV_GROUPS = [
 
 const PROFILE_LINKS = [
   ["My Account", "/renter-dashboard/account"],
-  ["Help Center", "/help"],
+  ["Help Center", "/renter-dashboard/help"],
   ["Send Feedback", "/feedback"],
 ] as const;
 
@@ -292,10 +297,17 @@ export default function RenterDashboardPage() {
     () => getTotalUnreadCount(),
     () => 0
   );
+  const unreadNotificationCount = useSyncExternalStore(
+    subscribeToNotifications,
+    getUnreadNotificationCount,
+    () => 0,
+  );
   const displayCurrency = useDisplayCurrency();
   const { scrolled, sentinelRef, threshold } = useScrolled(40);
   const [profileOpen, setProfileOpen] = useState(false);
   const [openNavMenu, setOpenNavMenu] = useState<string | null>(null);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifFilter, setNotifFilter] = useState<"all" | "unread">("all");
   const [listingPage, setListingPage] = useState(1);
   const [locationFilter, setLocationFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("Any Type");
@@ -547,16 +559,26 @@ export default function RenterDashboardPage() {
               <CurrencySelector inverse={!scrolled} openOnHover />
               <button
                 type="button"
-                aria-label="Notifications"
+                onClick={() => setNotifOpen((v) => !v)}
+                aria-label={`Notifications${unreadNotificationCount > 0 ? `, ${unreadNotificationCount} unread` : ""}`}
+                aria-expanded={notifOpen}
                 className={`relative flex size-11 items-center justify-center rounded-full transition-colors ${scrolled ? "hover:bg-black/[0.055]" : "hover:bg-white/10"}`}
               >
                 <Bell className="size-5" />
-                <span
-                  className={`absolute top-1 right-1 flex size-4 items-center justify-center rounded-full text-[0.55rem] font-bold ${scrolled ? "bg-black text-white" : "bg-white text-black"}`}
-                >
-                  3
-                </span>
+                {unreadNotificationCount > 0 ? (
+                  <span
+                    className={`absolute top-1 right-1 flex size-4 items-center justify-center rounded-full text-[0.55rem] font-bold ${scrolled ? "bg-black text-white" : "bg-white text-black"}`}
+                  >
+                    {unreadNotificationCount}
+                  </span>
+                ) : null}
               </button>
+              <NotificationsDrawer
+                open={notifOpen}
+                filter={notifFilter}
+                onClose={() => setNotifOpen(false)}
+                onFilterChange={setNotifFilter}
+              />
               <div
                 ref={profileMenuRef}
                 className="relative"

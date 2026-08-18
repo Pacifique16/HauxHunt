@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { BadgeCheck, Camera, ChevronDown, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import bankMethodImage from "@/assets/images/bank.png";
 import cardMethodImage from "@/assets/images/card.png";
@@ -156,6 +156,15 @@ export default function MyAccountPage() {
   const [openSection, setOpenSection] = useState<SectionId>("personal");
   const [profile, setProfile] = useState(INITIAL_PROFILE);
   const [savedProfile, setSavedProfile] = useState(INITIAL_PROFILE);
+  const [forceOpenDevices, setForceOpenDevices] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const section = params.get("section") as SectionId | null;
+    const open = params.get("open");
+    if (section) setOpenSection(section);
+    if (open === "devices") setForceOpenDevices(true);
+  }, []);
   const [emailDraft, setEmailDraft] = useState(INITIAL_PROFILE.email);
   const [countryCode, setCountryCode] = useState("+250");
   const [phoneDraft, setPhoneDraft] = useState("788 000 456");
@@ -605,7 +614,7 @@ export default function MyAccountPage() {
                 </button>
               </SecurityDisclosure>
 
-              <SecurityDisclosure title="Devices where you are logged in">
+              <SecurityDisclosure title="Devices where you are logged in" forceOpen={forceOpenDevices}>
                 <div className="flex flex-wrap items-end justify-between gap-4">
                   <div>
                     <p className="text-carbon-500 mt-1 text-sm">
@@ -842,13 +851,19 @@ function getInitials(name: string) {
 function SecurityDisclosure({
   title,
   defaultOpen = false,
+  forceOpen,
   children,
 }: {
   title: string;
   defaultOpen?: boolean;
+  forceOpen?: boolean;
   children: React.ReactNode;
 }) {
-  const [open, setOpen] = useState(defaultOpen);
+  const [open, setOpen] = useState(defaultOpen || (forceOpen ?? false));
+
+  useEffect(() => {
+    if (forceOpen) setOpen(true);
+  }, [forceOpen]);
 
   return (
     <section className="mb-3 last:mb-0">

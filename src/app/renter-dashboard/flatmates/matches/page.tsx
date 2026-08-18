@@ -31,6 +31,28 @@ export default function RenterFlatmateMatchesPage() {
         window.sessionStorage.setItem("hauxhunt-flatmate-received-interests", JSON.stringify(["aline", "nadia"]));
       }
 
+      // Handle notification deep-link: ?tab=matches&highlight=aline
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab");
+      const highlight = params.get("highlight");
+      if (tabParam === "matches") setActiveTab("matches");
+      if (highlight) {
+        // Ensure the highlighted person is a mutual match by seeding both sides
+        const iStr = window.sessionStorage.getItem("hauxhunt-flatmate-interests") || "[]";
+        const rStr = window.sessionStorage.getItem("hauxhunt-flatmate-received-interests") || "[]";
+        try {
+          const iIds: string[] = JSON.parse(iStr);
+          const rIds: string[] = JSON.parse(rStr);
+          let changed = false;
+          if (!iIds.includes(highlight)) { iIds.push(highlight); changed = true; }
+          if (!rIds.includes(highlight)) { rIds.push(highlight); changed = true; }
+          if (changed) {
+            window.sessionStorage.setItem("hauxhunt-flatmate-interests", JSON.stringify(iIds));
+            window.sessionStorage.setItem("hauxhunt-flatmate-received-interests", JSON.stringify(rIds));
+          }
+        } catch {}
+      }
+
       // Load user profile properties
       const savedProfile = window.sessionStorage.getItem("hauxhunt-flatmate-profile-data");
       if (savedProfile) {
