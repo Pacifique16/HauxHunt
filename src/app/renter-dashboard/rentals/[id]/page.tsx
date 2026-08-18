@@ -74,7 +74,7 @@ export default function RentalDetail() {
                 </div>
                 <div className="mt-5 flex gap-3">
                   <Link
-                    href={`/renter-dashboard/messages?host=${encodeURIComponent(r.manager)}&rental=${r.id}`}
+                    href={`/renter-dashboard/messages?host=${encodeURIComponent(r.manager)}&role=${encodeURIComponent(r.role.replace(/^Verified /, ""))}&verified=${r.role.startsWith("Verified") ? "1" : "0"}&ctx=active-rental&property=${encodeURIComponent(r.title)}&propertyId=${encodeURIComponent(r.propertyId)}&status=${encodeURIComponent(r.status)}&detail=${encodeURIComponent(`${r.rent} / month`)}&refId=${encodeURIComponent(r.id)}`}
                     className="inline-flex h-10 items-center rounded-full bg-black px-4 text-sm text-white"
                   >
                     Message Manager

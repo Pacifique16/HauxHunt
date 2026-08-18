@@ -15,11 +15,22 @@ import {
   ImagePlus,
   FileText,
   Camera,
+  BadgeCheck,
+  MoreVertical,
 } from "lucide-react";
 import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
 import { VoiceInputButton } from "@/components/listings/voice-input-button";
 import { PUBLIC_FLATMATES, formatRwf } from "@/data/public-flatmates";
-import { getStoredThreads, recordSentMessage, slugify } from "@/lib/message-threads";
+import {
+  getStoredThreads,
+  isThreadRead,
+  markThreadRead,
+  recordSentMessage,
+  SEED_THREAD_UNREAD_COUNTS,
+  slugify,
+  type ConversationContext,
+  type ConversationContextType,
+} from "@/lib/message-threads";
 import patrickManagerPortrait from "@/assets/images/flatmate-patrick.png";
 import jeanOwnerPortrait from "@/assets/images/flatmate-joseph.jpg";
 
@@ -33,9 +44,13 @@ type Message = {
   sender: "user" | "them";
   text: string;
   timestamp: string;
-  // Real epoch time, used only to sort the conversation list by most recent
-  // activity — `timestamp` above is the display label ("Yesterday", "2:40 PM").
+  // Real epoch time — used to sort the conversation list and to group
+  // messages under date separators. `timestamp` above is just the display
+  // label ("Yesterday", "2:40 PM").
   ts: number;
+  // "system" messages are lifecycle events ("Viewing confirmed"), rendered
+  // as a centered pill instead of a chat bubble. Defaults to "chat".
+  kind?: "chat" | "system";
   attachment?: Attachment;
 };
 
@@ -45,10 +60,16 @@ type Conversation = {
   id: string;
   name: string;
   avatar?: any;
-  type: ConversationType;
-  subtitle: string;
-  metaContext: string;
-  unread: boolean;
+  role: string; // "Property Manager", "Agent", "Maintenance Technician", "Flatmate", "HauxHunt Support"
+  verified?: boolean;
+  showPhone: boolean;
+  type: ConversationType; // filter bucket for the "More…" dropdown
+  subtitle: string; // short line shown in the conversation list row only
+  metaContext: string; // short list-row badge
+  context: ConversationContext; // what this thread is actually about, right now
+  // How many messages in this thread haven't been seen yet — shown as a
+  // number badge on the list row instead of the old static context label.
+  unreadCount: number;
   phone: string;
   messages: Message[];
   flatmateDetails?: {
@@ -90,6 +111,65 @@ const MORE_FILTERS: Array<[ConversationType, string]> = [
   ["landlord", "My Rental"],
   ["support", "Property Search"],
 ];
+
+// Short, restrained badge label per context type — shown on the conversation
+// list row and used to build the fuller "Viewing · Confirmed" status line in
+// the context card.
+const CONTEXT_BADGE: Record<ConversationContextType, string> = {
+  "property-enquiry": "Listing Enquiry",
+  viewing: "Viewing",
+  application: "Application",
+  "rental-setup": "Rental Setup",
+  "active-rental": "Active Rental",
+  maintenance: "Maintenance",
+  flatmate: "Flatmate Match",
+  support: "Support",
+};
+
+// Which filter bucket a context type belongs under in the "More…" dropdown.
+function bucketForContext(type: ConversationContextType): ConversationType {
+  if (type === "flatmate") return "flatmate";
+  if (type === "support") return "support";
+  if (type === "property-enquiry") return "manager";
+  return "landlord";
+}
+
+// The one contextual action a conversation offers — at most one primary CTA,
+// intentionally not a toolbar of actions.
+function contextCta(context: ConversationContext): { label: string; href: string } | null {
+  switch (context.type) {
+    case "property-enquiry":
+      return context.propertyId
+        ? { label: "View Property", href: `/properties/${context.propertyId}?from=renter` }
+        : null;
+    case "viewing":
+      return { label: "View Viewing", href: "/renter-dashboard/visits" };
+    case "application":
+      return {
+        label: "View Application",
+        href: context.refId ? `/renter-dashboard/applications/${context.refId}` : "/renter-dashboard/applications",
+      };
+    case "rental-setup":
+      return {
+        label: "Continue Setup",
+        href: context.refId ? `/renter-dashboard/rental-setup/${context.refId}` : "/renter-dashboard/rentals",
+      };
+    case "active-rental":
+      return {
+        label: "View Rental",
+        href: context.refId ? `/renter-dashboard/rentals/${context.refId}` : "/renter-dashboard/rentals",
+      };
+    case "maintenance":
+      return {
+        label: "View Request",
+        href: context.refId ? `/renter-dashboard/maintenance/${context.refId}` : "/renter-dashboard/maintenance",
+      };
+    case "flatmate":
+      return context.refId ? { label: "View Profile", href: `/flatmates/${context.refId}?from=renter` } : null;
+    default:
+      return null;
+  }
+}
 
 const SIDEBAR_MIN_WIDTH = 280;
 const SIDEBAR_MAX_WIDTH = 560;
@@ -141,9 +221,64 @@ function lastActivity(conversation: Conversation) {
   return conversation.messages.reduce((latest, m) => Math.max(latest, m.ts || 0), 0);
 }
 
+// "Today" / "Yesterday" / "15 Aug" — used for the thread's date separators.
+function dateLabel(ts: number) {
+  const d = new Date(ts);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+  const sameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString();
+  if (sameDay(d, today)) return "Today";
+  if (sameDay(d, yesterday)) return "Yesterday";
+  return d.toLocaleDateString([], { day: "numeric", month: "short" });
+}
+
+// The day is already carried by the date separator above each message
+// group, so each bubble's own timestamp always shows a clock time (e.g.
+// "10:24 AM") rather than repeating "Today"/"Yesterday"/"13 days ago".
+function timeLabel(ts: number) {
+  return new Date(ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+}
+
+// System events are stored as one line, e.g. "Viewing confirmed · Saturday ·
+// 10:30 AM" — split on the first " · " into a title and an optional detail.
+function splitSystemMessage(text: string) {
+  const separatorIndex = text.indexOf(" · ");
+  if (separatorIndex === -1) return { title: text, detail: undefined as string | undefined };
+  return { title: text.slice(0, separatorIndex), detail: text.slice(separatorIndex + 3) };
+}
+
+// A run of consecutive lifecycle events (viewing confirmed, application
+// approved, agreement signed, …) shown as one small timeline card instead of
+// a pill per event with a date label wedged between each — the dates live
+// inside the card instead.
+function SystemEventCard({ messages, query }: { messages: Message[]; query: string }) {
+  return (
+    <div className="flex justify-center py-2">
+      <div className="w-full max-w-75 rounded-2xl border border-black/10 bg-white p-3.5 shadow-sm">
+        <div className="space-y-3">
+          {messages.map((msg, index) => {
+            const { title, detail } = splitSystemMessage(msg.text);
+            return (
+              <div key={index} className="flex items-start gap-2.5">
+                <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-black/60" />
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-black">
+                    {query ? highlightMatch(title, query) : title}
+                  </p>
+                  <p className="text-[10px] text-black/45">{detail ?? msg.timestamp}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Wraps every case-insensitive occurrence of `query` in `text` with an underlined,
 // bolded span — kept monochrome (no highlight color) so it reads on both bubble colors.
-
 function highlightMatch(text: string, query: string) {
   if (!query) return text;
   const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -174,12 +309,17 @@ export default function RenterDashboardMessagesPage() {
   const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_DEFAULT_WIDTH);
   const [attachMenuOpen, setAttachMenuOpen] = useState(false);
   const attachMenuRef = useRef<HTMLDivElement>(null);
+  const [chatMenuOpen, setChatMenuOpen] = useState(false);
+  const chatMenuRef = useRef<HTMLDivElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const documentInputRef = useRef<HTMLInputElement>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const cameraStreamRef = useRef<MediaStream | null>(null);
+  // Mobile shows one pane at a time — the list, or an open thread. Desktop
+  // (md: and up) ignores this and always shows both side by side.
+  const [mobileView, setMobileView] = useState<"list" | "thread">("list");
 
   // Live-stream the device camera into the <video> element while the camera
   // dialog is open, and always release it again on close/unmount.
@@ -223,8 +363,9 @@ export default function RenterDashboardMessagesPage() {
         // Build list of matched flatmates
         const matchedProfiles = PUBLIC_FLATMATES.filter(f => matchesIds.includes(f.id));
 
-        // Real epoch offsets behind each display timestamp above, purely so
-        // the sidebar can be sorted by most-recent activity.
+        // Real epoch offsets behind each display timestamp below, purely so
+        // the sidebar can be sorted by most-recent activity and the thread
+        // can be grouped under date separators.
         const now = Date.now();
         const HOUR = 3_600_000;
         const DAY = 24 * HOUR;
@@ -238,10 +379,13 @@ export default function RenterDashboardMessagesPage() {
             id: flatmate.id,
             name: flatmate.firstName,
             avatar: flatmate.portrait,
+            role: "Flatmate",
+            showPhone: false,
             type: "flatmate",
             subtitle: `${flatmate.age} · ${flatmate.occupation}`,
             metaContext: "Flatmate Match",
-            unread: true,
+            context: { type: "flatmate", refId: flatmate.id },
+            unreadCount: isThreadRead(flatmate.id) ? 0 : 1,
             phone: demoPhoneNumber(flatmate.id, COUNTRY_CALLING_CODES[flatmate.country] ?? "+250"),
             flatmateDetails: {
               budget: flatmate.situation === "looking"
@@ -261,15 +405,25 @@ export default function RenterDashboardMessagesPage() {
           });
         });
 
-        // 2. Add static property manager enquiries
+        // 2. Patrick — a plain, unverified listing enquiry: no history beyond
+        // the initial contact, deliberately kept simple as a contrast to
+        // Jean's evolved relationship below.
         chats.push({
           id: "patrick-manager",
           name: "Patrick",
           avatar: patrickManagerPortrait,
+          role: "Property Manager",
+          verified: false,
+          showPhone: true,
           type: "manager",
-          subtitle: "Modern villa in Kibagabaga · Property Manager",
+          subtitle: "Modern Family Home · Property Manager",
           metaContext: "Listing Enquiry",
-          unread: true,
+          context: {
+            type: "property-enquiry",
+            propertyName: "Modern Family Home",
+            propertyId: "kibagabaga-modern-family-home",
+          },
+          unreadCount: isThreadRead("patrick-manager") ? 0 : SEED_THREAD_UNREAD_COUNTS["patrick-manager"],
           phone: demoPhoneNumber("patrick-manager", "+250"),
           messages: [
             {
@@ -283,29 +437,35 @@ export default function RenterDashboardMessagesPage() {
 
         // Jean Mugisha is the property manager for Kacyiru Residence — the
         // same character referenced across My Rentals, Payments, Maintenance
-        // and Rental Setup — so this thread carries the whole relationship,
-        // from viewing through to an active tenancy.
+        // and Rental Setup. This ONE thread carries the whole relationship,
+        // evolving from enquiry through to an active tenancy, mixing system
+        // lifecycle events with the odd real message from Jean.
         chats.push({
           id: "kacyiru-owner",
           name: "Jean Mugisha",
           avatar: jeanOwnerPortrait,
+          role: "Property Manager",
+          verified: true,
+          showPhone: true,
           type: "landlord",
           subtitle: "Kacyiru Residence · Property Manager",
-          metaContext: "Property Manager",
-          unread: true,
+          metaContext: "Active Rental",
+          context: {
+            type: "active-rental",
+            propertyName: "Kacyiru Residence",
+            propertyId: "kacyiru-2br",
+            refId: "HH-RENT-104",
+            status: "Active",
+            detail: "RWF 850,000 / month",
+          },
+          unreadCount: isThreadRead("kacyiru-owner") ? 0 : SEED_THREAD_UNREAD_COUNTS["kacyiru-owner"],
           phone: demoPhoneNumber("kacyiru-owner", "+250"),
           messages: [
             {
               sender: "them",
-              text: "Hi Julien, your viewing for Kacyiru Residence is confirmed for Saturday at 10:00 AM. Looking forward to showing you around!",
-              timestamp: "5 days ago",
-              ts: now - 5 * DAY
-            },
-            {
-              sender: "them",
               text: "Hi Julien, thanks for submitting your application. We are currently verifying references and will get back to you by Friday.",
-              timestamp: "3 days ago",
-              ts: now - 3 * DAY
+              timestamp: "15 days ago",
+              ts: now - 15 * DAY,
             },
             {
               sender: "them",
@@ -318,14 +478,27 @@ export default function RenterDashboardMessagesPage() {
 
         // 3. Maintenance updates come from the technician assigned to the
         // ticket, not the property manager — matches the scheduledVisit
-        // contact on the leaking-tap request in lib/maintenance-data.ts.
+        // contact on the leaking-tap request (HH-MNT-1042) in
+        // lib/maintenance-data.ts. Tied to that one specific request, not a
+        // generic "maintenance" catch-all.
         chats.push({
           id: "eric-maintenance",
-          name: "Eric N.",
+          name: "Moses Habimana",
+          role: "Maintenance Technician",
+          showPhone: true,
           type: "landlord",
-          subtitle: "Kacyiru Residence · Maintenance Technician",
-          metaContext: "Maintenance Update",
-          unread: true,
+          subtitle: "Leaking Kitchen Tap · Maintenance Technician",
+          metaContext: "Maintenance",
+          context: {
+            type: "maintenance",
+            title: "Leaking Kitchen Tap",
+            propertyName: "Kacyiru Residence",
+            propertyId: "kacyiru-2br",
+            refId: "HH-MNT-1042",
+            status: "Scheduled",
+            detail: "17 Aug · 10:00–11:00 AM",
+          },
+          unreadCount: isThreadRead("eric-maintenance") ? 0 : SEED_THREAD_UNREAD_COUNTS["eric-maintenance"],
           phone: demoPhoneNumber("eric-maintenance", "+250"),
           messages: [
             {
@@ -337,15 +510,47 @@ export default function RenterDashboardMessagesPage() {
           ]
         });
 
-        // 4. The HauxHunt concierge follows up on open "Property search"
-        // support requests (see renter-dashboard/requests).
+        // 4. A verified Agent — a distinct role from "Property Manager", so
+        // the role system has more than one example to show.
+        chats.push({
+          id: "kevin-agent",
+          name: "Kevin Nshuti",
+          role: "Agent",
+          verified: true,
+          showPhone: true,
+          type: "manager",
+          subtitle: "Nyarutarama Garden Apartment · Agent",
+          metaContext: "Listing Enquiry",
+          context: {
+            type: "property-enquiry",
+            propertyName: "Nyarutarama Garden Apartment",
+            propertyId: "nyarutarama-2br",
+          },
+          unreadCount: isThreadRead("kevin-agent") ? 0 : SEED_THREAD_UNREAD_COUNTS["kevin-agent"],
+          phone: demoPhoneNumber("kevin-agent", "+250"),
+          messages: [
+            {
+              sender: "them",
+              text: "Hi Julien, thanks for your interest in Nyarutarama Garden Apartment — it's still available. Would you like to schedule a viewing?",
+              timestamp: "2 days ago",
+              ts: now - 2 * DAY,
+            }
+          ]
+        });
+
+        // 5. The HauxHunt concierge follows up on open "Property search"
+        // support requests (see renter-dashboard/requests) — kept simple,
+        // no housing context card.
         chats.push({
           id: "hauxhunt-concierge",
           name: "HauxHunt Concierge",
+          role: "HauxHunt Support",
+          showPhone: false,
           type: "support",
           subtitle: "Property Search",
-          metaContext: "Property Search",
-          unread: true,
+          metaContext: "Support",
+          context: { type: "support" },
+          unreadCount: isThreadRead("hauxhunt-concierge") ? 0 : SEED_THREAD_UNREAD_COUNTS["hauxhunt-concierge"],
           phone: demoPhoneNumber("hauxhunt-concierge", "+250"),
           messages: [
             {
@@ -357,7 +562,7 @@ export default function RenterDashboardMessagesPage() {
           ]
         });
 
-        // 5. Merge in any messages the renter sent from elsewhere in the app
+        // 6. Merge in any messages the renter sent from elsewhere in the app
         // (a property enquiry, "Message Property Manager" on a rental, a
         // maintenance update, etc.) — so wherever a message was sent from,
         // it shows up here too, and keeps showing up on later visits.
@@ -371,45 +576,82 @@ export default function RenterDashboardMessagesPage() {
           } else {
             chats.push({
               ...thread,
-              unread: false,
+              unreadCount: 0,
               phone: demoPhoneNumber(thread.id, "+250"),
             });
           }
         });
 
-        // Resolve which chat to open from the URL. `?chat=<id>` (used by
-        // flatmate links) takes priority; failing that, `?host=`/`?property=`
-        // (used by "Message Property Manager" / "Contact Landlord" links
-        // across rentals, payments, maintenance, applications and visits)
-        // opens the matching thread — creating an empty one, ready to type
-        // into, if this recipient hasn't been messaged yet.
+        // Resolve which chat to open from the URL, and build a
+        // ConversationContext from whatever the linking page passed in
+        // (`ctx`, `status`, `detail`, `refId`, …) instead of discarding it.
+        // `?chat=<id>` (flatmate links) takes priority; `?host=` (every
+        // "Message Property Manager" / "Message Technician" link across
+        // rentals, payments, maintenance, applications, visits and rental
+        // setup) opens the matching thread by name — updating its context
+        // to the newest stage if found, so one relationship (e.g. Jean
+        // Mugisha on Kacyiru Residence) evolves in place instead of
+        // spawning a new thread per lifecycle stage.
         const urlParams = new URLSearchParams(window.location.search);
         const chatParam = urlParams.get("chat");
         const hostParam = urlParams.get("host");
         const propertyParam = urlParams.get("property");
-        const maintenanceParam = urlParams.get("maintenance");
-        const applicationParam = urlParams.get("application");
-        const viewingParam = urlParams.get("viewing");
+        const roleParam = urlParams.get("role");
+        const verifiedParam = urlParams.get("verified") === "1";
+        const ctxParam = urlParams.get("ctx") as ConversationContextType | null;
+        const propertyIdParam = urlParams.get("propertyId") || undefined;
+        const statusParam = urlParams.get("status") || undefined;
+        const detailParam = urlParams.get("detail") || undefined;
+        const refIdParam = urlParams.get("refId") || undefined;
+        const titleParam = urlParams.get("title") || undefined;
+
+        const incomingContext: ConversationContext | null = ctxParam
+          ? {
+              type: ctxParam,
+              propertyName: propertyParam || undefined,
+              propertyId: propertyIdParam,
+              status: statusParam,
+              detail: detailParam,
+              refId: refIdParam,
+              title: titleParam,
+            }
+          : null;
 
         let initialId = "";
 
         if (chatParam && chats.some(c => c.id === chatParam)) {
           initialId = chatParam;
-        } else if (maintenanceParam && chats.some(c => c.metaContext === "Maintenance Update")) {
-          initialId = chats.find(c => c.metaContext === "Maintenance Update")!.id;
         } else if (hostParam) {
           const existing = chats.find(c => c.name.toLowerCase() === hostParam.toLowerCase());
           if (existing) {
             initialId = existing.id;
+            if (incomingContext) {
+              existing.context = incomingContext;
+              existing.metaContext = CONTEXT_BADGE[incomingContext.type];
+              existing.type = bucketForContext(incomingContext.type);
+              const headline = incomingContext.title ?? incomingContext.propertyName;
+              if (headline) existing.subtitle = `${headline} · ${existing.role}`;
+            }
           } else {
             const id = `landlord-${slugify(hostParam)}`;
+            const context: ConversationContext = incomingContext ?? {
+              type: "property-enquiry",
+              propertyName: propertyParam || undefined,
+              propertyId: propertyIdParam,
+            };
+            const role = roleParam || "Property Manager";
+            const headline = context.title ?? context.propertyName;
             chats.push({
               id,
               name: hostParam,
-              type: applicationParam || viewingParam ? "landlord" : "manager",
-              subtitle: propertyParam ? `${propertyParam} · Property Manager` : "Property Manager",
-              metaContext: applicationParam ? "Application Update" : viewingParam ? "Viewing" : "Listing Enquiry",
-              unread: false,
+              role,
+              verified: verifiedParam,
+              showPhone: true,
+              type: bucketForContext(context.type),
+              subtitle: headline ? `${headline} · ${role}` : role,
+              metaContext: CONTEXT_BADGE[context.type],
+              context,
+              unreadCount: 0,
               phone: demoPhoneNumber(id, "+250"),
               messages: [],
             });
@@ -421,13 +663,21 @@ export default function RenterDashboardMessagesPage() {
           if (existing) {
             initialId = id;
           } else {
+            const context: ConversationContext = incomingContext ?? {
+              type: "property-enquiry",
+              propertyName: propertyParam,
+              propertyId: propertyIdParam,
+            };
             chats.push({
               id,
               name: "Property Manager",
-              type: "manager",
+              role: "Property Manager",
+              showPhone: true,
+              type: bucketForContext(context.type),
               subtitle: propertyParam,
-              metaContext: applicationParam ? "Application Update" : "Listing Enquiry",
-              unread: false,
+              metaContext: CONTEXT_BADGE[context.type],
+              context,
+              unreadCount: 0,
               phone: demoPhoneNumber(id, "+250"),
               messages: [],
             });
@@ -441,12 +691,14 @@ export default function RenterDashboardMessagesPage() {
         }
 
         // The chat we're opening on load starts out read.
+        if (initialId) markThreadRead(initialId);
         const chatsWithInitialRead = chats.map(c =>
-          c.id === initialId ? { ...c, unread: false } : c
+          c.id === initialId ? { ...c, unreadCount: 0 } : c
         );
 
         setConversations(chatsWithInitialRead);
         setActiveChatId(initialId);
+        if (initialId) setMobileView("thread");
       } catch (e) {
         console.error(e);
       }
@@ -475,14 +727,30 @@ export default function RenterDashboardMessagesPage() {
     return () => document.removeEventListener("mousedown", closeOnOutsideClick);
   }, []);
 
+  // Close the chat "more options" dropdown on outside click
+  useEffect(() => {
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      if (!chatMenuRef.current?.contains(event.target as Node)) {
+        setChatMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    return () => document.removeEventListener("mousedown", closeOnOutsideClick);
+  }, []);
+
   const activeChat = conversations.find(c => c.id === activeChatId);
 
   const selectChat = (id: string) => {
     setActiveChatId(id);
     setThreadSearchOpen(false);
     setThreadSearchQuery("");
-    setConversations(prev => prev.map(c => (c.id === id ? { ...c, unread: false } : c)));
+    setChatMenuOpen(false);
+    setMobileView("thread");
+    markThreadRead(id);
+    setConversations(prev => prev.map(c => (c.id === id ? { ...c, unreadCount: 0 } : c)));
   };
+
+  const backToList = () => setMobileView("list");
 
   const searchedConversations = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -498,12 +766,14 @@ export default function RenterDashboardMessagesPage() {
     return searchedConversations
       .filter(c => {
         if (typeFilter) return c.type === typeFilter;
-        if (activeTab === "unread") return c.unread;
-        if (activeTab === "read") return !c.unread;
+        if (activeTab === "unread") return c.unreadCount > 0;
+        if (activeTab === "read") return c.unreadCount === 0;
         return true;
       })
       .sort((a, b) => lastActivity(b) - lastActivity(a));
   }, [searchedConversations, activeTab, typeFilter]);
+
+  const activeChatCta = activeChat ? contextCta(activeChat.context) : null;
 
   const threadQuery = threadSearchQuery.trim();
   const threadMessages = useMemo(() => {
@@ -513,6 +783,34 @@ export default function RenterDashboardMessagesPage() {
       m.text.toLowerCase().includes(threadQuery.toLowerCase())
     );
   }, [activeChat, threadQuery]);
+
+  // Collapse consecutive system events into one timeline card, and only
+  // compute date separators for chat messages — a run of same-day system
+  // events would otherwise wedge a near-duplicate date pill between each one.
+  type ThreadRenderItem =
+    | { kind: "chat"; message: Message; showDate: boolean; dateLabel: string }
+    | { kind: "system-group"; messages: Message[] };
+
+  const threadRenderItems = useMemo(() => {
+    const items: ThreadRenderItem[] = [];
+    let lastDateLabel: string | null = null;
+    threadMessages.forEach((msg) => {
+      if (msg.kind === "system") {
+        const last = items[items.length - 1];
+        if (last?.kind === "system-group") {
+          last.messages.push(msg);
+        } else {
+          items.push({ kind: "system-group", messages: [msg] });
+        }
+        lastDateLabel = null;
+      } else {
+        const label = dateLabel(msg.ts);
+        items.push({ kind: "chat", message: msg, showDate: label !== lastDateLabel, dateLabel: label });
+        lastDateLabel = label;
+      }
+    });
+    return items;
+  }, [threadMessages]);
 
   // Jump to the latest message whenever a chat is opened or a new message
   // arrives — same as WhatsApp, the most recent message sits just above the
@@ -575,9 +873,13 @@ export default function RenterDashboardMessagesPage() {
       {
         id: activeChat.id,
         name: activeChat.name,
+        role: activeChat.role,
+        verified: activeChat.verified,
+        showPhone: activeChat.showPhone,
         subtitle: activeChat.subtitle,
         metaContext: activeChat.metaContext,
         type: activeChat.type,
+        context: activeChat.context,
       },
       text
     );
@@ -656,8 +958,12 @@ export default function RenterDashboardMessagesPage() {
       <RenterCatalogueTopBar />
       <main className="flex h-svh flex-col bg-white pt-16 text-black">
         <div className="flex min-h-0 flex-1">
-          {/* Conversations List Panel */}
-          <aside className="flex shrink-0 flex-col" style={{ width: sidebarWidth }}>
+          {/* Conversations List Panel — full width on mobile until a chat is
+              opened; fixed/resizable width alongside the thread on desktop. */}
+          <aside
+            className={`${mobileView === "thread" ? "hidden" : "flex"} w-full shrink-0 flex-col md:flex md:w-(--sidebar-w)`}
+            style={{ "--sidebar-w": `${sidebarWidth}px` } as React.CSSProperties}
+          >
             <div className="flex items-center justify-between gap-3 px-5 pt-5 pb-4">
               <Link
                 href="/flatmates?from=renter"
@@ -803,15 +1109,18 @@ export default function RenterDashboardMessagesPage() {
                             name={convo.name}
                             className="size-11 border border-neutral-100 text-base"
                           />
-                          {convo.unread && (
-                            <span className="absolute top-0 right-0 size-2.5 rounded-full bg-black ring-2 ring-white" />
-                          )}
                         </div>
 
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center justify-between gap-1">
-                            <h3 className={`text-sm font-semibold truncate ${convo.unread ? "text-black" : "text-neutral-900"}`}>
-                              {convo.name}
+                            <h3 className={`flex min-w-0 items-center gap-1 text-sm font-semibold ${convo.unreadCount > 0 ? "text-black" : "text-neutral-900"}`}>
+                              <span className="truncate">{convo.name}</span>
+                              {convo.verified && (
+                                <BadgeCheck
+                                  aria-label="Verified"
+                                  className="size-3.5 shrink-0 fill-black text-white"
+                                />
+                              )}
                             </h3>
                             <span className="text-[9px] text-neutral-400 shrink-0 font-medium">
                               {lastMsg?.timestamp || ""}
@@ -822,16 +1131,14 @@ export default function RenterDashboardMessagesPage() {
                           </p>
 
                           <div className="mt-2 flex items-center justify-between gap-2">
-                            <p className={`text-xs truncate flex-1 ${convo.unread ? "text-black" : "text-neutral-600"}`}>
+                            <p className={`text-xs truncate flex-1 ${convo.unreadCount > 0 ? "text-black" : "text-neutral-600"}`}>
                               {messagePreview(lastMsg)}
                             </p>
-                            <span className={`text-[9px] font-bold uppercase tracking-wider rounded-full px-2 py-0.5 shrink-0 ${
-                              convo.type === "flatmate"
-                                ? "bg-black text-white"
-                                : "bg-neutral-150 text-neutral-600"
-                            }`}>
-                              {convo.metaContext}
-                            </span>
+                            {convo.unreadCount > 0 && (
+                              <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-black text-[10px] font-bold text-white">
+                                {convo.unreadCount}
+                              </span>
+                            )}
                           </div>
                         </div>
                       </button>
@@ -843,7 +1150,8 @@ export default function RenterDashboardMessagesPage() {
           </aside>
 
           {/* Drag to resize the conversation list, clamped between
-              SIDEBAR_MIN_WIDTH and SIDEBAR_MAX_WIDTH. */}
+              SIDEBAR_MIN_WIDTH and SIDEBAR_MAX_WIDTH. Desktop only — dragging
+              doesn't apply to the single-pane mobile layout. */}
           <div
             role="separator"
             aria-orientation="vertical"
@@ -860,14 +1168,14 @@ export default function RenterDashboardMessagesPage() {
                 setSidebarWidth((w) => Math.min(SIDEBAR_MAX_WIDTH, w + 16));
               }
             }}
-            className="w-1.5 shrink-0 cursor-col-resize border-r border-black/10 bg-transparent transition-colors hover:border-black/25 hover:bg-black/5 focus-visible:bg-black/10"
+            className="hidden w-1.5 shrink-0 cursor-col-resize border-r border-black/10 bg-transparent transition-colors hover:border-black/25 hover:bg-black/5 focus-visible:bg-black/10 md:block"
           />
 
-          {/* Active Chat Panel */}
-          <section className="flex min-w-0 flex-1 flex-col">
+          {/* Active Chat Panel — hidden on mobile until a conversation is open. */}
+          <section className={`${mobileView === "list" ? "hidden" : "flex"} min-w-0 flex-1 flex-col md:flex`}>
             {/* Chat header */}
             {activeChat && (
-              <div className="flex h-16 shrink-0 items-center gap-3 border-b border-black/10 px-6">
+              <div className="flex h-16 shrink-0 items-center gap-3 border-b border-black/10 px-4 md:px-6">
                 {threadSearchOpen ? (
                   <>
                     <span className="catalogue-location-filter flex min-w-0 flex-1 items-center gap-2 px-4">
@@ -894,19 +1202,37 @@ export default function RenterDashboardMessagesPage() {
                   </>
                 ) : (
                   <>
+                    <button
+                      type="button"
+                      onClick={backToList}
+                      aria-label="Back to conversations"
+                      className="-ml-1 flex size-9 shrink-0 items-center justify-center rounded-full text-black/60 transition-colors hover:bg-black/5 hover:text-black md:hidden"
+                    >
+                      <ChevronLeft aria-hidden="true" className="size-5" />
+                    </button>
                     <ConversationAvatar avatar={activeChat.avatar} name={activeChat.name} className="size-10" />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-black">{activeChat.name}</p>
-                      <p className="truncate text-xs text-black/50">{activeChat.subtitle}</p>
+                      <p className="flex items-center gap-1 truncate text-sm font-semibold text-black">
+                        <span className="truncate">{activeChat.name}</span>
+                        {activeChat.verified && (
+                          <BadgeCheck
+                            aria-label="Verified"
+                            className="size-3.5 shrink-0 fill-black text-white"
+                          />
+                        )}
+                      </p>
+                      <p className="truncate text-xs text-black/50">{activeChat.role}</p>
                     </div>
-                    <a
-                      href={`tel:${activeChat.phone.replace(/\s+/g, "")}`}
-                      aria-label={`Call ${activeChat.name}`}
-                      title={activeChat.phone}
-                      className="flex size-9 shrink-0 items-center justify-center rounded-full text-black/60 transition-colors hover:bg-black/5 hover:text-black"
-                    >
-                      <Phone aria-hidden="true" className="size-4.5" />
-                    </a>
+                    {activeChat.showPhone && (
+                      <a
+                        href={`tel:${activeChat.phone.replace(/\s+/g, "")}`}
+                        aria-label={`Call ${activeChat.name}`}
+                        title={activeChat.phone}
+                        className="flex size-9 shrink-0 items-center justify-center rounded-full text-black/60 transition-colors hover:bg-black/5 hover:text-black"
+                      >
+                        <Phone aria-hidden="true" className="size-4.5" />
+                      </a>
+                    )}
                     <button
                       type="button"
                       aria-label="Search in conversation"
@@ -915,28 +1241,31 @@ export default function RenterDashboardMessagesPage() {
                     >
                       <Search aria-hidden="true" className="size-4.5" />
                     </button>
+                    {activeChatCta && (
+                      <div ref={chatMenuRef} className="relative shrink-0">
+                        <button
+                          type="button"
+                          aria-label="More options"
+                          onClick={() => setChatMenuOpen((open) => !open)}
+                          className="flex size-9 shrink-0 items-center justify-center rounded-full text-black/60 transition-colors hover:bg-black/5 hover:text-black"
+                        >
+                          <MoreVertical aria-hidden="true" className="size-4.5" />
+                        </button>
+                        {chatMenuOpen && (
+                          <div className="absolute top-[calc(100%+0.5rem)] right-0 z-20 w-52 rounded-2xl border border-black/10 bg-white p-1.5 shadow-[0_20px_60px_rgba(0,0,0,0.16)]">
+                            <Link
+                              href={activeChatCta.href}
+                              onClick={() => setChatMenuOpen(false)}
+                              className="block w-full rounded-xl px-3.5 py-2.5 text-left text-sm font-medium text-black/75 transition-colors hover:bg-black/5"
+                            >
+                              {activeChatCta.label}
+                            </Link>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </>
                 )}
-              </div>
-            )}
-
-            {/* Flatmate Match Context Sub-Banner */}
-            {activeChat?.type === "flatmate" && activeChat.flatmateDetails && (
-              <div className="px-6 py-3.5 border-b border-black/10 flex flex-wrap gap-x-6 gap-y-2 text-xs">
-                <div className="flex items-center gap-1.5 text-neutral-600">
-                  <span className="font-semibold text-black/50 uppercase text-[9px] tracking-wider">Situation:</span>
-                  <span className="font-semibold text-neutral-800">{activeChat.flatmateDetails.situation}</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-neutral-600">
-                  <span className="font-semibold text-black/50 uppercase text-[9px] tracking-wider">Budget:</span>
-                  <span className="font-semibold text-neutral-800">{activeChat.flatmateDetails.budget}</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-neutral-600">
-                  <span className="font-semibold text-black/50 uppercase text-[9px] tracking-wider">Preferred Areas:</span>
-                  <span className="font-semibold text-neutral-800 truncate max-w-[200px]" title={activeChat.flatmateDetails.areas}>
-                    {activeChat.flatmateDetails.areas}
-                  </span>
-                </div>
               </div>
             )}
 
@@ -950,49 +1279,59 @@ export default function RenterDashboardMessagesPage() {
                   </p>
                 </div>
               ) : (
-                <div className="flex-1 overflow-y-auto bg-neutral-100 px-4 py-3 space-y-1">
-                  {threadMessages.map((msg, index) => {
+                <div className="flex-1 overflow-y-auto bg-neutral-100 px-4 py-3">
+                  {threadRenderItems.map((item, index) => {
+                    if (item.kind === "system-group") {
+                      return <SystemEventCard key={index} messages={item.messages} query={threadQuery} />;
+                    }
+                    const msg = item.message;
                     const isUser = msg.sender === "user";
                     return (
-                      <div
-                        key={index}
-                        className={`flex ${isUser ? "justify-end" : "justify-start"}`}
-                      >
-                        <div className={`max-w-[65%] rounded-lg px-2.5 py-1.5 text-sm ${
-                          isUser
-                            ? "bg-black text-white rounded-tr-none"
-                            : "bg-white text-neutral-900 rounded-tl-none"
-                        }`}>
-                          {msg.attachment?.kind === "image" && (
-                            /* eslint-disable-next-line @next/next/no-img-element -- object URL, not eligible for next/image optimization */
-                            <img
-                              src={msg.attachment.url}
-                              alt={msg.attachment.name}
-                              className="mb-1 max-h-64 w-full rounded-md object-cover"
-                            />
-                          )}
-                          {msg.attachment?.kind === "document" && (
-                            <a
-                              href={msg.attachment.url}
-                              download={msg.attachment.name}
-                              className={`mb-1 flex items-center gap-2 rounded-md p-2 transition-colors ${
-                                isUser ? "bg-white/10 hover:bg-white/15" : "bg-neutral-100 hover:bg-neutral-200"
-                              }`}
-                            >
-                              <FileText aria-hidden="true" className="size-5 shrink-0" />
-                              <span className="truncate text-xs font-medium">{msg.attachment.name}</span>
-                            </a>
-                          )}
-                          {msg.text && (
-                            <span className="leading-snug wrap-break-word">
-                              {threadQuery ? highlightMatch(msg.text, threadQuery) : msg.text}
+                      <div key={index}>
+                        {item.showDate && (
+                          <div className="flex justify-center py-2">
+                            <span className="text-[10px] font-semibold tracking-wide text-black/40 uppercase">
+                              {item.dateLabel}
                             </span>
-                          )}
-                          <span className={`float-right mt-1 ml-2 text-[10px] font-medium ${
-                            isUser ? "text-white/60" : "text-neutral-400"
+                          </div>
+                        )}
+                        <div className={`flex py-0.5 ${isUser ? "justify-end" : "justify-start"}`}>
+                          <div className={`max-w-[65%] rounded-lg px-2.5 py-1.5 text-sm ${
+                            isUser
+                              ? "bg-black text-white rounded-tr-none"
+                              : "bg-white text-neutral-900 rounded-tl-none"
                           }`}>
-                            {msg.timestamp}
-                          </span>
+                            {msg.attachment?.kind === "image" && (
+                              /* eslint-disable-next-line @next/next/no-img-element -- object URL, not eligible for next/image optimization */
+                              <img
+                                src={msg.attachment.url}
+                                alt={msg.attachment.name}
+                                className="mb-1 max-h-64 w-full rounded-md object-cover"
+                              />
+                            )}
+                            {msg.attachment?.kind === "document" && (
+                              <a
+                                href={msg.attachment.url}
+                                download={msg.attachment.name}
+                                className={`mb-1 flex items-center gap-2 rounded-md p-2 transition-colors ${
+                                  isUser ? "bg-white/10 hover:bg-white/15" : "bg-neutral-100 hover:bg-neutral-200"
+                                }`}
+                              >
+                                <FileText aria-hidden="true" className="size-5 shrink-0" />
+                                <span className="truncate text-xs font-medium">{msg.attachment.name}</span>
+                              </a>
+                            )}
+                            {msg.text && (
+                              <span className="leading-snug wrap-break-word">
+                                {threadQuery ? highlightMatch(msg.text, threadQuery) : msg.text}
+                              </span>
+                            )}
+                            <span className={`float-right mt-1 ml-2 text-[10px] font-medium ${
+                              isUser ? "text-white/60" : "text-neutral-400"
+                            }`}>
+                              {timeLabel(msg.ts)}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     );

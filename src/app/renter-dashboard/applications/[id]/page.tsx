@@ -37,8 +37,11 @@ function ApplicationDetailPageInner() {
     location: query.get("location") ?? "",
     status: "Submitted" as const,
     date: "Submitted today",
-    representative: "Property representative",
-    role: "Application recipient",
+    // Falls back to the real Kacyiru Residence property manager (matching
+    // the default propertyId above) instead of a generic placeholder name,
+    // so "Message" always opens a real, findable conversation.
+    representative: "Jean Mugisha",
+    role: "Verified Property Manager",
     progress: 42,
     message: "Your application has been received.",
   };
@@ -446,7 +449,7 @@ function ApplicationDetailPageInner() {
               </p>
               <p className="text-carbon-500 mt-1 text-xs">Member since 2026</p>
               <Link
-                href={`/renter-dashboard/messages?host=${encodeURIComponent(application.representative)}`}
+                href={`/renter-dashboard/messages?host=${encodeURIComponent(application.representative)}&role=${encodeURIComponent(application.role.replace(/^Verified /, ""))}&verified=${application.role.startsWith("Verified") ? "1" : "0"}&ctx=application&property=${encodeURIComponent(application.title)}&propertyId=${encodeURIComponent(application.propertyId)}&status=${encodeURIComponent(application.status)}&refId=${encodeURIComponent(application.id)}`}
                 className="mt-5 inline-flex h-10 items-center rounded-full bg-black px-5 text-sm text-white"
               >
                 Message

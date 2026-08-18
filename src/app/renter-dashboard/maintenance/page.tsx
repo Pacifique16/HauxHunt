@@ -227,7 +227,7 @@ function RequestCard({ request }: { request: MaintenanceRequest }) {
       <div className="mt-5 flex flex-wrap justify-end gap-2">
         {!quiet ? (
           <Link
-            href={`/renter-dashboard/messages?host=Jean%20Mugisha&maintenance=${request.id}`}
+            href={`/renter-dashboard/messages?host=${encodeURIComponent(request.scheduledVisit?.contact ?? "Jean Mugisha")}&role=${encodeURIComponent(request.scheduledVisit?.role ?? "Property Manager")}&verified=${request.scheduledVisit ? "0" : "1"}&ctx=maintenance&title=${encodeURIComponent(request.title)}&property=${encodeURIComponent(request.property)}&propertyId=${encodeURIComponent(request.propertyId)}&status=${encodeURIComponent(request.status)}&refId=${encodeURIComponent(request.id)}${request.scheduledVisit ? `&detail=${encodeURIComponent(`${request.scheduledVisit.date} · ${request.scheduledVisit.time}`)}` : ""}`}
             className="inline-flex h-9 items-center rounded-full border border-black/15 px-3.5 text-sm"
           >
             Message

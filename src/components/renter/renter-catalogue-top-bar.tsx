@@ -2,12 +2,18 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Bell, ChevronDown } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Bell, ChevronDown, MessageCircle } from "lucide-react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { Wordmark } from "@/components/layout/wordmark";
 import { CurrencySelector } from "@/components/currency/currency-selector";
+import { getTotalUnreadCount } from "@/lib/message-threads";
 import julienProfile from "@/assets/images/julien.jpg";
+
+function subscribeToStorage(callback: () => void) {
+  window.addEventListener("storage", callback);
+  return () => window.removeEventListener("storage", callback);
+}
 
 const RENTER_NAV_GROUPS = [
   {
@@ -48,6 +54,14 @@ export function RenterCatalogueTopBar() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [openNavMenu, setOpenNavMenu] = useState<string | null>(null);
   const profileMenuRef = useRef<HTMLDivElement>(null);
+  // Mock, session-only count (not a real synced inbox) — computed fresh from
+  // which conversations have been opened, so it's correct on every page, not
+  // just after visiting Messages. Kept separate from Notifications.
+  const unreadMessageCount = useSyncExternalStore(
+    subscribeToStorage,
+    () => getTotalUnreadCount(),
+    () => 0
+  );
 
   useEffect(() => {
     const closeProfileOnOutsideClick = (event: MouseEvent) => {
@@ -121,9 +135,28 @@ export function RenterCatalogueTopBar() {
             className="relative inline-flex items-center transition-opacity hover:opacity-55"
           >
             Messages
+            {unreadMessageCount > 0 && (
+              <span className="absolute -top-1.5 -right-3.5 flex size-4 items-center justify-center rounded-full bg-black text-[0.55rem] font-bold text-white">
+                {unreadMessageCount}
+              </span>
+            )}
           </Link>
         </nav>
         <div className="flex items-center gap-2 justify-self-end">
+          {/* Main nav (incl. Messages) is desktop-only (`lg:flex` above) — this
+              is the minimal mobile entry point into Messages. */}
+          <Link
+            href="/renter-dashboard/messages"
+            aria-label="Messages"
+            className="relative flex size-11 items-center justify-center rounded-full hover:bg-black/[0.055] lg:hidden"
+          >
+            <MessageCircle className="size-5" />
+            {unreadMessageCount > 0 && (
+              <span className="absolute top-1 right-1 flex size-4 items-center justify-center rounded-full bg-black text-[0.55rem] font-bold text-white">
+                {unreadMessageCount}
+              </span>
+            )}
+          </Link>
           <CurrencySelector openOnHover />
           <button
             type="button"

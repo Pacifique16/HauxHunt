@@ -99,7 +99,7 @@ export default function MaintenanceDetailPage() {
               </div>
               <div className="flex flex-wrap gap-3">
                 <Link
-                  href={`/renter-dashboard/messages?host=Jean%20Mugisha&maintenance=${request.id}`}
+                  href={`/renter-dashboard/messages?host=Jean%20Mugisha&role=Property%20Manager&verified=1&ctx=maintenance&title=${encodeURIComponent(request.title)}&property=${encodeURIComponent(request.property)}&propertyId=${encodeURIComponent(request.propertyId)}&status=${encodeURIComponent(request.status)}&refId=${encodeURIComponent(request.id)}`}
                   className="font-bricolage border-carbon-900 text-carbon-900 hover:bg-muted inline-flex h-11 items-center justify-center rounded-full border bg-transparent px-5 text-base font-medium transition-colors duration-150"
                 >
                   Message Property Manager
@@ -131,7 +131,7 @@ export default function MaintenanceDetailPage() {
                 </div>
                 <div className="mt-5 flex shrink-0 gap-3 sm:mt-0">
                   <Link
-                    href={`/renter-dashboard/messages?maintenance=${request.id}`}
+                    href={`/renter-dashboard/messages?host=Jean%20Mugisha&role=Property%20Manager&verified=1&ctx=maintenance&title=${encodeURIComponent(request.title)}&property=${encodeURIComponent(request.property)}&propertyId=${encodeURIComponent(request.propertyId)}&status=${encodeURIComponent(request.status)}&refId=${encodeURIComponent(request.id)}`}
                     className="h-10 rounded-full border border-white/25 px-4 py-2.5 text-sm"
                   >
                     Message Manager
@@ -286,7 +286,7 @@ export default function MaintenanceDetailPage() {
                     Maintenance: {request.title}
                   </p>
                   <Link
-                    href={`/renter-dashboard/messages?host=Jean%20Mugisha&maintenance=${request.id}`}
+                    href={`/renter-dashboard/messages?host=Jean%20Mugisha&role=Property%20Manager&verified=1&ctx=maintenance&title=${encodeURIComponent(request.title)}&property=${encodeURIComponent(request.property)}&propertyId=${encodeURIComponent(request.propertyId)}&status=${encodeURIComponent(request.status)}&refId=${encodeURIComponent(request.id)}`}
                     className="mt-5 inline-flex h-10 items-center rounded-full border border-black/15 px-4 text-sm"
                   >
                     Open Messages

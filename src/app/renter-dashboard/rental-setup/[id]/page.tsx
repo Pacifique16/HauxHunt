@@ -221,7 +221,7 @@ function Details({
           View Property
         </Link>
         <Link
-          href="/renter-dashboard/messages?host=Jean%20Mugisha"
+          href="/renter-dashboard/messages?host=Jean%20Mugisha&role=Property%20Manager&verified=1&ctx=rental-setup&property=Nyarutarama%20Garden%20Apartment&propertyId=nyarutarama-2br&status=Agreement%20Awaiting%20Signature"
           className="rounded-full border border-black/15 px-4 py-2.5 text-sm"
         >
           Message Manager
@@ -430,7 +430,7 @@ function Complete() {
       </p>
       <div className="mt-7 flex justify-center gap-3">
         <Link
-          href="/renter-dashboard/messages?host=Jean%20Mugisha"
+          href="/renter-dashboard/messages?host=Jean%20Mugisha&role=Property%20Manager&verified=1&ctx=rental-setup&property=Nyarutarama%20Garden%20Apartment&propertyId=nyarutarama-2br&status=Ready%20for%20Move-in"
           className="rounded-full border border-black/15 px-5 py-3 text-sm"
         >
           Message Manager

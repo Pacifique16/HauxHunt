@@ -364,7 +364,7 @@ function ApplicationCard({
             {primary}
           </Link>
           <Link
-            href={`/renter-dashboard/messages?property=${encodeURIComponent(application.title)}&application=${application.status}`}
+            href={`/renter-dashboard/messages?host=${encodeURIComponent(application.representative)}&role=${encodeURIComponent(application.role.replace(/^Verified /, ""))}&verified=${application.role.startsWith("Verified") ? "1" : "0"}&ctx=application&property=${encodeURIComponent(application.title)}&propertyId=${encodeURIComponent(application.propertyId)}&status=${encodeURIComponent(application.status)}&refId=${encodeURIComponent(application.id)}`}
             className="inline-flex h-10 items-center rounded-full border border-black/15 px-4 text-sm"
           >
             Message

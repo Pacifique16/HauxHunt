@@ -379,7 +379,7 @@ function ViewingCard({
   onNotInterested: () => void;
   onAccept: () => void;
 }) {
-  const messageHref = `/renter-dashboard/messages?property=${encodeURIComponent(viewing.title)}&host=${encodeURIComponent(viewing.host)}&viewing=${encodeURIComponent(`${viewing.status} · ${viewing.date} · ${viewing.time}`)}`;
+  const messageHref = `/renter-dashboard/messages?host=${encodeURIComponent(viewing.host)}&role=Property%20Manager&ctx=viewing&property=${encodeURIComponent(viewing.title)}&propertyId=${encodeURIComponent(viewing.propertyId)}&status=${encodeURIComponent(viewing.status)}&detail=${encodeURIComponent(`${viewing.date} · ${viewing.time}`)}&refId=${encodeURIComponent(viewing.id)}`;
   return (
     <article className="relative overflow-hidden rounded-2xl border border-white/80 bg-white/70 shadow-[0_10px_30px_rgba(0,0,0,0.08)] ring-1 ring-white/70 backdrop-blur-xl sm:grid sm:grid-cols-[210px_1fr]">
       <Image

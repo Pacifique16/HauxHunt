@@ -17,11 +17,14 @@ function subscribe(callback: () => void) {
 export function ContactPropertyManagerForm({
   managerName,
   propertyTitle,
+  propertyId,
 }: {
   managerName: string;
   propertyTitle?: string;
+  propertyId?: string;
 }) {
   const [sent, setSent] = useState(false);
+  const threadId = `landlord-${slugify(propertyTitle || managerName)}`;
   const [open, setOpen] = useState(false);
   const [country, setCountry] = useState<"UG" | "RW" | "NG">("UG");
   const [mounted, setMounted] = useState(false);
@@ -52,11 +55,18 @@ export function ContactPropertyManagerForm({
     const message = String(new FormData(form).get("message") ?? "");
     recordSentMessage(
       {
-        id: `landlord-${slugify(propertyTitle || managerName)}`,
+        id: threadId,
         name: managerName,
+        role: "Property Manager",
+        showPhone: true,
         subtitle: propertyTitle ? `${propertyTitle} · Property Manager` : "Property Manager",
         metaContext: "Listing Enquiry",
         type: "manager",
+        context: {
+          type: "property-enquiry",
+          propertyName: propertyTitle,
+          propertyId,
+        },
       },
       message
     );
@@ -147,9 +157,20 @@ export function ContactPropertyManagerForm({
       </button>
 
       {sent ? (
-        <p role="status" className="text-center text-sm text-black">
-          Julien will receive your enquiry and contact you shortly.
-        </p>
+        <div role="status" className="rounded-2xl border border-black/10 bg-black/2 p-5 text-center">
+          <p className="font-bricolage text-base font-semibold text-black">Message Sent</p>
+          <p className="text-carbon-600 mt-1 text-sm">
+            Your message was sent to {managerName}.
+          </p>
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            <Link
+              href={`/renter-dashboard/messages?chat=${threadId}`}
+              className="font-bricolage flex h-10 items-center justify-center rounded-full bg-black px-5 text-sm font-medium text-white"
+            >
+              View Conversation
+            </Link>
+          </div>
+        </div>
       ) : null}
 
       {open ? (

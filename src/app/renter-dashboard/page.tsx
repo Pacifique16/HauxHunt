@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
   ArrowUpRight,
   ArrowLeft,
@@ -29,6 +29,7 @@ import { ListingCard } from "@/components/sections/featured-listings/listing-car
 import { VoiceInputButton } from "@/components/listings/voice-input-button";
 import { TrendingLocations } from "@/components/sections/trending-locations/trending-locations";
 import { useScrolled } from "@/hooks/use-scrolled";
+import { getTotalUnreadCount } from "@/lib/message-threads";
 import heroImage from "@/assets/images/house-isolated-field.jpg";
 import houseOne from "@/assets/images/house1.jpg";
 import houseTwo from "@/assets/images/house2.jpg";
@@ -276,8 +277,21 @@ type ReverseGeocodeResult = {
   };
 };
 
+function subscribeToStorage(callback: () => void) {
+  window.addEventListener("storage", callback);
+  return () => window.removeEventListener("storage", callback);
+}
+
 export default function RenterDashboardPage() {
   const router = useRouter();
+  // Mock, session-only count (not a real synced inbox) — same source the
+  // shared nav bar reads, kept in sync here since this page has its own
+  // bespoke header rather than <RenterCatalogueTopBar />.
+  const unreadMessageCount = useSyncExternalStore(
+    subscribeToStorage,
+    () => getTotalUnreadCount(),
+    () => 0
+  );
   const displayCurrency = useDisplayCurrency();
   const { scrolled, sentinelRef, threshold } = useScrolled(40);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -520,6 +534,13 @@ export default function RenterDashboardPage() {
                 className="relative inline-flex items-center transition-opacity hover:opacity-60"
               >
                 Messages
+                {unreadMessageCount > 0 && (
+                  <span
+                    className={`absolute -top-1.5 -right-3.5 flex size-4 items-center justify-center rounded-full text-[0.55rem] font-bold ${scrolled ? "bg-black text-white" : "bg-white text-black"}`}
+                  >
+                    {unreadMessageCount}
+                  </span>
+                )}
               </Link>
             </nav>
             <div className="flex items-center gap-2 justify-self-end sm:gap-4">
