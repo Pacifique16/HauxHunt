@@ -715,6 +715,13 @@
   outline: none;
 }
 
+/* The message composer shows focus through its full-width bordered container
+   (via :focus-within), avoiding a second, corner-mismatched ring around the
+   plain text input inside it. */
+.message-composer-control:focus-visible {
+  outline: none;
+}
+
 /* Keep filter dropdowns consistent across catalogue and dashboard surfaces. */
 select.catalogue-filter-control {
   height: 2.5rem !important;

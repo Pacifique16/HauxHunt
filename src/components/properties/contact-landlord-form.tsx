@@ -7,6 +7,7 @@ import Link from "next/link";
 import Image from "next/image";
 
 import loginIllustration from "@/assets/images/login.png";
+import { recordSentMessage, slugify } from "@/lib/message-threads";
 
 function subscribe(callback: () => void) {
   window.addEventListener("storage", callback);
@@ -15,8 +16,10 @@ function subscribe(callback: () => void) {
 
 export function ContactPropertyManagerForm({
   managerName,
+  propertyTitle,
 }: {
   managerName: string;
+  propertyTitle?: string;
 }) {
   const [sent, setSent] = useState(false);
   const [open, setOpen] = useState(false);
@@ -45,7 +48,19 @@ export function ContactPropertyManagerForm({
       setOpen(true);
       return;
     }
-    event.currentTarget.reset();
+    const form = event.currentTarget;
+    const message = String(new FormData(form).get("message") ?? "");
+    recordSentMessage(
+      {
+        id: `landlord-${slugify(propertyTitle || managerName)}`,
+        name: managerName,
+        subtitle: propertyTitle ? `${propertyTitle} · Property Manager` : "Property Manager",
+        metaContext: "Listing Enquiry",
+        type: "manager",
+      },
+      message
+    );
+    form.reset();
     setCountry("UG");
     setSent(true);
   }
