@@ -168,7 +168,7 @@ export function NotificationsDrawer({
           </div>
           <div className="flex items-center gap-2">
             <Link
-              href="/renter-dashboard/account"
+              href="/renter-dashboard/account?section=preferences"
               onClick={onClose}
               aria-label="Notification settings"
               className="text-carbon-400 flex size-9 items-center justify-center rounded-full transition-colors hover:bg-black/[0.055] hover:text-black"
