@@ -5,9 +5,15 @@ import Link from "next/link";
 import { Bell, ChevronDown, MessageCircle } from "lucide-react";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
+import { NotificationsDrawer } from "@/components/renter/notifications-drawer";
+
 import { Wordmark } from "@/components/layout/wordmark";
 import { CurrencySelector } from "@/components/currency/currency-selector";
 import { getTotalUnreadCount } from "@/lib/message-threads";
+import {
+  getUnreadNotificationCount,
+  subscribeToNotifications,
+} from "@/lib/notifications";
 import julienProfile from "@/assets/images/julien.jpg";
 
 function subscribeToStorage(callback: () => void) {
@@ -46,13 +52,15 @@ const RENTER_NAV_GROUPS = [
 
 const PROFILE_LINKS = [
   ["My Account", "/renter-dashboard/account"],
-  ["Help Center", "/help"],
+  ["Help Center", "/renter-dashboard/help"],
   ["Send Feedback", "/feedback"],
 ] as const;
 
 export function RenterCatalogueTopBar() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [openNavMenu, setOpenNavMenu] = useState<string | null>(null);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifFilter, setNotifFilter] = useState<"all" | "unread">("all");
   const profileMenuRef = useRef<HTMLDivElement>(null);
   // Mock, session-only count (not a real synced inbox) — computed fresh from
   // which conversations have been opened, so it's correct on every page, not
@@ -61,6 +69,11 @@ export function RenterCatalogueTopBar() {
     subscribeToStorage,
     () => getTotalUnreadCount(),
     () => 0
+  );
+  const unreadNotificationCount = useSyncExternalStore(
+    subscribeToNotifications,
+    getUnreadNotificationCount,
+    () => 0,
   );
 
   useEffect(() => {
@@ -160,14 +173,24 @@ export function RenterCatalogueTopBar() {
           <CurrencySelector openOnHover />
           <button
             type="button"
-            aria-label="Notifications"
+            onClick={() => setNotifOpen((v) => !v)}
+            aria-label={`Notifications${unreadNotificationCount > 0 ? `, ${unreadNotificationCount} unread` : ""}`}
+            aria-expanded={notifOpen}
             className="relative flex size-11 items-center justify-center rounded-full hover:bg-black/[0.055]"
           >
             <Bell className="size-5" />
-            <span className="absolute top-1 right-1 flex size-4 items-center justify-center rounded-full bg-black text-[0.55rem] font-bold text-white">
-              3
-            </span>
+            {unreadNotificationCount > 0 ? (
+              <span className="absolute top-1 right-1 flex size-4 items-center justify-center rounded-full bg-black text-[0.55rem] font-bold text-white">
+                {unreadNotificationCount}
+              </span>
+            ) : null}
           </button>
+          <NotificationsDrawer
+            open={notifOpen}
+            filter={notifFilter}
+            onClose={() => setNotifOpen(false)}
+            onFilterChange={setNotifFilter}
+          />
           <div
             ref={profileMenuRef}
             className="relative"

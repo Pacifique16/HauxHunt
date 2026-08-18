@@ -1333,6 +1333,12 @@ select.catalogue-filter-control {
   initial-value: 0deg;
 }
 
+@property --notification-outline-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
 .maintenance-card {
   position: relative;
 }
@@ -1364,6 +1370,40 @@ select.catalogue-filter-control {
 @keyframes maintenance-outline-orbit {
   to {
     --maintenance-outline-angle: 360deg;
+  }
+}
+
+.notification-card {
+  position: relative;
+}
+
+.notification-card::before {
+  position: absolute;
+  z-index: 1;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--notification-outline-angle),
+    transparent 0deg 235deg,
+    rgb(0 0 0 / 0.06) 255deg,
+    rgb(0 0 0 / 0.4) 290deg,
+    rgb(255 255 255 / 0.9) 320deg,
+    transparent 360deg
+  );
+  content: "";
+  pointer-events: none;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: notification-outline-orbit 5s linear infinite;
+}
+
+@keyframes notification-outline-orbit {
+  to {
+    --notification-outline-angle: 360deg;
   }
 }
 

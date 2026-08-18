@@ -11,7 +11,7 @@ import {
   Search,
   X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import house1 from "@/assets/images/house1.jpg";
 import house2 from "@/assets/images/house2.jpg";
@@ -200,6 +200,13 @@ export default function MyViewingsPage() {
   const [propertySearch, setPropertySearch] = useState("");
   const [dialog, setDialog] = useState<Dialog>(null);
   const allViewings = [...requestedViewings, ...viewings];
+
+  useEffect(() => {
+    const openId = new URLSearchParams(window.location.search).get("open");
+    if (!openId) return;
+    const target = INITIAL_VIEWINGS.find((v) => v.id === openId);
+    if (target) setDialog({ type: "details", viewing: target });
+  }, []);
   const normalizedSearch = propertySearch.trim().toLocaleLowerCase();
   const filtersActive = statusFilter !== "all" || normalizedSearch.length > 0;
   const shown = allViewings.filter(

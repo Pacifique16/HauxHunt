@@ -179,8 +179,20 @@ export default function PaymentsPage() {
           };
 
   useEffect(() => {
-    const rentalId = new URLSearchParams(window.location.search).get("pay");
+    const params = new URLSearchParams(window.location.search);
+    const rentalId = params.get("pay");
+    const receiptRef = params.get("receipt");
     const linkedPayment = rentalId ? linkedRentalPayments[rentalId] : null;
+    if (receiptRef) {
+      const target = history.find((item) => item.reference === receiptRef);
+      if (target) {
+        window.setTimeout(() => {
+          setReceipt(target);
+          setModal("receipt");
+        }, 0);
+      }
+      return;
+    }
     if (!linkedPayment) return;
     const openLinkedPayment = window.setTimeout(() => {
       setSelectedPayment(linkedPayment);
