@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 
-import abujaImage from "../../../../abuja.jpg";
-import gisenyiImage from "../../../../gisenyi.jpg";
-import karongiImage from "../../../../karongi.jpg";
-import kigaliImage from "../../../../kigali-city.jpg";
-import lagosImage from "../../../../lagos.jpg";
-import lekkiImage from "../../../../lekki.png";
+import abujaImage from "@/assets/images/abuja.jpg";
+import gisenyiImage from "@/assets/images/gisenyi.jpg";
+import karongiImage from "@/assets/images/karongi.jpg";
+import kigaliImage from "@/assets/images/kigali-city.jpg";
+import lagosImage from "@/assets/images/lagos.jpg";
+import lekkiImage from "@/assets/images/lekki.png";
 import { LocationCard } from "./location-card";
 
 const LOCATIONS = [

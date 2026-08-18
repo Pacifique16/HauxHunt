@@ -6,10 +6,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
-import loginIllustration from "../../../login.png";
-import listingIllustration from "../../../list.png";
-import peopleIllustration from "../../../people.png";
-import benefitIllustration from "../../../benefit.png";
+import loginIllustration from "@/assets/images/login.png";
+import listingIllustration from "@/assets/images/list.png";
+import peopleIllustration from "@/assets/images/people.png";
+import benefitIllustration from "@/assets/images/benefit.png";
 
 const PARTNER_OPPORTUNITIES = [
   {

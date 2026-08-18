@@ -6,7 +6,7 @@ import { DashboardShell } from "@/components/partner/dashboard-shell";
 import { PartnerDetailsFields } from "@/components/partner/partner-details-fields";
 import { PartnerPlanFields } from "@/components/partner/partner-plan-fields";
 import { SaveSettingsButton } from "@/components/partner/save-settings-button";
-import julienProfile from "../../../../julien.jpg";
+import julienProfile from "@/assets/images/julien.jpg";
 
 export const metadata: Metadata = {
   title: "Account settings | Partner dashboard | HauxHunt",

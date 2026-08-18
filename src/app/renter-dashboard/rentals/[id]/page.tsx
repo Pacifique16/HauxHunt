@@ -1,0 +1,491 @@
+"use client";
+import Image from "next/image";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import {
+  ArrowUpRight,
+  BadgeCheck,
+  Check,
+  ChevronLeft,
+  FileText,
+  X,
+} from "lucide-react";
+import { useState } from "react";
+import house1 from "@/assets/images/house1.jpg";
+import house2 from "@/assets/images/house2.jpg";
+import house3 from "@/assets/images/house3.jpg";
+import house4 from "@/assets/images/house4.jpg";
+import managerAvatar from "@/assets/images/julien.jpg";
+import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
+import { RENTER_RENTALS } from "@/data/renter-rentals";
+const images = [house1, house2, house3, house4];
+export default function RentalDetail() {
+  const { id } = useParams<{ id: string }>();
+  const r = RENTER_RENTALS.find((x) => x.id === id) ?? RENTER_RENTALS[0];
+  const ended = r.status === "Ended";
+  const endingSoon = r.status === "Ending Soon";
+  const [viewedDocument, setViewedDocument] = useState<string | null>(null);
+  const [renewalRequested, setRenewalRequested] = useState(false);
+  const [renewalToast, setRenewalToast] = useState(false);
+
+  function requestRenewal() {
+    setRenewalRequested(true);
+    setRenewalToast(true);
+    window.setTimeout(() => setRenewalToast(false), 3500);
+  }
+  return (
+    <>
+      <RenterCatalogueTopBar />
+      <main className="bg-carbon-50 min-h-svh pt-16 text-black">
+        <header className="bg-white px-5 py-8 sm:px-6 lg:px-11 xl:px-[52px]">
+          <div className="mx-auto max-w-[1200px]">
+            <Link
+              href="/renter-dashboard/rentals"
+              className="inline-flex items-center gap-1 text-sm text-black/60"
+            >
+              <ChevronLeft className="size-4" />
+              My Rentals
+            </Link>
+            <div className="mt-5 grid gap-5 sm:grid-cols-[150px_1fr]">
+              <Image
+                src={images[r.image]}
+                alt={r.title}
+                className="h-32 w-full object-cover"
+              />
+              <div>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h1 className="font-bricolage text-3xl font-medium">
+                      {r.title}
+                    </h1>
+                    <p className="text-carbon-500 mt-1">{r.location}</p>
+                  </div>
+                  <span className="rounded-full bg-black px-3 py-1.5 text-xs text-white">
+                    {r.status === "Active"
+                      ? "Active Rental"
+                      : r.status === "Upcoming"
+                        ? "Upcoming Rental"
+                        : r.status === "Ended"
+                          ? "Rental Ended"
+                          : r.status}
+                  </span>
+                </div>
+                <div className="mt-5 flex gap-3">
+                  <Link
+                    href={`/renter-dashboard/messages?host=${encodeURIComponent(r.manager)}&rental=${r.id}`}
+                    className="inline-flex h-10 items-center rounded-full bg-black px-4 text-sm text-white"
+                  >
+                    Message Manager
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+        <div className="px-5 sm:px-6 lg:px-11 xl:px-[52px]">
+          <div className="mx-auto grid w-full max-w-[1200px] gap-6 py-8 lg:grid-cols-[1fr_320px]">
+            <div className="space-y-6">
+              <Section title="Rental overview">
+                <div className="grid grid-cols-2 gap-5 sm:grid-cols-3">
+                  {[
+                    ["Monthly Rent", r.rent],
+                    [
+                      "Next Payment",
+                      endingSoon ? "Pending renewal" : r.nextPayment,
+                    ],
+                    ["Rental Start", r.start],
+                    ["Rental End", r.end],
+                    ["Deposit", r.rent],
+                    ["Occupants", "2"],
+                  ].map(([a, b]) => (
+                    <div key={a}>
+                      <p className="text-carbon-500 text-xs">{a}</p>
+                      <p className="mt-1 font-medium">{b}</p>
+                    </div>
+                  ))}
+                </div>
+              </Section>
+              {endingSoon ? (
+                <section className="verification-glass relative overflow-hidden rounded-[1.75rem] p-6 text-white sm:p-7">
+                  <div className="relative z-10">
+                    <p className="text-xs font-medium tracking-[0.12em] text-white/50 uppercase">
+                      Rental ending soon
+                    </p>
+                    <h2 className="font-bricolage mt-3 text-2xl font-medium tracking-[-0.035em]">
+                      Renew your rental agreement
+                    </h2>
+                    <p className="mt-3 max-w-2xl text-sm leading-6 text-white/65">
+                      Your current agreement ends on {r.end}. Request a renewal
+                      if you would like to remain at {r.title}. Your manager
+                      will confirm the new dates, rent, and agreement terms.
+                    </p>
+                    <div className="mt-6 grid gap-4 border-y border-white/15 py-5 text-sm sm:grid-cols-2">
+                      <DataPoint label="Current agreement ends" value={r.end} />
+                      <DataPoint
+                        label="September payment"
+                        value="Enabled after renewal is confirmed"
+                      />
+                    </div>
+                    <div className="mt-6">
+                      <button
+                        type="button"
+                        onClick={requestRenewal}
+                        disabled={renewalRequested}
+                        className="h-11 rounded-full bg-white px-5 text-sm font-medium text-black transition-colors hover:bg-white/85 disabled:cursor-default disabled:opacity-65"
+                      >
+                        {renewalRequested
+                          ? "Renewal Requested"
+                          : "Request Renewal"}
+                      </button>
+                    </div>
+                  </div>
+                </section>
+              ) : null}
+              <Section title="Rental timeline">
+                <div className="grid gap-3 sm:grid-cols-5">
+                  {[
+                    "Application approved",
+                    "Rental confirmed",
+                    "Move-in",
+                    "Active rental",
+                    "Lease end",
+                  ].map((x, i) => (
+                    <div key={x} className="flex gap-2 sm:block">
+                      <span
+                        className={`flex size-6 items-center justify-center rounded-full ${i < (ended ? 5 : r.status === "Upcoming" ? 2 : 4) ? "bg-black text-white" : "border border-black/20"}`}
+                      >
+                        {i < (ended ? 5 : r.status === "Upcoming" ? 2 : 4) ? (
+                          <Check className="size-3" />
+                        ) : (
+                          i + 1
+                        )}
+                      </span>
+                      <p className="mt-2 text-xs">{x}</p>
+                    </div>
+                  ))}
+                </div>
+              </Section>
+              {r.status === "Upcoming" ? (
+                <Section title="Move-in">
+                  <p className="text-sm">
+                    <strong>Move-in date:</strong> {r.start}
+                  </p>
+                  <p className="text-carbon-500 mt-2 text-sm">
+                    Contact {r.manager} on arrival to collect the keys.
+                  </p>
+                  <div className="mt-5 space-y-2">
+                    {[
+                      "Rental agreement reviewed",
+                      "Deposit paid",
+                      "First rent paid",
+                      "Move-in inspection pending",
+                      "Keys pending",
+                    ].map((x, i) => (
+                      <p key={x} className="flex items-center gap-2 text-sm">
+                        <Check
+                          className={`size-4 ${i < 3 ? "text-black" : "text-black/25"}`}
+                        />
+                        {x}
+                      </p>
+                    ))}
+                  </div>
+                </Section>
+              ) : null}
+              <div className="grid gap-6 sm:grid-cols-2">
+                <Section title="Payments">
+                  <p className="font-medium">{r.rent} / month</p>
+                  <p className="text-carbon-500 mt-2 text-sm">
+                    {endingSoon
+                      ? "No payment is due after the current agreement ends. A new schedule will appear if renewal is confirmed."
+                      : `Next due: ${r.nextPayment}`}
+                  </p>
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    <Link
+                      href="/renter-dashboard/payments"
+                      className="inline-flex h-10 items-center gap-2 rounded-full border border-black/15 px-4 text-sm font-medium transition-colors hover:border-black/35 hover:bg-black/[0.04]"
+                    >
+                      View All Payments
+                    </Link>
+                    {!ended && !endingSoon ? (
+                      <Link
+                        href={`/renter-dashboard/payments?pay=${encodeURIComponent(r.id)}`}
+                        className="inline-flex h-10 items-center rounded-full bg-black px-4 text-sm font-medium text-white transition-opacity hover:opacity-75"
+                      >
+                        Make Payment
+                      </Link>
+                    ) : null}
+                  </div>
+                </Section>
+                <Section title="Maintenance">
+                  <p className="font-medium">
+                    {ended ? "No open requests" : "1 open request"}
+                  </p>
+                  <p className="text-carbon-500 mt-2 text-sm">
+                    {ended
+                      ? "Maintenance history available"
+                      : "Leaking kitchen tap · In Progress"}
+                  </p>
+                  <div className="mt-5 flex flex-wrap gap-3">
+                    <Link
+                      href="/renter-dashboard/maintenance"
+                      className="inline-flex h-10 items-center gap-2 rounded-full border border-black/15 px-4 text-sm font-medium transition-colors hover:border-black/35 hover:bg-black/[0.04]"
+                    >
+                      View Maintenance
+                    </Link>
+                    {!ended ? (
+                      <Link
+                        href="/renter-dashboard/maintenance?report=1"
+                        className="inline-flex h-10 items-center rounded-full bg-black px-4 text-sm font-medium text-white transition-opacity hover:opacity-75"
+                      >
+                        Report an Issue
+                      </Link>
+                    ) : null}
+                  </div>
+                </Section>
+              </div>
+              <Section title="Documents">
+                <div className="divide-y divide-black/10">
+                  {[
+                    ["Rental agreement", "Signed"],
+                    [
+                      "Move-in report",
+                      r.status === "Upcoming" ? "Pending" : "Available",
+                    ],
+                    ["Deposit receipt", "Available"],
+                    ["Payment receipts", "Available"],
+                  ].map(([a, b]) => (
+                    <div
+                      key={a}
+                      className="flex items-center justify-between py-3 text-sm"
+                    >
+                      <span className="flex items-center gap-2">
+                        <FileText className="size-4" />
+                        {a}
+                      </span>
+                      <span>
+                        <span className="text-carbon-500 mr-4 text-xs">
+                          {b}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setViewedDocument(a)}
+                          className="underline underline-offset-4"
+                        >
+                          View
+                        </button>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </Section>
+              <Section title="Recent activity">
+                <div className="space-y-4 text-sm">
+                  {[
+                    ["15 Aug", "Rental agreement added"],
+                    ["12 Aug", "Deposit marked as received"],
+                    ["10 Aug", "Application approved"],
+                    ["8 Aug", "Viewing completed"],
+                  ].map(([a, b]) => (
+                    <div key={a + b} className="grid grid-cols-[60px_1fr]">
+                      <strong>{a}</strong>
+                      <span className="text-carbon-500">{b}</span>
+                    </div>
+                  ))}
+                </div>
+              </Section>
+            </div>
+            <aside className="h-fit space-y-6 lg:sticky lg:top-20">
+              <Section title="Managed by">
+                <div className="flex items-center gap-3">
+                  <Image
+                    src={managerAvatar}
+                    alt={r.manager}
+                    className="size-12 rounded-full object-cover"
+                  />
+                  <div>
+                    <p className="font-medium">{r.manager}</p>
+                    <p className="text-carbon-500 mt-1 flex items-center gap-1 text-sm">
+                      <BadgeCheck className="size-4" />
+                      {r.role}
+                    </p>
+                  </div>
+                </div>
+              </Section>
+              <Section title="Property">
+                <p className="text-sm">
+                  {r.beds} bedrooms · {r.baths} bathrooms
+                </p>
+                <p className="text-carbon-500 mt-2 text-sm">
+                  {r.furnishing} · Residential home
+                </p>
+                <Link
+                  href={`/properties/${r.propertyId}?from=renter`}
+                  className="font-bricolage border-carbon-900 text-carbon-900 hover:bg-muted mt-5 inline-flex h-11 items-center justify-center gap-2 rounded-full border bg-transparent px-5 text-base font-medium transition-colors duration-150"
+                >
+                  View Full Property
+                  <ArrowUpRight aria-hidden="true" className="size-4" />
+                </Link>
+              </Section>
+            </aside>
+          </div>
+        </div>
+      </main>
+      {renewalToast ? (
+        <div role="status" className="feedback-toast">
+          Renewal request sent to {r.manager}.
+        </div>
+      ) : null}
+      {viewedDocument ? (
+        <DocumentPreview
+          name={viewedDocument}
+          rental={r}
+          onClose={() => setViewedDocument(null)}
+        />
+      ) : null}
+    </>
+  );
+}
+
+function DocumentPreview({
+  name,
+  rental,
+  onClose,
+}: {
+  name: string;
+  rental: (typeof RENTER_RENTALS)[number];
+  onClose: () => void;
+}) {
+  const descriptions: Record<string, string> = {
+    "Move-in report":
+      "A record of the property's condition, fixtures, and meter readings at move-in.",
+    "Deposit receipt":
+      "Confirmation that the security deposit was received for this rental.",
+    "Payment receipts":
+      "A summary of rent payments recorded against this rental.",
+  };
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={`View ${name}`}
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 p-4"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div className="flex max-h-[90svh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+        <header className="flex items-center justify-between border-b border-black/10 px-5 py-4">
+          <div>
+            <p className="text-carbon-500 text-xs">Document preview</p>
+            <h2 className="font-bricolage text-xl font-medium">{name}</h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close document preview"
+            className="flex size-9 items-center justify-center rounded-full transition-colors hover:bg-black/[0.05]"
+          >
+            <X className="size-4" />
+          </button>
+        </header>
+        <div className="bg-carbon-50 overflow-y-auto p-4 sm:p-7">
+          <article className="mx-auto max-w-2xl bg-white px-6 py-8 shadow-sm sm:px-10">
+            <div className="border-b border-black/15 pb-5 text-center">
+              <FileText className="mx-auto size-7" />
+              <h3 className="font-bricolage mt-3 text-2xl font-medium">
+                {name}
+              </h3>
+              <p className="text-carbon-500 mt-2 text-sm">
+                {rental.title} · {rental.location}
+              </p>
+            </div>
+            {name === "Rental agreement" ? (
+              <div className="mt-7 space-y-6 text-sm leading-6">
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <DocumentField
+                    label="Property manager"
+                    value={rental.manager}
+                  />
+                  <DocumentField
+                    label="Rental period"
+                    value={`${rental.start} – ${rental.end}`}
+                  />
+                  <DocumentField label="Monthly rent" value={rental.rent} />
+                  <DocumentField label="Status" value="Signed" />
+                </div>
+                <section>
+                  <h4 className="font-medium">Rental terms</h4>
+                  <p className="text-carbon-600 mt-2">
+                    Rent is due monthly for the rental period shown above. The
+                    renter agrees to care for the property and report
+                    maintenance issues promptly.
+                  </p>
+                </section>
+                <div className="grid gap-6 border-t border-black/15 pt-6 sm:grid-cols-2">
+                  <DocumentField label="Renter signature" value="Signed" />
+                  <DocumentField
+                    label="Property representative"
+                    value={`${rental.manager} · Signed`}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="mt-7 text-sm">
+                <p className="text-carbon-600 leading-6">
+                  {descriptions[name]}
+                </p>
+                <div className="mt-6 grid gap-5 border-t border-black/10 pt-6 sm:grid-cols-2">
+                  <DocumentField label="Rental" value={rental.title} />
+                  <DocumentField
+                    label="Document status"
+                    value={
+                      name === "Move-in report" && rental.status === "Upcoming"
+                        ? "Pending"
+                        : "Available"
+                    }
+                  />
+                  <DocumentField label="Rental ID" value={rental.id} />
+                  <DocumentField label="Managed by" value={rental.manager} />
+                </div>
+              </div>
+            )}
+          </article>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DocumentField({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-carbon-500 text-xs">{label}</p>
+      <p className="mt-1 font-medium">{value}</p>
+    </div>
+  );
+}
+
+function DataPoint({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs text-white/45">{label}</p>
+      <p className="mt-1 font-medium">{value}</p>
+    </div>
+  );
+}
+
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-2xl bg-white p-6 shadow-[0_3px_12px_rgba(0,0,0,.025)]">
+      <h2 className="font-bricolage mb-5 text-xl font-medium">{title}</h2>
+      {children}
+    </section>
+  );
+}

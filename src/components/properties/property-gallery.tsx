@@ -43,7 +43,7 @@ export function PropertyGallery({
 
   return (
     <>
-      <div className="grid h-[420px] gap-3 overflow-hidden rounded-3xl md:grid-cols-2 lg:h-[560px]">
+      <div className="grid h-[420px] gap-3 overflow-hidden md:grid-cols-2 lg:h-[560px]">
         <GalleryButton
           image={images[0]}
           title={title}
@@ -73,8 +73,9 @@ export function PropertyGallery({
           className="relative hidden md:block"
           onOpen={setActiveIndex}
         >
-          <span className="pointer-events-none absolute right-4 bottom-4 rounded-full bg-black/75 px-4 py-2 text-sm font-medium text-white backdrop-blur-md">
-            View all photos
+          <span className="pointer-events-none absolute inset-0 bg-black/45 backdrop-blur-[2px]" />
+          <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-xl font-medium text-white">
+            +{Math.max(0, images.length - 4)} more photos
           </span>
         </GalleryButton>
       </div>
@@ -84,7 +85,7 @@ export function PropertyGallery({
           role="dialog"
           aria-modal="true"
           aria-label={`${title} photo preview`}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-[1px] sm:p-8"
+          className="property-photo-preview fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-[1px] sm:p-8"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) setActiveIndex(null);
           }}
@@ -115,7 +116,7 @@ export function PropertyGallery({
               <ChevronLeft aria-hidden="true" className="size-6" />
             </button>
 
-            <div className="relative size-full overflow-hidden rounded-xl bg-black shadow-[0_28px_90px_rgba(0,0,0,0.5)]">
+            <div className="relative size-full overflow-hidden bg-black shadow-[0_28px_90px_rgba(0,0,0,0.5)]">
               <Image
                 src={images[activeIndex]}
                 alt={`${title} property view ${activeIndex + 1}`}

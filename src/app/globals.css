@@ -705,6 +705,63 @@
   outline: none;
 }
 
+/* Application fields indicate focus with their bottom border only. */
+.application-form-input:focus-visible {
+  outline: none;
+}
+
+/* Flatmate profile fields show focus through their borders. */
+.profile-field-control:focus-visible {
+  outline: none;
+}
+
+/* Keep filter dropdowns consistent across catalogue and dashboard surfaces. */
+select.catalogue-filter-control {
+  height: 2.5rem !important;
+  border-radius: 9999px !important;
+}
+
+.catalogue-location-filter {
+  height: 2.5rem;
+  border: 0;
+  border-radius: 9999px;
+  background: rgb(0 0 0 / 4.5%);
+}
+
+/* White filter pills need slightly more separation on white surfaces. Filters
+   on tinted dashboard backgrounds retain their existing lighter shadow. */
+.bg-white select[class*="shadow-"] {
+  box-shadow:
+    0 6px 18px rgb(0 0 0 / 0.09),
+    0 1px 3px rgb(0 0 0 / 0.04);
+}
+
+/* Keep modal surfaces consistent across every dashboard and public flow. */
+[role="dialog"] {
+  border-radius: 1.5rem;
+}
+
+/* Full-screen photo previews are backdrops, not rounded modal cards. */
+[role="dialog"].property-photo-preview {
+  border-radius: 0;
+}
+
+[role="dialog"] input,
+[role="dialog"] textarea,
+[role="dialog"] select {
+  outline: none;
+}
+
+[role="dialog"] input:focus,
+[role="dialog"] input:focus-visible,
+[role="dialog"] textarea:focus,
+[role="dialog"] textarea:focus-visible,
+[role="dialog"] select:focus,
+[role="dialog"] select:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
 .font-bricolage {
   font-family: "Bricolage Grotesque", sans-serif;
   font-optical-sizing: auto;
@@ -746,6 +803,45 @@
     0 20px 52px rgb(0 0 0 / 0.18),
     inset 0 1px 0 rgb(255 255 255 / 0.22),
     inset 0 -1px 0 rgb(255 255 255 / 0.06);
+}
+
+.feedback-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  z-index: 180;
+  min-width: 18rem;
+  max-width: calc(100% - 2rem);
+  transform: translateX(-50%);
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 1rem;
+  background: #000;
+  padding: 1rem 1.25rem;
+  color: #fff;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: 0 18px 50px rgb(0 0 0 / 0.24);
+}
+
+.feedback-toast::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: #fff;
+  content: "";
+  transform-origin: left;
+  animation: feedback-toast-progress 3s linear forwards;
+}
+
+@keyframes feedback-toast-progress {
+  to {
+    transform: scaleX(0);
+  }
 }
 
 .category-atmosphere {
@@ -1222,6 +1318,52 @@
   line-height: 0.95;
   font-weight: 500;
   letter-spacing: -0.045em;
+}
+
+@property --maintenance-outline-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.maintenance-card {
+  position: relative;
+}
+
+.maintenance-card::before {
+  position: absolute;
+  z-index: 1;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--maintenance-outline-angle),
+    transparent 0deg 235deg,
+    rgb(0 0 0 / 0.08) 255deg,
+    rgb(0 0 0 / 0.55) 290deg,
+    rgb(255 255 255 / 0.95) 320deg,
+    transparent 360deg
+  );
+  content: "";
+  pointer-events: none;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: maintenance-outline-orbit 4.5s linear infinite;
+}
+
+@keyframes maintenance-outline-orbit {
+  to {
+    --maintenance-outline-angle: 360deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .maintenance-card::before {
+    animation: none;
+  }
 }
 
 .hauxhunt-map-popup .leaflet-popup-content-wrapper {

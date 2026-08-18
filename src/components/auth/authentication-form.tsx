@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { setPartnerRole } from "@/components/partner/use-partner-role";
+import { saveProperty } from "@/hooks/use-saved-properties";
 import {
   Building2,
   Check,
@@ -54,6 +55,9 @@ export function AuthenticationForm({
   const [complete, setComplete] = useState(false);
   const isRegister = mode === "register";
   const isDark = variant === "dark";
+  const returnTo = typeof window !== "undefined"
+    ? new URLSearchParams(window.location.search).get("returnTo")
+    : null;
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -77,11 +81,34 @@ export function AuthenticationForm({
     const email = String(data.get("email") ?? "")
       .trim()
       .toLowerCase();
+    const searchParams = new URLSearchParams(window.location.search);
+    const pendingPropertyId = searchParams.get("save");
+    const pendingPropertyAlreadySaved = searchParams.get("already") === "1";
+
+    const finishPendingRenterSave = () => {
+      const newlySaved =
+        pendingPropertyId && !pendingPropertyAlreadySaved
+          ? saveProperty(pendingPropertyId)
+          : false;
+      const destination = new URL(
+        returnTo?.startsWith("/") ? returnTo : "/renter-dashboard/saved",
+        window.location.origin,
+      );
+      destination.searchParams.set("saved", newlySaved ? "1" : "already");
+      router.replace(`${destination.pathname}${destination.search}`);
+    };
 
     if (!isRegister) {
       if (email === "renter@gmail.com") {
         window.sessionStorage.setItem("hauxhunt-authenticated-role", "renter");
-        router.replace("/renter-dashboard");
+        window.sessionStorage.setItem("hauxhunt-has-flatmate-profile", "true");
+        if (pendingPropertyId) {
+          finishPendingRenterSave();
+        } else {
+          router.replace(
+            returnTo?.startsWith("/") ? returnTo : "/renter-dashboard",
+          );
+        }
         return;
       }
 
@@ -91,9 +118,6 @@ export function AuthenticationForm({
           "property_manager",
         );
         setPartnerRole("property_manager");
-        const returnTo = new URLSearchParams(window.location.search).get(
-          "returnTo",
-        );
         router.replace(
           returnTo?.startsWith("/") ? returnTo : "/partner-dashboard",
         );
@@ -103,9 +127,6 @@ export function AuthenticationForm({
       if (email === "agent@gmail.com") {
         window.sessionStorage.setItem("hauxhunt-authenticated-role", "agent");
         setPartnerRole("agent");
-        const returnTo = new URLSearchParams(window.location.search).get(
-          "returnTo",
-        );
         router.replace(
           returnTo?.startsWith("/") ? returnTo : "/partner-dashboard",
         );
@@ -116,10 +137,37 @@ export function AuthenticationForm({
       return;
     }
 
+    if (accountType === "renter") {
+      window.sessionStorage.setItem("hauxhunt-authenticated-role", "renter");
+      if (pendingPropertyId) {
+        finishPendingRenterSave();
+        return;
+      }
+    } else if (accountType === "property_manager") {
+      window.sessionStorage.setItem(
+        "hauxhunt-authenticated-role",
+        "property_manager",
+      );
+      setPartnerRole("property_manager");
+    } else if (accountType === "agent") {
+      window.sessionStorage.setItem("hauxhunt-authenticated-role", "agent");
+      setPartnerRole("agent");
+    }
+
     setComplete(true);
   }
 
   if (complete) {
+    const handleContinue = () => {
+      if (returnTo?.startsWith("/")) {
+        router.replace(returnTo);
+      } else {
+        router.push(
+          accountType === "renter" ? "/renter-dashboard" : "/partner-dashboard",
+        );
+      }
+    };
+
     return (
       <div className="py-10 text-center">
         <span
@@ -135,15 +183,15 @@ export function AuthenticationForm({
         <p
           className={`mx-auto mt-4 max-w-md leading-7 ${isDark ? "text-white/50" : "text-carbon-600"}`}
         >
-          Your account has been created successfully. You can now log in and
-          start using HauxHunt.
+          Your account has been created successfully. You are now logged in and
+          ready to continue.
         </p>
         <button
           type="button"
-          onClick={() => router.push("/login")}
+          onClick={handleContinue}
           className={`font-bricolage mt-8 h-12 rounded-full px-7 font-medium transition-colors ${isDark ? "bg-white text-black hover:bg-white/85" : "bg-black text-white hover:bg-black/80"}`}
         >
-          Go to login
+          {returnTo ? "Continue" : "Go to Dashboard"}
         </button>
       </div>
     );
