@@ -8,6 +8,7 @@ import {
   CreditCard,
   Home,
   LifeBuoy,
+  type LucideIcon,
   MessageCircle,
   Search,
   Settings,
@@ -28,7 +29,7 @@ import supportImage from "@/assets/images/support.png";
 import { VoiceInputButton } from "@/components/listings/voice-input-button";
 import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
 
-const CATEGORIES = [
+const CATEGORIES: { slug: string; icon: LucideIcon; title: string; description: string; articles: number; image?: string }[] = [
   {
     slug: "getting-started",
     icon: Home,
@@ -99,7 +100,7 @@ const CATEGORIES = [
     description: "Can't find what you're looking for? Our team is here to help.",
     articles: 4,
   },
-] as const;
+] ;
 
 export default function HelpCenterPage() {
   const [query, setQuery] = useState("");
