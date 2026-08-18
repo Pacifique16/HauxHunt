@@ -11,6 +11,25 @@ import cityHome from "@/assets/images/image.png";
 import heroHome from "@/assets/images/landing.png";
 import { ListingCard } from "./listing-card";
 
+const ALL_IMAGES = [
+  houseOne,
+  houseTwo,
+  houseThree,
+  houseFour,
+  houseFive,
+  houseSix,
+  cityHome,
+  heroHome,
+];
+
+function galleryFrom(cover: (typeof ALL_IMAGES)[number]) {
+  const startIndex = Math.max(ALL_IMAGES.indexOf(cover), 0);
+  return Array.from(
+    { length: 4 },
+    (_, offset) => ALL_IMAGES[(startIndex + offset) % ALL_IMAGES.length],
+  );
+}
+
 const LISTINGS = [
   {
     title: "Modern family home",
@@ -158,7 +177,12 @@ export function FeaturedListings() {
 
         <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
           {LISTINGS.map((listing) => (
-            <ListingCard key={listing.href} {...listing} requiresLogin />
+            <ListingCard
+              key={listing.href}
+              {...listing}
+              images={galleryFrom(listing.image)}
+              requiresLogin
+            />
           ))}
         </div>
 

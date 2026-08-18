@@ -27,6 +27,8 @@ import { HistoryBackButton } from "@/components/navigation/history-back-button";
 import { CurrencyFilterSelect } from "@/components/currency/currency-selector";
 import { DEMO_LISTINGS, type MockListing } from "@/data/hero-search-demo";
 
+const HOUSE_IMAGES = [house1, house2, house3, house4, house5, house6];
+
 const LISTING_IMAGES: Record<string, StaticImageData> = {
   "kacyiru-2br": house1,
   "nyarutarama-2br": house2,
@@ -263,6 +265,15 @@ export function CataloguePage({
       : "Explore all available rental homes across Rwanda, Nigeria, and Kenya.";
 
   function renderListingCard(listing: MockListing, index: number) {
+    const coverImage = LISTING_IMAGES[listing.id] ?? house1;
+    const startIndex = HOUSE_IMAGES.indexOf(coverImage);
+    const gallery = Array.from(
+      { length: 4 },
+      (_, offset) =>
+        HOUSE_IMAGES[
+          (Math.max(startIndex, 0) + offset) % HOUSE_IMAGES.length
+        ],
+    );
     return (
       <ListingCard
         key={listing.id}
@@ -277,7 +288,8 @@ export function CataloguePage({
         area={Math.max(60, listing.bedrooms * 52)}
         furnished={listing.amenities.includes("Furnished")}
         saves={12 + ((index * 17) % 71)}
-        image={LISTING_IMAGES[listing.id] ?? house1}
+        image={coverImage}
+        images={gallery}
         href={`/properties/${listing.id}${audience === "renter" ? "?from=renter" : ""}`}
         requiresLogin={audience === "guest"}
       />
@@ -497,6 +509,7 @@ export function CataloguePage({
             {mapMode ? (
               <RenterMapCatalogue
                 filtersUnderTopBar
+                gateMapForTenantPlan={audience === "renter"}
                 context={
                   savedSearchName ? (
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pb-3">

@@ -29,6 +29,9 @@ import { ListingCard } from "@/components/sections/featured-listings/listing-car
 import { VoiceInputButton } from "@/components/listings/voice-input-button";
 import { TrendingLocations } from "@/components/sections/trending-locations/trending-locations";
 import { useScrolled } from "@/hooks/use-scrolled";
+import { useActiveTenant, type DemoTenant } from "@/components/renter/use-tenant-plan";
+import { TenantAvatar } from "@/components/renter/tenant-avatar";
+import { TenantSwitcherMenu } from "@/components/renter/tenant-switcher-menu";
 import heroImage from "@/assets/images/house-isolated-field.jpg";
 import houseOne from "@/assets/images/house1.jpg";
 import houseTwo from "@/assets/images/house2.jpg";
@@ -36,7 +39,6 @@ import houseThree from "@/assets/images/house3.jpg";
 import houseFour from "@/assets/images/house4.jpg";
 import houseFive from "@/assets/images/house5.jpg";
 import houseSix from "@/assets/images/house6.jpeg";
-import julienProfile from "@/assets/images/julien.jpg";
 import emptyIllustration from "@/assets/images/empty.png";
 
 const LISTINGS = [
@@ -227,6 +229,7 @@ const RENTER_NAV_GROUPS = [
       ["My Rentals", "/renter-dashboard/rentals"],
       ["Payments", "/renter-dashboard/payments"],
       ["Maintenance", "/renter-dashboard/maintenance"],
+      ["My Plan", "/renter-dashboard/plan"],
     ],
   },
   {
@@ -279,6 +282,7 @@ type ReverseGeocodeResult = {
 export default function RenterDashboardPage() {
   const router = useRouter();
   const displayCurrency = useDisplayCurrency();
+  const activeTenant = useActiveTenant();
   const { scrolled, sentinelRef, threshold } = useScrolled(40);
   const [profileOpen, setProfileOpen] = useState(false);
   const [openNavMenu, setOpenNavMenu] = useState<string | null>(null);
@@ -554,19 +558,18 @@ export default function RenterDashboardPage() {
                   aria-expanded={profileOpen}
                   aria-haspopup="menu"
                 >
-                  <Image
-                    src={julienProfile}
-                    alt="Julien Mugisha"
-                    className={`size-10 rounded-full object-cover ring-2 ${scrolled ? "ring-black/10" : "ring-white/25"}`}
+                  <TenantAvatar
+                    tenant={activeTenant}
+                    ringClassName={scrolled ? "ring-black/10" : "ring-white/25"}
                   />
                   <span className="hidden text-sm font-medium sm:block">
-                    Julien
+                    {activeTenant.name.split(" ")[0]}
                   </span>
                   <ChevronDown
                     className={`hidden size-4 transition-transform sm:block ${profileOpen ? "rotate-180" : ""}`}
                   />
                 </button>
-                {profileOpen ? <ProfileMenu /> : null}
+                {profileOpen ? <ProfileMenu activeTenant={activeTenant} /> : null}
               </div>
             </div>
           </div>
@@ -955,7 +958,7 @@ function RenterNavDropdown({
   );
 }
 
-function ProfileMenu() {
+function ProfileMenu({ activeTenant }: { activeTenant: DemoTenant }) {
   return (
     <div className="absolute top-full right-0 z-50 w-[290px] pt-3">
       <div
@@ -963,9 +966,14 @@ function ProfileMenu() {
         className="overflow-hidden rounded-2xl bg-white text-black shadow-[0_24px_70px_rgba(0,0,0,0.24)]"
       >
         <div className="border-b border-black/10 px-5 py-5">
-          <p className="font-bricolage text-lg font-medium">Julien Mugisha</p>
-          <p className="text-carbon-500 mt-0.5 text-sm">renter@gmail.com</p>
+          <p className="font-bricolage text-lg font-medium">
+            {activeTenant.name}
+          </p>
+          <p className="text-carbon-500 mt-0.5 text-sm">
+            {activeTenant.email}
+          </p>
         </div>
+        <TenantSwitcherMenu activeTenant={activeTenant} />
         <div className="p-2">
           {PROFILE_LINKS.map(([label, href]) => (
             <Link

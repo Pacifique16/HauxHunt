@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { List, LocateFixed, Map } from "lucide-react";
+import { List, LocateFixed, Lock, Map } from "lucide-react";
 import type { Map as LeafletMap, Marker } from "leaflet";
 import {
   Children,
@@ -19,6 +19,9 @@ import {
   formatDisplayPrice,
   useDisplayCurrency,
 } from "@/components/currency/currency-selector";
+import { Button } from "@/components/ui/button";
+import { useTenantPlan } from "@/components/renter/use-tenant-plan";
+import { TenantUpgradePaywallModal } from "@/components/renter/tenant-upgrade-paywall-modal";
 
 function escapeHtml(value: string) {
   return value.replace(
@@ -55,6 +58,13 @@ type RenterMapCatalogueProps = {
   initiallyVisible?: boolean;
   filtersUnderTopBar?: boolean;
   context?: ReactNode;
+  /**
+   * Gates the interactive map behind the Tenant Pricing Plans' Paid tier
+   * (renter-only — the public/guest catalogue map is never gated). Pass
+   * `audience === "renter"`; the actual free/paid check happens in here via
+   * `useTenantPlan`.
+   */
+  gateMapForTenantPlan?: boolean;
 };
 
 export function RenterMapCatalogue({
@@ -77,9 +87,13 @@ export function RenterMapCatalogue({
   initiallyVisible = true,
   filtersUnderTopBar = false,
   context,
+  gateMapForTenantPlan = false,
 }: RenterMapCatalogueProps) {
   const router = useRouter();
   const currency = useDisplayCurrency();
+  const tenantPlan = useTenantPlan();
+  const mapLocked = gateMapForTenantPlan && tenantPlan === "free";
+  const [paywallOpen, setPaywallOpen] = useState(false);
   const [mapVisible, setMapVisible] = useState(initiallyVisible);
   const [locationState, setLocationState] = useState<
     "idle" | "locating" | "ready" | "unavailable"
@@ -113,7 +127,9 @@ export function RenterMapCatalogue({
       if (cancelled || !mapElementRef.current) return;
 
       map = L.map(mapElementRef.current, {
-        zoomControl: true,
+        // No point offering zoom/pan chrome on a map that's about to sit
+        // behind the locked overlay — it's a dimmed preview, not usable.
+        zoomControl: !mapLocked,
         attributionControl: true,
       }).setView(initialCenter, initialZoom);
       mapRef.current = map;
@@ -231,6 +247,7 @@ export function RenterMapCatalogue({
     focusedMarkerIndex,
     currency,
     mapVisible,
+    mapLocked,
     markerCards,
     markerCoordinates,
     priceValues,
@@ -303,6 +320,21 @@ export function RenterMapCatalogue({
       });
   }
 
+  function handleMapToggleClick() {
+    if (mapLocked) {
+      setPaywallOpen(true);
+      return;
+    }
+    toggleMapVisibility();
+  }
+
+  const mapToggleLabel = mapLocked
+    ? "Unlock map"
+    : mapVisible
+      ? "Hide map"
+      : "View on map";
+  const MapToggleIcon = mapLocked ? Lock : mapVisible ? List : Map;
+
   return (
     <section className="bg-carbon-50 flex h-full min-h-0 flex-col border-t border-black/10">
       {filtersUnderTopBar ? (
@@ -314,16 +346,12 @@ export function RenterMapCatalogue({
               <div className="flex shrink-0 items-center gap-2">{controls}</div>
               <button
                 type="button"
-                onClick={toggleMapVisibility}
-                aria-pressed={mapVisible}
+                onClick={handleMapToggleClick}
+                aria-pressed={mapVisible && !mapLocked}
                 className="inline-flex h-10 shrink-0 items-center gap-2 border border-black/10 bg-white px-4 text-sm font-medium text-black transition-colors hover:bg-black/[0.055]"
               >
-                {mapVisible ? (
-                  <List aria-hidden="true" className="size-4" />
-                ) : (
-                  <Map aria-hidden="true" className="size-4" />
-                )}
-                {mapVisible ? "Hide map" : "View on map"}
+                <MapToggleIcon aria-hidden="true" className="size-4" />
+                {mapToggleLabel}
               </button>
             </div>
           </div>
@@ -332,16 +360,12 @@ export function RenterMapCatalogue({
       {!filtersUnderTopBar ? (
         <button
           type="button"
-          onClick={toggleMapVisibility}
-          aria-pressed={mapVisible}
+          onClick={handleMapToggleClick}
+          aria-pressed={mapVisible && !mapLocked}
           className="fixed top-[7.65rem] right-5 z-40 inline-flex h-10 items-center gap-2 border border-black/10 bg-white px-4 text-sm font-medium text-black transition-colors hover:bg-black/[0.055] sm:right-6 lg:right-11 xl:right-[52px]"
         >
-          {mapVisible ? (
-            <List aria-hidden="true" className="size-4" />
-          ) : (
-            <Map aria-hidden="true" className="size-4" />
-          )}
-          {mapVisible ? "Hide map" : "View on map"}
+          <MapToggleIcon aria-hidden="true" className="size-4" />
+          {mapToggleLabel}
         </button>
       ) : null}
       <div
@@ -441,23 +465,69 @@ export function RenterMapCatalogue({
         {mapVisible ? (
           <div className="relative hidden h-full min-h-0 overflow-hidden bg-[#e8ece9] lg:block">
             <div ref={mapElementRef} className="absolute inset-0 z-0" />
-            <button
-              type="button"
-              onClick={useCurrentLocation}
-              className="absolute top-5 right-5 z-20 inline-flex h-11 items-center gap-2 rounded-full bg-white px-4 text-sm font-medium text-black shadow-[0_10px_30px_rgba(0,0,0,0.18)]"
-            >
-              <LocateFixed className="size-4" />
-              {locationState === "locating"
-                ? "Finding location..."
-                : locationState === "ready"
-                  ? "Using current location"
-                  : locationState === "unavailable"
-                    ? "Location unavailable"
-                    : "Use current location"}
-            </button>
+            {mapLocked ? (
+              <MapLockedOverlay onUpgrade={() => setPaywallOpen(true)} />
+            ) : (
+              <button
+                type="button"
+                onClick={useCurrentLocation}
+                className="absolute top-5 right-5 z-20 inline-flex h-11 items-center gap-2 rounded-full bg-white px-4 text-sm font-medium text-black shadow-[0_10px_30px_rgba(0,0,0,0.18)]"
+              >
+                <LocateFixed className="size-4" />
+                {locationState === "locating"
+                  ? "Finding location..."
+                  : locationState === "ready"
+                    ? "Using current location"
+                    : locationState === "unavailable"
+                      ? "Location unavailable"
+                      : "Use current location"}
+              </button>
+            )}
           </div>
         ) : null}
       </div>
+
+      {gateMapForTenantPlan ? (
+        <TenantUpgradePaywallModal
+          isOpen={paywallOpen}
+          onClose={() => setPaywallOpen(false)}
+          featureName="the interactive map"
+          description="See every property pinned on the map, get direct location links, and read house reviews — all part of the Paid plan, alongside unlimited messaging and viewing fees capped at RWF 5,000."
+        />
+      ) : null}
     </section>
+  );
+}
+
+/**
+ * Sits on top of the real (mounted but non-interactive) map so the map is
+ * still visible — just dimmed and frosted — behind the upgrade prompt,
+ * rather than hiding it entirely behind a flat placeholder.
+ */
+function MapLockedOverlay({ onUpgrade }: { onUpgrade: () => void }) {
+  return (
+    <div className="absolute inset-0 z-30 flex items-center justify-center bg-white/40 p-8 text-center backdrop-blur-[2px]">
+      <div className="relative max-w-xs rounded-2xl bg-white/85 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.18)] backdrop-blur-sm">
+        <span className="mx-auto flex size-14 items-center justify-center rounded-full bg-black text-white">
+          <Lock aria-hidden="true" className="size-6" />
+        </span>
+        <h3 className="font-bricolage mt-4 text-xl font-medium">
+          Interactive map is a Paid feature
+        </h3>
+        <p className="text-carbon-600 mt-2 text-sm leading-6">
+          Upgrade to see properties pinned on the map, get direct location
+          links, and read house reviews.
+        </p>
+        <Button
+          type="button"
+          variant="solid"
+          size="pill-lg"
+          onClick={onUpgrade}
+          className="mt-5"
+        >
+          Upgrade Now
+        </Button>
+      </div>
+    </div>
   );
 }

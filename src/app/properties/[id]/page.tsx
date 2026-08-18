@@ -24,6 +24,7 @@ import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { ContactPropertyManagerForm } from "@/components/properties/contact-landlord-form";
 import { PropertyGallery } from "@/components/properties/property-gallery";
+import { PropertyLocationMap } from "@/components/properties/property-location-map";
 import { SavePropertyButton } from "@/components/properties/save-property-button";
 import { CurrencyAmount } from "@/components/currency/currency-selector";
 import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
@@ -384,15 +385,11 @@ export default async function PropertyPage({
                 <h2 className="font-bricolage text-carbon-900 text-2xl font-medium">
                   Location
                 </h2>
-                <div className="mt-5 overflow-hidden border border-black/8 bg-white shadow-sm">
-                  <iframe
-                    title={`Map showing ${property.location}`}
-                    src={mapUrl}
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    className="h-[320px] w-full border-0"
-                  />
-                </div>
+                <PropertyLocationMap
+                  mapUrl={mapUrl}
+                  location={property.location}
+                  gateForTenantPlan={renterView}
+                />
               </section>
             </div>
 

@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 
 import type { FlatmateProfile } from "@/types";
 import { useFlatmateConnections } from "@/lib/flatmate-connections";
-import { FlatmateCard } from "@/components/flatmates/flatmate-card";
+import { PrivacyAwareProfile } from "@/components/flatmates/flatmate-profile";
 
 export type FlatmateDiscoveryDeckProps = {
   profiles: FlatmateProfile[];
@@ -69,13 +69,15 @@ export function FlatmateDiscoveryDeck({ profiles, focusId }: FlatmateDiscoveryDe
                 pointerEvents: isTop ? "auto" : "none",
               }}
             >
-              <FlatmateCard
-                profile={profile}
-                state={getState(profile.id)}
-                saved={isSaved(profile.id)}
-                onPass={() => handlePass(profile.id)}
-                className="h-full overflow-y-auto"
-              />
+              <div className="border-border-default h-full overflow-y-auto rounded-3xl border bg-white p-6 shadow-[0_14px_42px_rgba(0,0,0,0.13)]">
+                <PrivacyAwareProfile
+                  profile={profile}
+                  state={getState(profile.id)}
+                  saved={isSaved(profile.id)}
+                  onPass={() => handlePass(profile.id)}
+                  chatHref="/renter-dashboard/messages"
+                />
+              </div>
             </div>
           );
         })}

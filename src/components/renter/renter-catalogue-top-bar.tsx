@@ -1,13 +1,14 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { Bell, ChevronDown } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { Wordmark } from "@/components/layout/wordmark";
 import { CurrencySelector } from "@/components/currency/currency-selector";
-import julienProfile from "@/assets/images/julien.jpg";
+import { useActiveTenant } from "@/components/renter/use-tenant-plan";
+import { TenantAvatar } from "@/components/renter/tenant-avatar";
+import { TenantSwitcherMenu } from "@/components/renter/tenant-switcher-menu";
 
 const RENTER_NAV_GROUPS = [
   {
@@ -26,6 +27,7 @@ const RENTER_NAV_GROUPS = [
       ["My Rentals", "/renter-dashboard/rentals"],
       ["Payments", "/renter-dashboard/payments"],
       ["Maintenance", "/renter-dashboard/maintenance"],
+      ["My Plan", "/renter-dashboard/plan"],
     ],
   },
   {
@@ -45,6 +47,7 @@ const PROFILE_LINKS = [
 ] as const;
 
 export function RenterCatalogueTopBar() {
+  const activeTenant = useActiveTenant();
   const [profileOpen, setProfileOpen] = useState(false);
   const [openNavMenu, setOpenNavMenu] = useState<string | null>(null);
   const profileMenuRef = useRef<HTMLDivElement>(null);
@@ -153,13 +156,9 @@ export function RenterCatalogueTopBar() {
               aria-haspopup="menu"
               className="flex h-12 items-center gap-2 rounded-full pl-1 sm:pr-2"
             >
-              <Image
-                src={julienProfile}
-                alt="Julien Mugisha"
-                className="size-10 rounded-full object-cover ring-2 ring-black/10"
-              />
+              <TenantAvatar tenant={activeTenant} />
               <span className="hidden text-sm font-medium sm:block">
-                Julien
+                {activeTenant.name.split(" ")[0]}
               </span>
               <ChevronDown
                 className={`hidden size-4 transition-transform sm:block ${profileOpen ? "rotate-180" : ""}`}
@@ -173,10 +172,13 @@ export function RenterCatalogueTopBar() {
                 >
                   <div className="border-b border-black/10 p-5">
                     <p className="font-bricolage text-lg font-medium">
-                      Julien Mugisha
+                      {activeTenant.name}
                     </p>
-                    <p className="text-carbon-500 text-sm">renter@gmail.com</p>
+                    <p className="text-carbon-500 text-sm">
+                      {activeTenant.email}
+                    </p>
                   </div>
+                  <TenantSwitcherMenu activeTenant={activeTenant} />
                   <div className="p-2">
                     {PROFILE_LINKS.map(([label, href]) => (
                       <Link

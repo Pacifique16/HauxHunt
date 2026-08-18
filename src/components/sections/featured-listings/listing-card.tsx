@@ -5,7 +5,18 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { Bath, BedDouble, Expand, Heart, MapPin, Sofa, X } from "lucide-react";
+import {
+  ArrowUpRight,
+  Bath,
+  BedDouble,
+  ChevronLeft,
+  ChevronRight,
+  Expand,
+  Heart,
+  MapPin,
+  Sofa,
+  X,
+} from "lucide-react";
 import loginIllustration from "@/assets/images/login.png";
 import { CurrencyAmount } from "@/components/currency/currency-selector";
 import { useSavedProperty } from "@/hooks/use-saved-properties";
@@ -21,6 +32,7 @@ type ListingCardProps = {
   furnished: boolean;
   saves: number;
   image: StaticImageData;
+  images?: StaticImageData[];
   href: string;
   focalPoint?: string;
   requiresLogin?: boolean;
@@ -38,11 +50,15 @@ export function ListingCard({
   furnished,
   saves,
   image,
+  images,
   href,
   focalPoint = "50% 55%",
   requiresLogin = false,
   propertyId,
 }: ListingCardProps) {
+  const slides = images && images.length > 0 ? images : [image];
+  const hasMultipleSlides = slides.length > 1;
+  const [activeSlide, setActiveSlide] = useState(0);
   const usdAmount = Number(price.replace(/[^0-9.]/g, ""));
   const resolvedPropertyId =
     propertyId ?? href.match(/\/properties\/([^?/#]+)/)?.[1] ?? href;
@@ -52,6 +68,24 @@ export function ListingCard({
   const [feedback, setFeedback] = useState("");
   const [authPromptOpen, setAuthPromptOpen] = useState(false);
   const [feedbackHost, setFeedbackHost] = useState<HTMLElement | null>(null);
+
+  function showPreviousSlide(event: React.MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    setActiveSlide((current) => (current - 1 + slides.length) % slides.length);
+  }
+
+  function showNextSlide(event: React.MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    setActiveSlide((current) => (current + 1) % slides.length);
+  }
+
+  function showSlide(event: React.MouseEvent, index: number) {
+    event.preventDefault();
+    event.stopPropagation();
+    setActiveSlide(index);
+  }
 
   useEffect(() => {
     const connectHost = window.setTimeout(
@@ -170,20 +204,73 @@ export function ListingCard({
             feedbackHost,
           )
         : null}
-      <Link href={href} className="block">
-        <div className="relative aspect-[4/3] overflow-hidden">
-          <Image
-            src={image}
-            alt={title}
-            fill
-            placeholder="blur"
-            sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
-            style={{ objectPosition: focalPoint }}
-            className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.035]"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/35 to-transparent" />
-        </div>
+      <div className="relative aspect-[4/3] overflow-hidden">
+        <Link
+          href={href}
+          aria-label={`View details for ${title}`}
+          className="absolute inset-0 block"
+        >
+          <div
+            className="flex h-full transition-transform duration-500 ease-out"
+            style={{ transform: `translateX(-${activeSlide * 100}%)` }}
+          >
+            {slides.map((slideImage, index) => (
+              <div key={index} className="relative h-full w-full shrink-0">
+                <Image
+                  src={slideImage}
+                  alt={`${title} photo ${index + 1} of ${slides.length}`}
+                  fill
+                  placeholder="blur"
+                  priority={index === 0}
+                  sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+                  style={{ objectPosition: focalPoint }}
+                  className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.035]"
+                />
+              </div>
+            ))}
+          </div>
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 to-transparent" />
+        </Link>
 
+        {hasMultipleSlides ? (
+          <>
+            <button
+              type="button"
+              onClick={showPreviousSlide}
+              aria-label="Previous photo"
+              className="absolute top-1/2 left-2 z-10 flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white opacity-100 backdrop-blur-md transition-[background-color,opacity] duration-150 hover:bg-black/65 md:opacity-0 md:group-focus-within:opacity-100 md:group-hover:opacity-100"
+            >
+              <ChevronLeft aria-hidden="true" className="size-4" />
+            </button>
+            <button
+              type="button"
+              onClick={showNextSlide}
+              aria-label="Next photo"
+              className="absolute top-1/2 right-2 z-10 flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white opacity-100 backdrop-blur-md transition-[background-color,opacity] duration-150 hover:bg-black/65 md:opacity-0 md:group-focus-within:opacity-100 md:group-hover:opacity-100"
+            >
+              <ChevronRight aria-hidden="true" className="size-4" />
+            </button>
+            <div className="absolute inset-x-0 bottom-3 z-10 flex items-center justify-center gap-1.5">
+              {slides.map((_, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={(event) => showSlide(event, index)}
+                  aria-label={`Show photo ${index + 1}`}
+                  aria-current={index === activeSlide}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    index === activeSlide
+                      ? "w-4 bg-white"
+                      : "w-1.5 bg-white/50 hover:bg-white/75"
+                  }`}
+                />
+              ))}
+            </div>
+          </>
+        ) : null}
+      </div>
+
+      <Link href={href} className="block">
         <div className="p-5 sm:p-6">
           <div className="flex items-start justify-between gap-5">
             <div className="min-w-0">
@@ -213,6 +300,11 @@ export function ListingCard({
             <Fact icon={Expand} value={`${area} m²`} />
             <Fact icon={Sofa} value={furnished ? "Furnished" : "Unfurnished"} />
           </dl>
+
+          <span className="font-bricolage text-carbon-900 mt-5 flex items-center gap-1.5 text-sm font-medium">
+            View property
+            <ArrowUpRight aria-hidden="true" className="size-3.5" />
+          </span>
         </div>
       </Link>
 

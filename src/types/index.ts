@@ -82,6 +82,16 @@ export type FlatmateProfile = {
 export type PartnerPlan = "free" | "pro";
 
 /**
+ * Renter/tenant billing tier, read by `useTenantPlan`
+ * (src/components/renter/use-tenant-plan.ts) and rendered by
+ * `TenantPricingPlans`. Mirrors `PartnerPlan`'s free/pro split on the owner
+ * side — "free" tenants see capped agent contacts and standard viewing
+ * fees, "paid" tenants get unlimited messaging, the map/reviews tools, and
+ * a lower viewing-fee cap.
+ */
+export type TenantPlan = "free" | "paid";
+
+/**
  * Where a tenant application sits in the owner's review workflow
  * (Tenanthistory.md). Not a strict funnel — an application can move
  * straight from "new" to "approved"/"declined".
