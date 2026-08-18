@@ -21,9 +21,12 @@ import house5 from "@/assets/images/house5.jpg";
 import house6 from "@/assets/images/house6.jpeg";
 import emptyIllustration from "@/assets/images/empty.png";
 import julienProfile from "@/assets/images/julien.jpg";
+import alineProfile from "@/assets/images/flatmate-aline.png";
+import sarahProfile from "@/assets/images/flatmate-grace.png";
 import scheduleIllustration from "@/assets/images/schedule.png";
 import cancelIllustration from "@/assets/images/cancel.png";
 import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
+import { VoiceInputButton } from "@/components/listings/voice-input-button";
 import { useViewingRequests } from "@/hooks/use-viewing-requests";
 
 type Tab = "upcoming" | "pending" | "past";
@@ -253,19 +256,17 @@ export default function MyViewingsPage() {
                 ))}
               </div>
               <div className="flex w-full gap-3 pb-2 md:w-auto">
-                <label className="relative block min-w-0 flex-1 md:w-72 md:flex-none">
+                <label className="catalogue-location-filter flex min-w-0 flex-1 items-center gap-2 px-4 md:w-72 md:flex-none">
                   <span className="sr-only">Search by property name</span>
-                  <Search
-                    aria-hidden="true"
-                    className="text-carbon-500 pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2"
-                  />
+                  <Search aria-hidden="true" className="text-carbon-500 size-4 shrink-0" />
                   <input
                     type="search"
                     value={propertySearch}
                     onChange={(event) => setPropertySearch(event.target.value)}
                     placeholder="Search by property name"
-                    className="h-10 w-full rounded-full bg-white pr-4 pl-11 text-sm outline-none"
+                    className="catalogue-filter-control min-w-0 flex-1 bg-transparent text-sm outline-none"
                   />
+                  <VoiceInputButton onTranscript={setPropertySearch} />
                 </label>
                 <label className="relative block w-44 sm:w-56">
                   <span className="sr-only">Filter by viewing status</span>
@@ -378,7 +379,7 @@ function ViewingCard({
   onNotInterested: () => void;
   onAccept: () => void;
 }) {
-  const messageHref = `/renter-dashboard/messages?property=${encodeURIComponent(viewing.title)}&host=${encodeURIComponent(viewing.host)}&viewing=${encodeURIComponent(`${viewing.status} · ${viewing.date} · ${viewing.time}`)}`;
+  const messageHref = `/renter-dashboard/messages?host=${encodeURIComponent(viewing.host)}&role=Property%20Manager&ctx=viewing&property=${encodeURIComponent(viewing.title)}&propertyId=${encodeURIComponent(viewing.propertyId)}&status=${encodeURIComponent(viewing.status)}&detail=${encodeURIComponent(`${viewing.date} · ${viewing.time}`)}&refId=${encodeURIComponent(viewing.id)}`;
   return (
     <article className="relative overflow-hidden rounded-2xl border border-white/80 bg-white/70 shadow-[0_10px_30px_rgba(0,0,0,0.08)] ring-1 ring-white/70 backdrop-blur-xl sm:grid sm:grid-cols-[210px_1fr]">
       <Image
@@ -421,7 +422,7 @@ function ViewingCard({
         ) : null}
         <div className="mt-3 flex items-center gap-3">
           <Image
-            src={julienProfile}
+            src={viewing.host === "Aline Uwase" ? alineProfile : viewing.host === "Sarah Uwase" ? sarahProfile : julienProfile}
             alt=""
             className="size-9 rounded-full object-cover"
           />
@@ -694,7 +695,7 @@ function ViewingDialog({
             </section>
             <section className="flex items-center gap-3">
               <Image
-                src={julienProfile}
+                src={dialog.viewing.host === "Aline Uwase" ? alineProfile : dialog.viewing.host === "Sarah Uwase" ? sarahProfile : julienProfile}
                 alt=""
                 className="size-11 rounded-full object-cover"
               />

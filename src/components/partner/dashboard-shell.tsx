@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 
 import { Wordmark } from "@/components/layout/wordmark";
+import { VoiceInputButton } from "@/components/listings/voice-input-button";
 import appIllustration from "@/assets/images/illustrated-black-man-using-mobile-phone.png";
 import julienProfile from "@/assets/images/julien.jpg";
 import { usePartnerRole } from "@/components/partner/use-partner-role";
@@ -194,17 +195,17 @@ function DashboardTopBar({
           id="dashboard-topbar-status"
           className="pointer-events-none absolute top-0 left-1/2 z-40 -translate-x-1/2"
         />
-        <label className="relative mr-auto block w-full max-w-sm">
+        <label className="mr-auto block w-full max-w-sm">
           <span className="sr-only">Search dashboard</span>
-          <Search
-            aria-hidden="true"
-            className="text-carbon-500 pointer-events-none absolute top-1/2 right-4 size-[18px] -translate-y-1/2"
-          />
-          <input
-            type="search"
-            placeholder="Search"
-            className="h-11 w-full rounded-full bg-white pr-11 pl-4 text-sm text-black outline-none placeholder:text-black/35"
-          />
+          <span className="catalogue-location-filter flex items-center gap-2 px-4">
+            <Search aria-hidden="true" className="text-carbon-500 size-4 shrink-0" />
+            <input
+              type="search"
+              placeholder="Search"
+              className="catalogue-filter-control min-w-0 flex-1 bg-transparent text-sm outline-none"
+            />
+            <VoiceInputButton />
+          </span>
         </label>
         <Link
           href="/partner-dashboard/notifications"

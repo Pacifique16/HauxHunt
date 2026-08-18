@@ -64,7 +64,7 @@ export const MAINTENANCE_REQUESTS: MaintenanceRequest[] = [
     scheduledVisit: {
       date: "17 August 2026",
       time: "10:00 AM – 11:00 AM",
-      contact: "Eric N.",
+      contact: "Moses Habimana",
       role: "Maintenance Technician",
     },
   },
@@ -113,7 +113,7 @@ export const MAINTENANCE_REQUESTS: MaintenanceRequest[] = [
     scheduledVisit: {
       date: "18 August 2026",
       time: "2:00 PM – 3:00 PM",
-      contact: "Claude M.",
+      contact: "Claude Mutabazi",
       role: "Maintenance Technician",
     },
   },

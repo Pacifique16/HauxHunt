@@ -285,7 +285,7 @@ function NewApplicationPageInner() {
                 Applications
               </Link>
               <Link
-                href={`/renter-dashboard/messages?property=${encodeURIComponent(property.title)}`}
+                href={`/renter-dashboard/messages?property=${encodeURIComponent(property.title)}&propertyId=${encodeURIComponent(property.id)}&ctx=application&status=Submitted&refId=${encodeURIComponent(applicationId)}`}
                 className="h-10 rounded-full border border-black/15 px-5 py-2.5 text-sm"
               >
                 Message

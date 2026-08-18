@@ -429,7 +429,7 @@ export default async function PropertyPage({
                 ) : null}
               </div>
 
-              <ContactPropertyManagerForm managerName="Julien" />
+              <ContactPropertyManagerForm managerName="Julien" propertyTitle={property.title} propertyId={property.id} />
             </aside>
           </div>
         </div>

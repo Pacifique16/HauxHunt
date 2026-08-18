@@ -20,10 +20,12 @@ export function FlatmateCard({
   flatmate,
   priority,
   renterView = false,
+  matchScore,
 }: {
   flatmate: PublicFlatmate;
   priority: boolean;
   renterView?: boolean;
+  matchScore?: number;
 }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -128,7 +130,7 @@ export function FlatmateCard({
         aria-label={`View ${flatmate.firstName}'s profile`}
         className="group block h-full cursor-pointer"
       >
-        <article className="relative h-full min-h-[460px] overflow-hidden rounded-[2rem] bg-black shadow-[0_14px_42px_rgba(0,0,0,0.13)] transition-[transform,box-shadow] duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_20px_55px_rgba(0,0,0,0.18)]">
+        <article className="relative h-full min-h-[460px] overflow-hidden rounded-[2rem] bg-black transition-transform duration-300 group-hover:-translate-y-1">
           <div className="absolute inset-0 transition-transform duration-500 group-hover:scale-[1.025]">
             <FlatmatePortrait
               src={flatmate.portrait}
@@ -137,6 +139,12 @@ export function FlatmateCard({
             />
           </div>
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/95" />
+          {matchScore !== undefined && (
+            <div className="absolute top-3.5 right-3.5 flex items-center gap-1 rounded-full bg-white/15 backdrop-blur-md border border-white/25 px-2.5 py-1">
+              <span className="text-[11px] font-bold text-white">{matchScore}%</span>
+              <span className="text-[9px] text-white/70 font-medium">match</span>
+            </div>
+          )}
           <div className="absolute inset-x-0 bottom-0 p-4 text-white sm:p-5">
             <div className="min-w-0">
               <h3 className="font-bricolage flex items-center gap-1.5 text-xl leading-none font-medium tracking-[-0.03em]">

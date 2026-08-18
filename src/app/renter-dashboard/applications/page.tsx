@@ -24,6 +24,7 @@ import cancelIllustration from "@/assets/images/cancel.png";
 import deletingIllustration from "@/assets/images/deleting.png";
 import emptyIllustration from "@/assets/images/empty.png";
 import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
+import { VoiceInputButton } from "@/components/listings/voice-input-button";
 import {
   RENTER_APPLICATIONS,
   type ApplicationStatus,
@@ -171,19 +172,17 @@ function ApplicationsPageInner() {
                 ))}
               </div>
               <div className="flex w-full gap-3 pb-2 md:w-auto">
-                <label className="relative block min-w-0 flex-1 md:w-72 md:flex-none">
+                <label className="catalogue-location-filter flex min-w-0 flex-1 items-center gap-2 px-4 md:w-72 md:flex-none">
                   <span className="sr-only">Search by property name</span>
-                  <Search
-                    aria-hidden="true"
-                    className="text-carbon-500 pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2"
-                  />
+                  <Search aria-hidden="true" className="text-carbon-500 size-4 shrink-0" />
                   <input
                     type="search"
                     value={propertySearch}
                     onChange={(event) => setPropertySearch(event.target.value)}
                     placeholder="Search by property name"
-                    className="h-10 w-full rounded-full bg-white pr-4 pl-11 text-sm outline-none"
+                    className="catalogue-filter-control min-w-0 flex-1 bg-transparent text-sm outline-none"
                   />
+                  <VoiceInputButton onTranscript={setPropertySearch} />
                 </label>
                 <label className="relative block w-44 sm:w-52">
                   <span className="sr-only">Filter by application status</span>
@@ -365,7 +364,7 @@ function ApplicationCard({
             {primary}
           </Link>
           <Link
-            href={`/renter-dashboard/messages?property=${encodeURIComponent(application.title)}&application=${application.status}`}
+            href={`/renter-dashboard/messages?host=${encodeURIComponent(application.representative)}&role=${encodeURIComponent(application.role.replace(/^Verified /, ""))}&verified=${application.role.startsWith("Verified") ? "1" : "0"}&ctx=application&property=${encodeURIComponent(application.title)}&propertyId=${encodeURIComponent(application.propertyId)}&status=${encodeURIComponent(application.status)}&refId=${encodeURIComponent(application.id)}`}
             className="inline-flex h-10 items-center rounded-full border border-black/15 px-4 text-sm"
           >
             Message

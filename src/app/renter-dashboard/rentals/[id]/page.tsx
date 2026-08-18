@@ -16,6 +16,8 @@ import house2 from "@/assets/images/house2.jpg";
 import house3 from "@/assets/images/house3.jpg";
 import house4 from "@/assets/images/house4.jpg";
 import managerAvatar from "@/assets/images/julien.jpg";
+import alineAvatar from "@/assets/images/flatmate-aline.png";
+import sarahAvatar from "@/assets/images/flatmate-grace.png";
 import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
 import { RENTER_RENTALS } from "@/data/renter-rentals";
 const images = [house1, house2, house3, house4];
@@ -72,7 +74,7 @@ export default function RentalDetail() {
                 </div>
                 <div className="mt-5 flex gap-3">
                   <Link
-                    href={`/renter-dashboard/messages?host=${encodeURIComponent(r.manager)}&rental=${r.id}`}
+                    href={`/renter-dashboard/messages?host=${encodeURIComponent(r.manager)}&role=${encodeURIComponent(r.role.replace(/^Verified /, ""))}&verified=${r.role.startsWith("Verified") ? "1" : "0"}&ctx=active-rental&property=${encodeURIComponent(r.title)}&propertyId=${encodeURIComponent(r.propertyId)}&status=${encodeURIComponent(r.status)}&detail=${encodeURIComponent(`${r.rent} / month`)}&refId=${encodeURIComponent(r.id)}`}
                     className="inline-flex h-10 items-center rounded-full bg-black px-4 text-sm text-white"
                   >
                     Message Manager
@@ -298,7 +300,7 @@ export default function RentalDetail() {
               <Section title="Managed by">
                 <div className="flex items-center gap-3">
                   <Image
-                    src={managerAvatar}
+                    src={r.manager === "Aline Uwase" ? alineAvatar : r.manager === "Sarah Uwase" ? sarahAvatar : managerAvatar}
                     alt={r.manager}
                     className="size-12 rounded-full object-cover"
                   />

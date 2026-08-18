@@ -336,7 +336,7 @@ function Invitation({ onSetup }: { onSetup: () => void }) {
             View Rental
           </SecondaryLink>
           <SecondaryLink
-            href={`/renter-dashboard/messages?host=${encodeURIComponent(rental.manager)}`}
+            href={`/renter-dashboard/messages?host=${encodeURIComponent(rental.manager)}&role=Property%20Manager&verified=1&ctx=active-rental&property=${encodeURIComponent(rental.title)}&propertyId=${encodeURIComponent(rental.propertyId)}&status=Active&detail=${encodeURIComponent(`${rental.rent} / month`)}&refId=${encodeURIComponent(rental.id)}`}
           >
             Message Property Manager
           </SecondaryLink>
@@ -475,7 +475,7 @@ function ActivePayments({
               )}
               {overdue ? (
                 <Link
-                  href={`/renter-dashboard/messages?host=${encodeURIComponent(rental.manager)}`}
+                  href={`/renter-dashboard/messages?host=${encodeURIComponent(rental.manager)}&role=Property%20Manager&verified=1&ctx=active-rental&property=${encodeURIComponent(rental.title)}&propertyId=${encodeURIComponent(rental.propertyId)}&status=Active&detail=${encodeURIComponent(`${rental.rent} / month`)}&refId=${encodeURIComponent(rental.id)}`}
                   className="inline-flex h-11 items-center rounded-full border border-white/25 px-5 text-sm transition-colors hover:bg-white/10"
                 >
                   Message Property Manager
