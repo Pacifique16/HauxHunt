@@ -3,7 +3,7 @@
 import { use, useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronDown, ChevronLeft, ChevronRight, Search, SlidersHorizontal, ArrowUpRight } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Search, SlidersHorizontal, ArrowUpRight, ArrowDownLeft } from "lucide-react";
 import emptyIllustration from "@/assets/images/empty.png";
 import { CurrencyFilterSelect } from "@/components/currency/currency-selector";
 import { FlatmateBanner } from "@/components/flatmates/flatmate-banner";
@@ -17,6 +17,11 @@ import { PUBLIC_FLATMATES, type PublicFlatmate } from "@/data/public-flatmates";
 function valueOf(value: string | string[] | undefined) {
   return Array.isArray(value) ? (value[0] ?? "") : (value ?? "");
 }
+
+// Grid columns top out at 4 (xl breakpoint), so "3 rows" = 12 cards per batch.
+const GRID_ROWS_PER_PAGE = 3;
+const GRID_COLUMNS = 4;
+const GRID_BATCH_SIZE = GRID_ROWS_PER_PAGE * GRID_COLUMNS;
 
 export function FlatmatesPageClient({
   searchParams,
@@ -39,6 +44,8 @@ export function FlatmatesPageClient({
   // Client states
   const [hasProfile, setHasProfile] = useState(false);
   const [customProfileData, setCustomProfileData] = useState<any>(null);
+  const [showAllProfiles, setShowAllProfiles] = useState(false);
+  const [visibleGridCount, setVisibleGridCount] = useState(GRID_BATCH_SIZE);
 
   useEffect(() => {
     const published = window.sessionStorage.getItem("hauxhunt-has-flatmate-profile") === "true";
@@ -138,6 +145,11 @@ export function FlatmatesPageClient({
       .slice(0, 10)
     : [];
 
+  // Re-shuffle whenever the actual set of matching flatmates changes (e.g. filters
+  // applied or cleared) — not just once on mount. Navigating via a plain <Link>
+  // (like "Clear Filters") doesn't remount this component, so relying on an
+  // empty dependency array here left `visible` stuck on the pre-clear results.
+  const filteredIdsKey = withoutUnpublishedJulien.map((f) => f.id).join(",");
   const [visible, setVisible] = useState(withoutUnpublishedJulien);
   useEffect(() => {
     const arr = [...withoutUnpublishedJulien];
@@ -147,7 +159,7 @@ export function FlatmatesPageClient({
     }
     setVisible(arr);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [filteredIdsKey]);
   const hasFilters = Boolean(
     location ||
       country ||
@@ -228,21 +240,31 @@ export function FlatmatesPageClient({
           className="bg-carbon-50 px-5 py-4 sm:px-6 lg:px-11 xl:px-[52px]"
         >
           <AutoSubmitFilterForm
+            key={`${location}|${budget}|${moveIn}|${situation}|${gender}|${country}|${occupation}|${smoking}|${lifestyle}`}
             action="/flatmates"
             className="mx-auto grid max-w-[1562px] gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-[1.5fr_1fr_1fr_1fr_1fr_1fr_1fr]"
           >
             {renterView ? <input type="hidden" name="from" value="renter" /> : null}
-            <label className="catalogue-location-filter flex h-10 items-center gap-2 bg-white px-4 shadow-[0_8px_24px_rgba(0,0,0,0.09)]">
-              <Search aria-hidden="true" className="text-carbon-500 size-4" />
-              <input
-                name="location"
-                defaultValue={location}
-                data-no-auto-submit="true"
-                data-submit-when-empty="true"
-                placeholder="Location"
-                className="min-w-0 flex-1 border-0 bg-transparent text-sm shadow-none ring-0 outline-none"
-              />
-              <VoiceInputButton />
+            <label>
+              <span className="sr-only">Location</span>
+              <span className="catalogue-location-filter flex items-center gap-2 px-4">
+                <button
+                  type="submit"
+                  aria-label="Search location"
+                  className="text-carbon-500 hover:text-carbon-900 shrink-0 transition-colors"
+                >
+                  <Search aria-hidden="true" className="size-4" />
+                </button>
+                <input
+                  name="location"
+                  defaultValue={location}
+                  data-no-auto-submit="true"
+                  data-submit-when-empty="true"
+                  placeholder="Location"
+                  className="catalogue-filter-control min-w-0 flex-1 bg-transparent text-sm outline-none"
+                />
+                <VoiceInputButton />
+              </span>
             </label>
             <CurrencyFilterSelect
               name="budget"
@@ -346,21 +368,68 @@ export function FlatmatesPageClient({
           <div className="mx-auto max-w-[1562px]">
             {finalFlatmates.length ? (
               <>
-                <ScrollRow
-                  title="People Looking for Flatmates"
-                  onViewMore={() => {}}
-                  viewMoreLabel="View more"
-                >
-                  {finalFlatmates.map((flatmate, index) => (
-                    <div key={flatmate.id} className="w-[calc((100vw-10rem)/4-0.5rem)] min-w-[300px] shrink-0 h-[460px]">
-                      <FlatmateCard
-                        flatmate={flatmate}
-                        priority={index < 3}
-                        renterView={renterView}
-                      />
+                {showAllProfiles ? (
+                  <div>
+                    <div className="mb-5 flex items-center justify-between gap-4">
+                      <h2 className="font-bricolage text-2xl font-bold text-neutral-900">
+                        People Looking for Flatmates
+                      </h2>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowAllProfiles(false);
+                          setVisibleGridCount(GRID_BATCH_SIZE);
+                        }}
+                        className="shrink-0 inline-flex items-center gap-1 text-sm font-medium text-black/60 hover:text-black transition-colors"
+                      >
+                        Show less
+                        <ArrowDownLeft aria-hidden="true" className="size-4" />
+                      </button>
                     </div>
-                  ))}
-                </ScrollRow>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                      {finalFlatmates.slice(0, visibleGridCount).map((flatmate, index) => (
+                        <div key={flatmate.id} className="h-[460px]">
+                          <FlatmateCard
+                            flatmate={flatmate}
+                            priority={index < 3}
+                            renterView={renterView}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    {visibleGridCount < finalFlatmates.length ? (
+                      <div className="mt-6 flex justify-center">
+                        <button
+                          type="button"
+                          onClick={() => setVisibleGridCount((count) => count + GRID_BATCH_SIZE)}
+                          className="inline-flex items-center gap-1 rounded-full border border-black/15 bg-white px-5 py-2.5 text-sm font-medium text-black/70 transition-colors hover:bg-black hover:text-white"
+                        >
+                          View more
+                          <ArrowUpRight aria-hidden="true" className="size-4" />
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : (
+                  <ScrollRow
+                    title="People Looking for Flatmates"
+                    onViewMore={() => {
+                      setShowAllProfiles(true);
+                      setVisibleGridCount(GRID_BATCH_SIZE);
+                    }}
+                    viewMoreLabel="View more"
+                  >
+                    {finalFlatmates.map((flatmate, index) => (
+                      <div key={flatmate.id} className="w-[calc((100vw-10rem)/4-0.5rem)] min-w-[300px] shrink-0 h-[460px]">
+                        <FlatmateCard
+                          flatmate={flatmate}
+                          priority={index < 3}
+                          renterView={renterView}
+                        />
+                      </div>
+                    ))}
+                  </ScrollRow>
+                )}
               </>
             ) : (
               <div className="flex min-h-[440px] flex-col items-center justify-center text-center">

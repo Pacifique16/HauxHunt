@@ -26,6 +26,7 @@ import sarahProfile from "@/assets/images/flatmate-grace.png";
 import scheduleIllustration from "@/assets/images/schedule.png";
 import cancelIllustration from "@/assets/images/cancel.png";
 import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
+import { VoiceInputButton } from "@/components/listings/voice-input-button";
 import { useViewingRequests } from "@/hooks/use-viewing-requests";
 
 type Tab = "upcoming" | "pending" | "past";
@@ -255,19 +256,17 @@ export default function MyViewingsPage() {
                 ))}
               </div>
               <div className="flex w-full gap-3 pb-2 md:w-auto">
-                <label className="relative block min-w-0 flex-1 md:w-72 md:flex-none">
+                <label className="catalogue-location-filter flex min-w-0 flex-1 items-center gap-2 px-4 md:w-72 md:flex-none">
                   <span className="sr-only">Search by property name</span>
-                  <Search
-                    aria-hidden="true"
-                    className="text-carbon-500 pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2"
-                  />
+                  <Search aria-hidden="true" className="text-carbon-500 size-4 shrink-0" />
                   <input
                     type="search"
                     value={propertySearch}
                     onChange={(event) => setPropertySearch(event.target.value)}
                     placeholder="Search by property name"
-                    className="h-10 w-full rounded-full bg-white pr-4 pl-11 text-sm outline-none"
+                    className="catalogue-filter-control min-w-0 flex-1 bg-transparent text-sm outline-none"
                   />
+                  <VoiceInputButton onTranscript={setPropertySearch} />
                 </label>
                 <label className="relative block w-44 sm:w-56">
                   <span className="sr-only">Filter by viewing status</span>
