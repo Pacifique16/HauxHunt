@@ -16,6 +16,8 @@ import house2 from "@/assets/images/house2.jpg";
 import house3 from "@/assets/images/house3.jpg";
 import house4 from "@/assets/images/house4.jpg";
 import managerAvatar from "@/assets/images/julien.jpg";
+import alineAvatar from "@/assets/images/flatmate-aline.png";
+import sarahAvatar from "@/assets/images/flatmate-grace.png";
 import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
 import { RENTER_RENTALS } from "@/data/renter-rentals";
 const images = [house1, house2, house3, house4];
@@ -298,7 +300,7 @@ export default function RentalDetail() {
               <Section title="Managed by">
                 <div className="flex items-center gap-3">
                   <Image
-                    src={managerAvatar}
+                    src={r.manager === "Aline Uwase" ? alineAvatar : r.manager === "Sarah Uwase" ? sarahAvatar : managerAvatar}
                     alt={r.manager}
                     className="size-12 rounded-full object-cover"
                   />

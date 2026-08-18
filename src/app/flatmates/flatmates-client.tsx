@@ -3,7 +3,7 @@
 import { use, useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronDown, ChevronLeft, ChevronRight, Search, SlidersHorizontal } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Search, SlidersHorizontal, ArrowUpRight } from "lucide-react";
 import emptyIllustration from "@/assets/images/empty.png";
 import { CurrencyFilterSelect } from "@/components/currency/currency-selector";
 import { FlatmateBanner } from "@/components/flatmates/flatmate-banner";
@@ -108,22 +108,6 @@ export function FlatmatesPageClient({
     (flatmate) => flatmate.id !== "julien" || hasProfile
   );
 
-  // Compute "People matching your needs" — only when viewer has a published profile
-  const suggestedFlatmates = hasProfile && customProfileData
-    ? PUBLIC_FLATMATES.filter((f) => {
-        if (f.id === "julien") return false; // exclude self
-        const viewerBudget = Number(customProfileData.budget) || 450000;
-        const viewerAreas: string[] = customProfileData.areas || [];
-        const viewerTags: string[] = customProfileData.lifestyleTags || [];
-        const viewerSituation: string = customProfileData.situation || "looking";
-        const budgetOverlap = f.budgetMin <= viewerBudget * 1.3 && f.budgetMax >= viewerBudget * 0.7;
-        const areaOverlap = viewerAreas.length === 0 || f.areas.some((a) => viewerAreas.includes(a));
-        const tagOverlap = viewerTags.length === 0 || f.lifestyleTags.some((t) => viewerTags.includes(t));
-        const situationMatch = viewerSituation === "looking" ? f.situation === "looking" : f.situation === "looking";
-        return budgetOverlap && areaOverlap && tagOverlap && situationMatch;
-      }).slice(0, 4)
-    : [];
-
   const computeMatchScore = (f: PublicFlatmate): number => {
     if (!customProfileData) return 0;
     const viewerBudget = Number(customProfileData.budget) || 450000;
@@ -138,7 +122,32 @@ export function FlatmatesPageClient({
     return Math.min(99, budgetScore + areaScore + tagScore);
   };
 
-  const visible = showAll ? withoutUnpublishedJulien : withoutUnpublishedJulien.slice(0, 6);
+  // Compute "People matching your needs" — only when viewer has a published profile
+  const suggestedFlatmates = hasProfile && customProfileData
+    ? PUBLIC_FLATMATES.filter((f) => {
+        if (f.id === "julien") return false; // exclude self
+        const viewerBudget = Number(customProfileData.budget) || 450000;
+        const viewerAreas: string[] = customProfileData.areas || [];
+        const viewerTags: string[] = customProfileData.lifestyleTags || [];
+        const budgetOverlap = f.budgetMin <= viewerBudget * 1.3 && f.budgetMax >= viewerBudget * 0.7;
+        const areaOverlap = viewerAreas.length === 0 || f.areas.some((a) => viewerAreas.includes(a));
+        const tagOverlap = viewerTags.length === 0 || f.lifestyleTags.some((t) => viewerTags.includes(t));
+        return budgetOverlap && areaOverlap && tagOverlap;
+      })
+      .sort((a, b) => computeMatchScore(b) - computeMatchScore(a))
+      .slice(0, 10)
+    : [];
+
+  const [visible, setVisible] = useState(withoutUnpublishedJulien);
+  useEffect(() => {
+    const arr = [...withoutUnpublishedJulien];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    setVisible(arr);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const hasFilters = Boolean(
     location ||
       country ||
@@ -339,8 +348,8 @@ export function FlatmatesPageClient({
               <>
                 <ScrollRow
                   title="People Looking for Flatmates"
-                  viewMoreHref={withoutUnpublishedJulien.length > 6 ? (showAll ? `/flatmates${query.size ? `?${query}` : ""}` : `/flatmates?${allQuery}`) : undefined}
-                  viewMoreLabel={showAll ? "Show fewer" : "View more"}
+                  onViewMore={() => {}}
+                  viewMoreLabel="View more"
                 >
                   {finalFlatmates.map((flatmate, index) => (
                     <div key={flatmate.id} className="w-[calc((100vw-10rem)/4-0.5rem)] min-w-[300px] shrink-0 h-[460px]">
@@ -449,11 +458,13 @@ function FilterSelect({
 function ScrollRow({
   title,
   viewMoreHref,
+  onViewMore,
   viewMoreLabel,
   children,
 }: {
   title: string;
   viewMoreHref?: string;
+  onViewMore?: () => void;
   viewMoreLabel?: string;
   children: React.ReactNode;
 }) {
@@ -483,38 +494,54 @@ function ScrollRow({
     rowRef.current?.scrollBy({ left: dir === "left" ? -300 : 300, behavior: "smooth" });
   };
 
+  const scrollToEnd = () => {
+    rowRef.current?.scrollTo({ left: rowRef.current.scrollWidth, behavior: "smooth" });
+  };
+
+  const viewMoreAction = onViewMore ?? (canScrollRight ? scrollToEnd : undefined);
+
   return (
-    <div className="relative">
+    <div className="group/row relative">
       <div className="mb-5 flex items-center justify-between gap-4">
         <h2 className="font-bricolage text-2xl font-bold text-neutral-900">{title}</h2>
-        <div className="flex items-center gap-2 shrink-0">
-          {viewMoreHref && (
-            <Link
-              href={viewMoreHref}
-              className="text-sm font-medium text-black/60 hover:text-black transition-colors"
-            >
-              {viewMoreLabel ?? "View more"}
-            </Link>
-          )}
+        {viewMoreHref ? (
+          <Link
+            href={viewMoreHref}
+            className="shrink-0 inline-flex items-center gap-1 text-sm font-medium text-black/60 hover:text-black transition-colors"
+          >
+            {viewMoreLabel ?? "View more"}
+            <ArrowUpRight aria-hidden="true" className="size-4" />
+          </Link>
+        ) : viewMoreAction ? (
+          <button
+            type="button"
+            onClick={viewMoreAction}
+            className="shrink-0 inline-flex items-center gap-1 text-sm font-medium text-black/60 hover:text-black transition-colors"
+          >
+            {viewMoreLabel ?? "View more"}
+            <ArrowUpRight aria-hidden="true" className="size-4" />
+          </button>
+        ) : null}
+      </div>
+      <div className="relative" style={{ overflowY: "visible" }}>
+        {canScrollLeft && (
           <button
             type="button"
             onClick={() => scroll("left")}
-            disabled={!canScrollLeft}
-            className="flex size-8 items-center justify-center rounded-full border border-black/15 bg-white shadow-sm transition-all hover:bg-neutral-50 disabled:opacity-25"
+            className="absolute left-0 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 flex size-10 items-center justify-center rounded-full border border-black/15 bg-white shadow-md transition-opacity duration-100 hover:bg-neutral-50 opacity-0 group-hover/row:opacity-100"
           >
-            <ChevronLeft className="size-4" />
+            <ChevronLeft className="size-5" />
           </button>
+        )}
+        {canScrollRight && (
           <button
             type="button"
             onClick={() => scroll("right")}
-            disabled={!canScrollRight}
-            className="flex size-8 items-center justify-center rounded-full border border-black/15 bg-white shadow-sm transition-all hover:bg-neutral-50 disabled:opacity-25"
+            className="absolute right-0 top-1/2 z-10 translate-x-1/2 -translate-y-1/2 flex size-10 items-center justify-center rounded-full border border-black/15 bg-white shadow-md transition-opacity duration-100 hover:bg-neutral-50 opacity-0 group-hover/row:opacity-100"
           >
-            <ChevronRight className="size-4" />
+            <ChevronRight className="size-5" />
           </button>
-        </div>
-      </div>
-      <div className="relative" style={{ overflowY: "visible" }}>
+        )}
         <div
           ref={rowRef}
           className="flex gap-4 overflow-x-auto py-3"

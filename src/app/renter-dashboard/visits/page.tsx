@@ -21,6 +21,8 @@ import house5 from "@/assets/images/house5.jpg";
 import house6 from "@/assets/images/house6.jpeg";
 import emptyIllustration from "@/assets/images/empty.png";
 import julienProfile from "@/assets/images/julien.jpg";
+import alineProfile from "@/assets/images/flatmate-aline.png";
+import sarahProfile from "@/assets/images/flatmate-grace.png";
 import scheduleIllustration from "@/assets/images/schedule.png";
 import cancelIllustration from "@/assets/images/cancel.png";
 import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
@@ -421,7 +423,7 @@ function ViewingCard({
         ) : null}
         <div className="mt-3 flex items-center gap-3">
           <Image
-            src={julienProfile}
+            src={viewing.host === "Aline Uwase" ? alineProfile : viewing.host === "Sarah Uwase" ? sarahProfile : julienProfile}
             alt=""
             className="size-9 rounded-full object-cover"
           />
@@ -694,7 +696,7 @@ function ViewingDialog({
             </section>
             <section className="flex items-center gap-3">
               <Image
-                src={julienProfile}
+                src={dialog.viewing.host === "Aline Uwase" ? alineProfile : dialog.viewing.host === "Sarah Uwase" ? sarahProfile : julienProfile}
                 alt=""
                 className="size-11 rounded-full object-cover"
               />
