@@ -910,7 +910,7 @@ export default function RenterDashboardPage() {
               </p>
             </div>
             <Link
-              href="/property-request"
+              href="/renter-dashboard/saved-searches?tab=requests"
               className="font-bricolage relative z-10 mt-7 inline-flex h-12 shrink-0 items-center gap-2 rounded-full bg-white px-6 font-medium text-black transition-opacity hover:opacity-80 lg:mt-0"
             >
               Create a property request <ArrowUpRight className="size-4" />

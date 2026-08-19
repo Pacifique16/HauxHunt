@@ -12,8 +12,11 @@ import {
   UserRound,
 } from "lucide-react";
 
-export function PropertyRequestForm() {
-  const [submitted, setSubmitted] = useState(false);
+export function PropertyRequestForm({
+  onSubmitted,
+}: {
+  onSubmitted?: (data: Record<string, string>) => void;
+}) {
   const [propertyType, setPropertyType] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -23,37 +26,11 @@ export function PropertyRequestForm() {
       event.currentTarget.reportValidity();
       return;
     }
-    setSubmitted(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  if (submitted) {
-    return (
-      <div className="rounded-[2rem] border border-black/10 bg-white px-6 py-20 text-center shadow-[0_24px_70px_rgba(0,0,0,0.08)] sm:px-12">
-        <span className="mx-auto flex size-16 items-center justify-center rounded-full bg-black text-white">
-          <Check aria-hidden="true" className="size-7" />
-        </span>
-        <h2 className="font-bricolage text-carbon-900 mt-7 text-4xl font-medium tracking-[-0.04em]">
-          Your request is ready
-        </h2>
-        <p className="text-carbon-600 mx-auto mt-4 max-w-xl leading-7">
-          Your requirements have been captured. Once request publishing is
-          connected, verified property managers and agents with suitable houses
-          will be able to contact you.
-        </p>
-        <button
-          type="button"
-          onClick={() => {
-            setSubmitted(false);
-            setPropertyType("");
-            requestAnimationFrame(() => formRef.current?.reset());
-          }}
-          className="font-bricolage mt-8 h-12 rounded-full bg-black px-7 font-medium text-white transition-colors hover:bg-black/80"
-        >
-          Create another request
-        </button>
-      </div>
+    const fd = new FormData(event.currentTarget);
+    const data = Object.fromEntries(
+      [...fd.entries()].map(([k, v]) => [k, String(v)]),
     );
+    onSubmitted?.(data);
   }
 
   return (

@@ -152,19 +152,14 @@ export function NotificationsDrawer({
         className={`fixed inset-y-0 right-0 z-[70] flex w-full flex-col bg-white shadow-[-20px_0_60px_rgba(0,0,0,0.18)] transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] sm:w-1/2 sm:min-w-[420px] ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
-        style={{ borderRadius: "5.5rem 0 0 0" }}
+        style={{ borderRadius: "3rem 0 0 0" }}
       >
         {/* Header — extra top/left padding to clear the 5.5rem corner curve */}
-        <div className="flex shrink-0 items-center justify-between border-b border-black/[0.08] px-8 pt-10 pb-4 sm:px-10">
+        <div className="flex shrink-0 items-center justify-between border-b border-black/[0.08] px-8 pt-6 pb-3 sm:px-10">
           <div className="flex items-center gap-3">
             <h2 className="font-bricolage text-xl font-medium tracking-tight">
               Notifications
             </h2>
-            {unreadCount > 0 ? (
-              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-black px-1.5 text-[0.6rem] font-bold text-white">
-                {unreadCount}
-              </span>
-            ) : null}
           </div>
           <div className="flex items-center gap-2">
             <Link
@@ -203,7 +198,9 @@ export function NotificationsDrawer({
               >
                 {f === "all" ? "All" : "Unread"}
                 {f === "unread" && unreadCount > 0 ? (
-                  <span className="ml-1.5 inline-flex size-3.5 items-center justify-center rounded-full bg-white text-[0.55rem] font-bold text-black">
+                  <span className={`ml-1.5 inline-flex size-3.5 items-center justify-center rounded-full text-[0.55rem] font-bold ${
+                    filter === "unread" ? "bg-white text-black" : "bg-black text-white"
+                  }`}>
                     {unreadCount}
                   </span>
                 ) : null}
@@ -288,26 +285,27 @@ function NotificationRow({
           ? "bg-zinc-100 ring-1 ring-black hover:bg-zinc-200/70"
           : "bg-zinc-50 hover:bg-zinc-100"
       }`}
+      style={{ borderTopLeftRadius: "0.5rem", borderBottomRightRadius: "0.5rem" }}
     >
       {/* Hover action buttons — straddling left boundary */}
       {hovered && (
-        <div className="absolute -left-3 top-1/2 z-10 flex -translate-y-1/2 flex-col gap-1">
+        <div className="absolute -left-2 top-1/2 z-10 flex -translate-y-1/2 flex-col gap-1">
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); clearNotification(n.id); onToast("Notification cleared"); }}
             aria-label="Clear notification"
-            className="flex size-6 items-center justify-center rounded-full bg-black/80 text-white backdrop-blur-sm transition-colors hover:bg-black"
+            className="flex size-4 items-center justify-center rounded-full bg-black/80 text-white backdrop-blur-sm transition-colors hover:bg-black"
           >
-            <X className="size-3" />
+            <X className="size-2" />
           </button>
           {!n.read && (
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); markNotificationRead(n.id); onToast("Marked as read"); }}
               aria-label="Mark as read"
-              className="flex size-6 items-center justify-center rounded-full bg-black/80 text-white backdrop-blur-sm transition-colors hover:bg-black"
+              className="flex size-4 items-center justify-center rounded-full bg-black/80 text-white backdrop-blur-sm transition-colors hover:bg-black"
             >
-              <Check className="size-3" />
+              <Check className="size-2" />
             </button>
           )}
         </div>

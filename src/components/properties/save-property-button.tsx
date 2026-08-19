@@ -27,6 +27,11 @@ export function SavePropertyButton({
     return () => window.clearTimeout(connectPortal);
   }, []);
 
+  const portalTarget =
+    typeof window !== "undefined"
+      ? (document.getElementById("toast-portal") ?? document.body)
+      : null;
+
   useEffect(() => {
     if (!feedback) return;
     const timer = window.setTimeout(() => setFeedback(""), 3000);
@@ -70,16 +75,16 @@ export function SavePropertyButton({
         />
       </button>
 
-      {portalReady
+      {portalReady && portalTarget
         ? createPortal(
             <>
               <AnimatePresence>
                 {feedback ? (
                   <motion.div
                     role="status"
-                    initial={{ opacity: 0, y: 22, scale: 0.97 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 14, scale: 0.98 }}
+                    initial={{ opacity: 0, scale: 0.97 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.98 }}
                     className="feedback-toast"
                   >
                     {feedback}
@@ -152,7 +157,7 @@ export function SavePropertyButton({
                 ) : null}
               </AnimatePresence>
             </>,
-            document.body,
+            portalTarget,
           )
         : null}
     </>

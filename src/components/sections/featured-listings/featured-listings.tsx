@@ -9,6 +9,7 @@ import houseFive from "@/assets/images/house5.jpg";
 import houseSix from "@/assets/images/house6.jpeg";
 import cityHome from "@/assets/images/image.png";
 import heroHome from "@/assets/images/landing.png";
+import { RequestPropertyButton } from "@/components/properties/request-property-button";
 import { ListingCard } from "./listing-card";
 
 const LISTINGS = [
@@ -200,13 +201,9 @@ export function FeaturedListings() {
             </p>
           </div>
 
-          <Link
-            href="/property-request"
+          <RequestPropertyButton
             className="font-bricolage bg-carbon-0 text-carbon-900 hover:bg-carbon-100 relative z-10 inline-flex h-12 shrink-0 items-center justify-center gap-2 self-start rounded-full px-6 text-base font-medium transition-colors duration-150 lg:self-auto"
-          >
-            Request property
-            <ArrowUpRight aria-hidden="true" className="size-4" />
-          </Link>
+          />
         </div>
       </div>
     </section>

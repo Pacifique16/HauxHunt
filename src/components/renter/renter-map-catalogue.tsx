@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { RequestPropertyButton } from "@/components/properties/request-property-button";
 import { List, LocateFixed, Map } from "lucide-react";
 import type { Map as LeafletMap, Marker } from "leaflet";
 import {
@@ -35,6 +36,7 @@ type RenterMapCatalogueProps = {
   controls?: ReactNode;
   filters?: ReactNode;
   pagination?: ReactNode;
+  requestCard?: ReactNode;
   resultCount: number;
   resultLabel: string;
   coordinates: Array<[number, number]>;
@@ -63,6 +65,7 @@ export function RenterMapCatalogue({
   controls,
   filters,
   pagination,
+  requestCard,
   resultCount,
   resultLabel,
   coordinates,
@@ -415,12 +418,10 @@ export function RenterMapCatalogue({
                 Try adjusting or clearing some filters to see more available
                 properties.
               </p>
-              <Link
-                href="/property-request"
-                className="mt-6 inline-flex h-11 items-center justify-center rounded-full bg-black px-6 text-sm font-medium text-white transition-opacity hover:opacity-75"
-              >
-                Request a property
-              </Link>
+              <RequestPropertyButton
+                label="Request a property"
+                className="mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-black px-6 text-sm font-medium text-white transition-opacity hover:opacity-75"
+              />
             </div>
           ) : (
             <div
@@ -436,6 +437,7 @@ export function RenterMapCatalogue({
             </div>
           )}
           {!mapVisible ? pagination : null}
+          {!mapVisible ? requestCard : null}
         </div>
 
         {mapVisible ? (

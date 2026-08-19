@@ -33,6 +33,7 @@ import {
 } from "@/lib/message-threads";
 import patrickManagerPortrait from "@/assets/images/flatmate-patrick.png";
 import jeanOwnerPortrait from "@/assets/images/flatmate-joseph.jpg";
+import hauxhuntWhiteLogo from "@/assets/images/HauxHunt_white.png";
 
 type Attachment = {
   kind: "image" | "document";
@@ -186,7 +187,7 @@ function ConversationAvatar({
 }) {
   if (avatar) {
     return (
-      <div className={`relative overflow-hidden rounded-full bg-neutral-200 ${className}`}>
+      <div className={`relative overflow-hidden rounded-full bg-black ${className}`}>
         <Image src={avatar} alt={name} fill className="object-cover" />
       </div>
     );
@@ -543,10 +544,12 @@ export default function RenterDashboardMessagesPage() {
         // no housing context card.
         chats.push({
           id: "hauxhunt-concierge",
-          name: "HauxHunt Concierge",
-          role: "HauxHunt Support",
+          name: "HauxHunt",
+          role: "Support",
           showPhone: false,
           type: "support",
+          verified: true,
+          avatar: hauxhuntWhiteLogo,
           subtitle: "Property Search",
           metaContext: "Support",
           context: { type: "support" },

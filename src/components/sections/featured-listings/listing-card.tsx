@@ -55,7 +55,7 @@ export function ListingCard({
 
   useEffect(() => {
     const connectHost = window.setTimeout(
-      () => setFeedbackHost(document.body),
+      () => setFeedbackHost(document.getElementById("toast-portal") ?? document.body),
       0,
     );
     return () => window.clearTimeout(connectHost);
@@ -91,9 +91,9 @@ export function ListingCard({
                   <motion.div
                     key={feedback}
                     role="status"
-                    initial={{ opacity: 0, y: 22, scale: 0.97 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 14, scale: 0.98 }}
+                    initial={{ opacity: 0, scale: 0.97 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.98 }}
                     transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                     className="feedback-toast"
                   >

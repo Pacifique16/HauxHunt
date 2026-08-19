@@ -748,6 +748,11 @@ select.catalogue-filter-control {
   border-radius: 1.5rem;
 }
 
+/* Full-screen overlays and backdrops must never have rounded corners. */
+[role="dialog"].fixed {
+  border-radius: 0;
+}
+
 /* Full-screen photo previews are backdrops, not rounded modal cards. */
 [role="dialog"].property-photo-preview {
   border-radius: 0;
@@ -815,11 +820,13 @@ select.catalogue-filter-control {
 .feedback-toast {
   position: fixed;
   bottom: 1.5rem;
-  left: 50%;
+  left: 1rem;
+  right: 1rem;
   z-index: 180;
+  width: fit-content;
   min-width: 18rem;
   max-width: calc(100% - 2rem);
-  transform: translateX(-50%);
+  margin-inline: auto;
   overflow: hidden;
   border: 1px solid rgb(255 255 255 / 0.1);
   border-radius: 1rem;

@@ -29,6 +29,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             (2026-08-05 motion decision) — one place to enforce it, not a
             per-component opt-in. */}
         <MotionConfig reducedMotion="user">{children}</MotionConfig>
+        <div id="toast-portal" />
       </body>
     </html>
   );
