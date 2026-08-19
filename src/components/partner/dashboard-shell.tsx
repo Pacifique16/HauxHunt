@@ -9,11 +9,11 @@ import {
   Bell,
   Building2,
   CalendarDays,
-  ChevronLeft,
   ClipboardCheck,
   LayoutDashboard,
   LogOut,
   MessageSquare,
+  PanelLeftClose,
   PanelLeftOpen,
   Search,
   Settings,
@@ -328,34 +328,47 @@ function DashboardSidebar({
       <div
         className={`relative z-20 flex items-center ${collapsed ? "flex-col justify-center gap-4" : "justify-between"}`}
       >
-        <Link
-          href="/"
-          aria-label="HauxHunt home"
-          className={`shrink-0 invert transition-all ${collapsed ? "w-10 overflow-hidden" : "w-auto"}`}
-        >
-          <Wordmark height={42} />
-        </Link>
-        <button
-          type="button"
-          onClick={onCollapse}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="group relative flex size-9 shrink-0 items-center justify-center rounded-full border border-white/10 text-white/65 transition-colors hover:bg-white/10 hover:text-white"
-        >
-          {collapsed ? (
-            <PanelLeftOpen className="size-4" />
-          ) : (
-            <ChevronLeft className="size-4" />
-          )}
-          <span
-            className={`pointer-events-none absolute z-50 rounded-full border border-white/10 bg-[#242424] px-4 py-2 text-xs font-medium whitespace-nowrap text-white opacity-0 shadow-[0_10px_30px_rgba(0,0,0,0.28)] transition-[opacity,transform] duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 ${
-              collapsed
-                ? "top-1/2 left-[calc(100%+1.6rem)] -translate-x-1 -translate-y-1/2 group-hover:translate-x-0 group-focus-visible:translate-x-0"
-                : "top-[calc(100%+0.65rem)] right-0 -translate-y-1 group-hover:translate-y-0 group-focus-visible:translate-y-0"
-            }`}
+        {collapsed ? (
+          <button
+            type="button"
+            onClick={onCollapse}
+            aria-label="Expand sidebar"
+            className="group relative flex size-10 shrink-0 items-center justify-center"
           >
-            {collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          </span>
-        </button>
+            <span className="absolute inset-0 flex items-center justify-center transition-opacity duration-150 group-hover:opacity-0">
+              <span className="invert">
+                <Wordmark height={32} />
+              </span>
+            </span>
+            <span className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+              <PanelLeftOpen className="size-5 text-white" />
+            </span>
+            <span className="pointer-events-none absolute top-1/2 left-[calc(100%+1.6rem)] z-50 -translate-x-1 -translate-y-1/2 rounded-full border border-white/10 bg-[#242424] px-4 py-2 text-xs font-medium whitespace-nowrap text-white opacity-0 shadow-[0_10px_30px_rgba(0,0,0,0.28)] transition-[opacity,transform] duration-200 group-hover:translate-x-0 group-hover:opacity-100">
+              Expand sidebar
+            </span>
+          </button>
+        ) : (
+          <>
+            <Link
+              href="/"
+              aria-label="HauxHunt home"
+              className="shrink-0 invert transition-all w-auto"
+            >
+              <Wordmark height={42} />
+            </Link>
+            <button
+              type="button"
+              onClick={onCollapse}
+              aria-label="Collapse sidebar"
+              className="group relative flex size-9 shrink-0 items-center justify-center text-white/65 transition-colors hover:text-white"
+            >
+              <PanelLeftClose className="size-5" />
+              <span className="pointer-events-none absolute top-[calc(100%+0.65rem)] right-0 z-50 -translate-y-1 rounded-full border border-white/10 bg-[#242424] px-4 py-2 text-xs font-medium whitespace-nowrap text-white opacity-0 shadow-[0_10px_30px_rgba(0,0,0,0.28)] transition-[opacity,transform] duration-200 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
+                Collapse sidebar
+              </span>
+            </button>
+          </>
+        )}
       </div>
 
       <nav aria-label="Partner dashboard" className="relative z-10 mt-7 flex-1">
