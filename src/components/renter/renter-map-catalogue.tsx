@@ -36,6 +36,7 @@ type RenterMapCatalogueProps = {
   controls?: ReactNode;
   filters?: ReactNode;
   pagination?: ReactNode;
+  requestCard?: ReactNode;
   resultCount: number;
   resultLabel: string;
   coordinates: Array<[number, number]>;
@@ -64,6 +65,7 @@ export function RenterMapCatalogue({
   controls,
   filters,
   pagination,
+  requestCard,
   resultCount,
   resultLabel,
   coordinates,
@@ -435,6 +437,7 @@ export function RenterMapCatalogue({
             </div>
           )}
           {!mapVisible ? pagination : null}
+          {!mapVisible ? requestCard : null}
         </div>
 
         {mapVisible ? (

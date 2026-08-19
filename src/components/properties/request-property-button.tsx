@@ -20,11 +20,20 @@ export function RequestPropertyButton({
 }) {
   const [open, setOpen] = useState(false);
 
+  function handleClick() {
+    const role = window.sessionStorage.getItem("hauxhunt-authenticated-role");
+    if (role) {
+      window.location.assign("/renter-dashboard/saved-searches?tab=requests");
+    } else {
+      setOpen(true);
+    }
+  }
+
   return (
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => handleClick()}
         className={className}
       >
         {label}
