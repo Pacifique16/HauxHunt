@@ -1,5 +1,6 @@
 import Image, { type StaticImageData } from "next/image";
 import Link from "next/link";
+import { RequestPropertyButton } from "@/components/properties/request-property-button";
 import {
   ChevronDown,
   ChevronLeft,
@@ -751,12 +752,10 @@ export function CataloguePage({
                   more available houses.
                 </p>
                 <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-                  <Link
-                    href="/property-request"
-                    className="inline-flex h-11 items-center rounded-full bg-black px-6 font-medium text-white transition-opacity hover:opacity-75"
-                  >
-                    Request a property
-                  </Link>
+                  <RequestPropertyButton
+                    label="Request a property"
+                    className="inline-flex h-11 items-center gap-2 rounded-full bg-black px-6 font-medium text-white transition-opacity hover:opacity-75"
+                  />
                 </div>
               </div>
             )}
@@ -767,6 +766,46 @@ export function CataloguePage({
                 totalPages={totalPages}
                 pageHref={pageHref}
               />
+            ) : null}
+
+            {audience === "renter" && !mapMode ? (
+              <div className="listing-request-glass relative mt-12 flex flex-col gap-7 overflow-hidden rounded-2xl p-6 sm:mt-16 sm:p-8 lg:flex-row lg:items-center lg:justify-between lg:p-10">
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 1400 280"
+                  preserveAspectRatio="none"
+                  className="pointer-events-none absolute inset-0 h-full w-full overflow-hidden rounded-2xl text-white opacity-[0.12]"
+                >
+                  <defs>
+                    <path id="renter-request-wave" d="M-100 35 C230 -55 410 30 625 155 S1010 310 1500 75" />
+                  </defs>
+                  <g fill="none" stroke="currentColor" strokeWidth="1">
+                    {Array.from({ length: 12 }, (_, i) => (
+                      <use key={i} href="#renter-request-wave" transform={`translate(0 ${i * 13})`} />
+                    ))}
+                  </g>
+                </svg>
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/60 via-black/35 to-black/50"
+                />
+                <div className="relative z-10">
+                  <h3 className="font-bricolage text-[clamp(1.75rem,3vw,2.5rem)] leading-tight font-normal tracking-[-0.035em] text-white">
+                    Still looking for the right home?
+                  </h3>
+                  <p className="text-body-m mt-3 max-w-[68ch] text-white/65">
+                    Tell us what you need and let verified property managers and
+                    agents respond with relevant options.
+                  </p>
+                </div>
+                <Link
+                  href="/renter-dashboard/saved-searches?tab=requests"
+                  className="font-bricolage bg-carbon-0 text-carbon-900 hover:bg-carbon-100 relative z-10 inline-flex h-12 shrink-0 items-center justify-center gap-2 self-start rounded-full px-6 text-base font-medium transition-colors duration-150 lg:self-auto"
+                >
+                  Post a request
+                  <ArrowUpRight aria-hidden="true" className="size-4" />
+                </Link>
+              </div>
             ) : null}
           </div>
         </section>

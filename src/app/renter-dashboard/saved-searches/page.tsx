@@ -5,18 +5,29 @@ import Link from "next/link";
 import {
   Bell,
   BellOff,
+  Bed,
+  CalendarDays,
   ChevronRight,
+  DollarSign,
   Pencil,
   Plus,
   Search,
+  Sofa,
+  Trash2,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import emptyIllustration from "@/assets/images/empty.png";
 import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
 import { type SavedSearch, useSavedSearches } from "@/hooks/use-saved-searches";
+import { PropertyRequestForm } from "@/components/properties/property-request-form";
+import {
+  type PropertyRequest,
+  usePropertyRequests,
+} from "@/hooks/use-property-requests";
 
+type Tab = "searches" | "requests";
 type DialogState = {
   type: "rename" | "edit" | "delete";
   search: SavedSearch;
@@ -24,35 +35,133 @@ type DialogState = {
 
 export default function SavedSearchesPage() {
   const { searches, updateSearch, deleteSearch } = useSavedSearches();
+  const { requests, addRequest, removeRequest } = usePropertyRequests();
   const [dialog, setDialog] = useState<DialogState>(null);
+  const [tab, setTab] = useState<Tab>("searches");
+  const [creating, setCreating] = useState(false);
+  const [formKey, setFormKey] = useState(0);
+
+  useEffect(() => {
+    const t = new URLSearchParams(window.location.search).get("tab");
+    if (t === "requests") setTab("requests");
+  }, []);
 
   return (
     <>
       <RenterCatalogueTopBar />
       <main className="bg-carbon-50 min-h-svh pt-16 text-black">
         <section className="bg-carbon-50 px-5 pt-9 sm:px-6 lg:px-11 xl:px-[52px]">
-          <div className="mx-auto flex max-w-[1562px] flex-wrap items-center justify-between gap-5 border-b border-black/10 pb-5">
-            <div>
-              <h1 className="dashboard-page-title text-carbon-900">
-                Saved Searches
-              </h1>
-              <p className="text-carbon-500 mt-3 max-w-2xl text-sm leading-6">
-                Keep track of the searches that matter to you and get notified
-                when new homes match your preferences.
-              </p>
+          <div className="mx-auto max-w-[1562px]">
+            <div className="flex flex-wrap items-center justify-between gap-5 border-b border-black/10 pb-0">
+              <div className="pb-5">
+                <h1 className="dashboard-page-title text-carbon-900">
+                  {tab === "searches" ? "Saved Searches" : "My Requests"}
+                </h1>
+                <p className="text-carbon-500 mt-3 max-w-2xl text-sm leading-6">
+                  {tab === "searches"
+                    ? "Keep track of the searches that matter to you and get notified when new homes match your preferences."
+                    : "Tell us what you need and let verified property partners respond with relevant options."}
+                </p>
+              </div>
+              {tab === "searches" ? (
+                <Link
+                  href="/renter-dashboard/properties"
+                  className="inline-flex h-11 items-center gap-2 rounded-full bg-black px-5 text-sm font-medium text-white"
+                >
+                  <Plus className="size-4" /> New Search
+                </Link>
+              ) : !creating ? (
+                <button
+                  type="button"
+                  onClick={() => setCreating(true)}
+                  className="inline-flex h-11 items-center gap-2 rounded-full bg-black px-5 text-sm font-medium text-white"
+                >
+                  <Plus className="size-4" /> Create a property request
+                </button>
+              ) : null}
             </div>
-            <Link
-              href="/renter-dashboard/properties"
-              className="inline-flex h-11 items-center gap-2 rounded-full bg-black px-5 text-sm font-medium text-white"
-            >
-              <Plus className="size-4" /> New Search
-            </Link>
+            {/* Tabs */}
+            <div className="flex gap-7">
+              {(["searches", "requests"] as Tab[]).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => { setTab(t); setCreating(false); }}
+                  className={`relative flex h-12 items-center text-sm font-medium capitalize ${
+                    tab === t ? "text-black" : "text-black/45"
+                  }`}
+                >
+                  {t === "searches" ? "Saved Searches" : "My Requests"}
+                  {tab === t && <span className="absolute inset-x-0 bottom-0 h-0.5 bg-black" />}
+                </button>
+              ))}
+            </div>
           </div>
         </section>
 
         <section className="px-5 pt-5 pb-9 sm:px-6 lg:px-11 lg:pb-12 xl:px-[52px]">
           <div className="mx-auto max-w-[1562px]">
-            {searches.length ? (
+            {tab === "requests" ? (
+              <div className="mt-6">
+                {creating ? (
+                  <PropertyRequestForm
+                    key={formKey}
+                    onSubmitted={(data) => {
+                      addRequest({
+                        purpose: data.purpose ?? "",
+                        country: data.country ?? "",
+                        city: data.city ?? "",
+                        neighbourhood: data.neighbourhood,
+                        propertyType: data.propertyType ?? "",
+                        bedrooms: data.bedrooms ?? "",
+                        minimumBudget: data.minimumBudget ?? "",
+                        maximumBudget: data.maximumBudget ?? "",
+                        moveInDate: data.moveInDate ?? "",
+                        furnishing: data.furnishing,
+                        fullName: data.fullName ?? "",
+                        phone: data.phone ?? "",
+                        email: data.email ?? "",
+                        notes: data.notes,
+                      });
+                      setCreating(false);
+                      setFormKey((k) => k + 1);
+                    }}
+                  />
+                ) : requests.length ? (
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    {requests.map((req) => (
+                      <RequestCard
+                        key={req.id}
+                        request={req}
+                        onDelete={() => removeRequest(req.id)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex min-h-[520px] flex-col items-center justify-center text-center">
+                    <Image
+                      src={emptyIllustration}
+                      alt=""
+                      className="h-44 w-auto object-contain"
+                    />
+                    <h2 className="font-bricolage mt-6 text-3xl font-medium tracking-[-0.035em]">
+                      No property requests yet
+                    </h2>
+                    <p className="text-carbon-500 mt-3 max-w-xl text-sm leading-6">
+                      Tell us what you need and let verified property partners
+                      respond with relevant options.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setCreating(true)}
+                      className="mt-7 inline-flex h-12 items-center gap-2 rounded-full bg-black px-6 text-sm font-medium text-white"
+                    >
+                      <Plus className="size-4" /> Create a property request
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : searches.length ? (
               <>
                 <div className="grid gap-4 lg:grid-cols-2">
                   {searches.map((savedSearch) => (
@@ -124,6 +233,78 @@ export default function SavedSearchesPage() {
         />
       ) : null}
     </>
+  );
+}
+
+function RequestCard({
+  request,
+  onDelete,
+}: {
+  request: PropertyRequest;
+  onDelete: () => void;
+}) {
+  const date = new Date(request.submittedAt).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+  const chips = [
+    { icon: Bed, label: `${request.bedrooms} bed${request.bedrooms === "1" ? "" : "s"}` },
+    { icon: DollarSign, label: `$${request.minimumBudget}–$${request.maximumBudget}/mo` },
+    ...(request.furnishing ? [{ icon: Sofa, label: request.furnishing }] : []),
+    ...(request.moveInDate ? [{ icon: CalendarDays, label: `Move-in ${request.moveInDate}` }] : []),
+  ];
+  return (
+    <article className="group relative flex flex-col overflow-hidden rounded-2xl border border-black/[0.07] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.06)] transition-shadow hover:shadow-[0_8px_28px_rgba(0,0,0,0.11)]">
+      <div className="flex flex-1 flex-col gap-4 p-5 sm:p-6">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h2 className="font-bricolage text-lg font-medium leading-tight tracking-[-0.02em]">
+              {request.propertyType} in {request.city}
+            </h2>
+            {request.neighbourhood ? (
+              <p className="text-carbon-400 mt-0.5 text-xs">{request.neighbourhood}, {request.country}</p>
+            ) : (
+              <p className="text-carbon-400 mt-0.5 text-xs">{request.country}</p>
+            )}
+          </div>
+          <span className="shrink-0 rounded-full border border-black/10 bg-black/[0.04] px-2.5 py-1 text-[11px] font-medium text-black/50">
+            Pending
+          </span>
+        </div>
+
+        {/* Chips */}
+        <div className="flex flex-wrap gap-2">
+          {chips.map(({ icon: Icon, label }) => (
+            <span
+              key={label}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-black/[0.04] px-3 py-1.5 text-xs font-medium text-black/70"
+            >
+              <Icon className="size-3 shrink-0 text-black/40" />
+              {label}
+            </span>
+          ))}
+        </div>
+
+        {/* Notes */}
+        {request.notes && (
+          <p className="text-carbon-500 line-clamp-2 text-sm leading-relaxed">{request.notes}</p>
+        )}
+
+        {/* Footer */}
+        <div className="mt-auto flex items-center justify-between border-t border-black/[0.06] pt-4">
+          <span className="text-carbon-400 text-xs">Submitted {date}</span>
+          <button
+            type="button"
+            onClick={onDelete}
+            className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-black/35 transition-colors hover:bg-red-50 hover:text-red-600"
+          >
+            <Trash2 className="size-3" /> Delete
+          </button>
+        </div>
+      </div>
+    </article>
   );
 }
 
