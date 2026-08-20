@@ -164,7 +164,7 @@ export default function HelpCenterPage() {
                 <Link
                   key={slug}
                   href={`/renter-dashboard/help/${slug}`}
-                  className="flex flex-col rounded-xl border border-black/10 bg-white p-8 transition-shadow hover:shadow-md"
+                  className="flex flex-col rounded-2xl bg-white p-8 shadow-[0_8px_24px_rgba(0,0,0,0.035)] transition-shadow hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)]"
                 >
                   {/* Large icon */}
                   {slug === "maintenance" ? (
