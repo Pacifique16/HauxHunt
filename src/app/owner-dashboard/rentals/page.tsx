@@ -1,13 +1,16 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useReducer, useState } from "react";
 import { MessageSquare } from "lucide-react";
 
 import { OwnerDashboardShell } from "@/components/owner/owner-dashboard-shell";
 import { StatusPill } from "@/components/owner/status-pill";
-import { OWNER_MAINTENANCE, OWNER_PAYMENTS, OWNER_RENTALS, getOwnerProperty, type RentalStatus } from "@/lib/owner-data";
+import { RENTER_DEMO_NAME, getOwnerPayments, getOwnerProperty, getOwnerRentals, subscribeToOwnerPayments, subscribeToOwnerRentals, type RentalStatus } from "@/lib/owner-data";
+import { getMaintenanceRequests, subscribeToMaintenance } from "@/lib/maintenance-data";
+import { OWNER_PARTICIPANT_ID, RENTER_PARTICIPANT_ID, getOrCreateConversation } from "@/lib/messages-data";
 
 const TABS: RentalStatus[] = ["Active", "Upcoming", "Ending Soon", "Ended"];
 
@@ -21,13 +24,23 @@ export default function OwnerRentalsPage() {
 
 function OwnerRentalsPageInner() {
   const searchParams = useSearchParams();
+  // Property Manager Dashboard phase -- Rental Setup (PM side) creates a
+  // real OwnerRental/OwnerPayment via owner-data.ts's own override/creation
+  // store, so the Owner needs to read through the live getters (like
+  // Applications already does) to see it, not the frozen base arrays.
+  const [, forceUpdate] = useReducer((n: number) => n + 1, 0);
+  useEffect(() => subscribeToOwnerRentals(forceUpdate), []);
+  useEffect(() => subscribeToOwnerPayments(forceUpdate), []);
+  useEffect(() => subscribeToMaintenance(forceUpdate), []);
+
+  const rentalsAll = getOwnerRentals();
   const openParam = searchParams.get("open");
-  const openRental = openParam ? OWNER_RENTALS.find((r) => r.id === openParam) : null;
+  const openRental = openParam ? rentalsAll.find((r) => r.id === openParam) : null;
   const [tab, setTab] = useState<RentalStatus>(openRental?.status ?? "Active");
   const [selectedId, setSelectedId] = useState<string | null>(openParam);
 
-  const rentals = OWNER_RENTALS.filter((r) => r.status === tab);
-  const selected = OWNER_RENTALS.find((r) => r.id === selectedId) ?? null;
+  const rentals = rentalsAll.filter((r) => r.status === tab);
+  const selected = rentalsAll.find((r) => r.id === selectedId) ?? null;
 
   return (
     <OwnerDashboardShell>
@@ -52,7 +65,7 @@ function OwnerRentalsPageInner() {
                 aria-pressed={tab === item}
                 className={`h-9 rounded-full px-3.5 text-xs font-medium transition-colors ${tab === item ? "bg-black text-white" : "bg-black/4.5 text-black/60 hover:text-black"}`}
               >
-                {item} <span className="ml-1 opacity-60">{OWNER_RENTALS.filter((r) => r.status === item).length}</span>
+                {item} <span className="ml-1 opacity-60">{rentalsAll.filter((r) => r.status === item).length}</span>
               </button>
             ))}
           </div>
@@ -105,11 +118,11 @@ function OwnerRentalsPageInner() {
 }
 
 function RentalDetail({ rentalId, onClose }: { rentalId: string; onClose: () => void }) {
-  const rental = OWNER_RENTALS.find((r) => r.id === rentalId);
+  const rental = getOwnerRentals().find((r) => r.id === rentalId);
   if (!rental) return null;
   const property = getOwnerProperty(rental.propertyId);
-  const payments = OWNER_PAYMENTS.filter((p) => p.rentalId === rental.id);
-  const maintenance = OWNER_MAINTENANCE.filter((m) => m.propertyId === rental.propertyId);
+  const payments = getOwnerPayments().filter((p) => p.rentalId === rental.id);
+  const maintenance = getMaintenanceRequests().filter((m) => m.propertyId === rental.propertyId);
 
   return (
     <div className="fixed inset-0 z-190 flex items-center justify-center bg-black/40 p-4" onMouseDown={onClose}>
@@ -197,13 +210,36 @@ function RentalDetail({ rentalId, onClose }: { rentalId: string; onClose: () => 
         ) : null}
 
         <div className="mt-6 flex flex-wrap gap-2 border-t border-black/10 pt-5">
-          <a
-            href={`/owner-dashboard/messages?context=${encodeURIComponent(property?.propertyManager?.name ?? rental.renter)}`}
-            className="font-bricolage inline-flex h-11 items-center gap-2 rounded-full border border-black/15 px-5 text-sm font-medium hover:border-black"
-          >
-            <MessageSquare aria-hidden="true" className="size-4" />
-            Message {property?.propertyManager?.name ?? "Property Manager"}
-          </a>
+          {(() => {
+            // Messages Synchronization phase -- resolves a real
+            // participant/conversation instead of matching by name
+            // (Section 37/38: this must open the SAME conversation as
+            // Property Detail's Rental tab). PM assigned -> message them;
+            // self-managed -> message the renter directly, since there's
+            // no PM to reach instead.
+            const target = property?.propertyManager
+              ? { id: property.propertyManager.professionalId, name: property.propertyManager.name }
+              : rental.renter === RENTER_DEMO_NAME
+                ? { id: RENTER_PARTICIPANT_ID, name: rental.renter }
+                : null;
+            if (!target) return null;
+            const conversation = getOrCreateConversation(OWNER_PARTICIPANT_ID, target.id, {
+              type: "rental",
+              propertyId: rental.propertyId,
+              rentalId: rental.id,
+              label: "Rental",
+            });
+            if (!conversation) return null;
+            return (
+              <Link
+                href={`/owner-dashboard/messages?open=${conversation.id}`}
+                className="font-bricolage inline-flex h-11 items-center gap-2 rounded-full border border-black/15 px-5 text-sm font-medium hover:border-black"
+              >
+                <MessageSquare aria-hidden="true" className="size-4" />
+                Message {target.name}
+              </Link>
+            );
+          })()}
           <button type="button" onClick={onClose} className="font-bricolage inline-flex h-11 items-center rounded-full bg-black px-5 text-sm font-medium text-white">
             Close
           </button>

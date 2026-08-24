@@ -96,6 +96,16 @@ export const OWNER_MOCK_NOTIFICATIONS: OwnerNotification[] = [
     actionHref: "/owner-dashboard/properties/kacyiru-2br?tab=management",
   },
   {
+    id: "owner-pm-assigned-remera",
+    category: "management",
+    title: "Property Manager assigned",
+    body: "Jean Mugisha is now managing Remera Family House.",
+    timestamp: NOW - 6 * HR,
+    read: false,
+    actionLabel: "View Property",
+    actionHref: "/owner-dashboard/properties/remera-3br?tab=team",
+  },
+  {
     id: "owner-listing-published",
     category: "listing",
     title: "Listing published",
@@ -169,7 +179,44 @@ export function markOwnerNotificationRead(id: string) {
 export function markAllOwnerNotificationsRead() {
   const ids = getReadIds();
   for (const n of OWNER_MOCK_NOTIFICATIONS) ids.add(n.id);
+  for (const n of getSessionNotifications()) ids.add(n.id);
   saveReadIds(ids);
+  invalidateCache();
+  window.dispatchEvent(new Event("hauxhunt-owner-notifications-changed"));
+}
+
+// ---------------------------------------------------------------------------
+// Phase 2 -- live prototype notifications. The list above is static seed
+// history; these are appended at the moment a Property Manager actually
+// performs a delegated action during this session (invite/assign an Agent),
+// so the Owner's feed reflects what really happened rather than a fabricated
+// backstory. Same sessionStorage + event pattern as everything else here --
+// still no real delivery, just prototype state (see the phase brief,
+// Section 46: "Do NOT build real notification delivery").
+// ---------------------------------------------------------------------------
+
+const SESSION_KEY = "hauxhunt-owner-session-notifications";
+
+function getSessionNotifications(): OwnerNotification[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.sessionStorage.getItem(SESSION_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+export function pushOwnerNotification(notification: Omit<OwnerNotification, "id" | "timestamp" | "read"> & { id?: string }) {
+  if (typeof window === "undefined") return;
+  const list = getSessionNotifications();
+  list.unshift({ id: notification.id ?? `session-${Date.now().toString(36)}-${Math.round(Math.random() * 1e4).toString(36)}`, timestamp: Date.now(), read: false, ...notification });
+  try {
+    window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(list));
+  } catch {
+    // Storage full/unavailable -- change still applies for this render via the dispatched event below.
+  }
   invalidateCache();
   window.dispatchEvent(new Event("hauxhunt-owner-notifications-changed"));
 }
@@ -185,10 +232,12 @@ function invalidateCache() {
 export function getOwnerNotifications(): OwnerNotification[] {
   if (cachedNotifications) return cachedNotifications;
   const readIds = getReadIds();
-  cachedNotifications = OWNER_MOCK_NOTIFICATIONS.map((n) => ({
+  const seeded = OWNER_MOCK_NOTIFICATIONS.map((n) => ({
     ...n,
     read: n.read || readIds.has(n.id),
   }));
+  const live = getSessionNotifications().map((n) => ({ ...n, read: n.read || readIds.has(n.id) }));
+  cachedNotifications = [...live, ...seeded];
   return cachedNotifications;
 }
 

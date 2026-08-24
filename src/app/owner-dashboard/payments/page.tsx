@@ -1,12 +1,12 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useReducer, useState } from "react";
 import { X } from "lucide-react";
 
 import { OwnerDashboardShell } from "@/components/owner/owner-dashboard-shell";
 import { StatusPill } from "@/components/owner/status-pill";
-import { OWNER_PAYMENTS, formatRwf, propertyTitle, type PaymentStatus } from "@/lib/owner-data";
+import { formatRwf, getOwnerPayments, propertyTitle, subscribeToOwnerPayments, type OwnerPayment, type PaymentStatus } from "@/lib/owner-data";
 
 const FILTERS: Array<PaymentStatus | "All"> = ["All", "Paid", "Pending", "Overdue", "Due", "Failed"];
 
@@ -20,20 +20,27 @@ export default function OwnerPaymentsPage() {
 
 function OwnerPaymentsPageInner() {
   const searchParams = useSearchParams();
+  // Property Manager Dashboard phase -- Rental Setup (PM side) can create a
+  // real OwnerPayment; read through the live getter (like Applications
+  // already does) so the Owner sees it too.
+  const [, forceUpdate] = useReducer((n: number) => n + 1, 0);
+  useEffect(() => subscribeToOwnerPayments(forceUpdate), []);
+
+  const allPayments = getOwnerPayments();
   const propertyFilter = searchParams.get("property");
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>("All");
   const [selectedId, setSelectedId] = useState<string | null>(searchParams.get("open"));
 
-  const base = propertyFilter ? OWNER_PAYMENTS.filter((p) => p.propertyId === propertyFilter) : OWNER_PAYMENTS;
+  const base = propertyFilter ? allPayments.filter((p) => p.propertyId === propertyFilter) : allPayments;
   const rows = filter === "All" ? base : base.filter((p) => p.status === filter);
 
   const summary = useMemo(() => {
-    const received = OWNER_PAYMENTS.filter((p) => p.status === "Paid").reduce((sum, p) => sum + p.amountValue, 0);
-    const outstanding = OWNER_PAYMENTS.filter((p) => p.status === "Pending" || p.status === "Overdue" || p.status === "Due").reduce((sum, p) => sum + p.amountValue, 0);
+    const received = allPayments.filter((p) => p.status === "Paid").reduce((sum, p) => sum + p.amountValue, 0);
+    const outstanding = allPayments.filter((p) => p.status === "Pending" || p.status === "Overdue" || p.status === "Due").reduce((sum, p) => sum + p.amountValue, 0);
     return { received, outstanding, expected: received + outstanding };
-  }, []);
+  }, [allPayments]);
 
-  const selected = OWNER_PAYMENTS.find((p) => p.id === selectedId) ?? null;
+  const selected = allPayments.find((p) => p.id === selectedId) ?? null;
 
   return (
     <OwnerDashboardShell>
@@ -66,7 +73,7 @@ function OwnerPaymentsPageInner() {
             ))}
           </div>
 
-          <div className="mt-6 overflow-hidden rounded-[1.5rem] border border-black/10 bg-white">
+          <div className="mt-6 overflow-hidden rounded-[1.5rem] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.06)]">
             <div className="divide-y divide-black/8">
               {rows.map((payment) => (
                 <button
@@ -99,14 +106,14 @@ function OwnerPaymentsPageInner() {
 
 function SummaryCard({ label, value }: { label: string; value: string }) {
   return (
-    <article className="rounded-[1.5rem] border border-black/10 bg-white p-6">
+    <article className="rounded-[1.5rem] bg-white p-6 shadow-[0_8px_24px_rgba(0,0,0,0.06)]">
       <p className="text-carbon-500 text-sm">{label}</p>
       <p className="font-bricolage text-carbon-900 mt-4 text-2xl font-medium tracking-[-0.03em]">{value}</p>
     </article>
   );
 }
 
-function PaymentDetail({ payment, onClose }: { payment: (typeof OWNER_PAYMENTS)[number]; onClose: () => void }) {
+function PaymentDetail({ payment, onClose }: { payment: OwnerPayment; onClose: () => void }) {
   const rows: [string, string][] = [
     ["Renter", payment.renter],
     ["Property", propertyTitle(payment.propertyId)],

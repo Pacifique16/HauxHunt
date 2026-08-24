@@ -9,19 +9,21 @@ import type { LucideIcon } from "lucide-react";
 import {
   Bell,
   Building2,
+  ChartNoAxesCombined,
   ClipboardCheck,
   CreditCard,
+  HelpCircle,
   Home,
   Key,
   LayoutDashboard,
-  ListChecks,
   LogOut,
   MessageSquare,
+  MessageSquarePlus,
   PanelLeftClose,
   PanelLeftOpen,
   Search,
+  Settings,
   UserCog,
-  UserRound,
   Wrench,
 } from "lucide-react";
 
@@ -49,16 +51,22 @@ type OwnerNavItem = { label: string; href: string; icon: LucideIcon };
 // One flat list, same vertical rhythm as the Agent/Property Manager sidebar
 // (components/partner/dashboard-shell.tsx) -- no section headings, no extra
 // gaps between what used to be groups.
+// Owner Foundation Cleanup phase -- "Listings" removed from primary nav (its
+// content substantially duplicated Properties + Property Detail's Listing
+// tab, per the Owner Dashboard Audit). The route and its components are
+// deliberately untouched; only this entry point is gone. "My Properties" ->
+// "Properties" and "Active Rentals" -> "Rentals" are label-only changes --
+// the Owner is already inside their own dashboard, and the Rentals screen
+// itself covers Active/Upcoming/Ending Soon/Ended, not only active ones.
 const ALL_ITEMS: OwnerNavItem[] = [
   { label: "Overview", href: "/owner-dashboard", icon: LayoutDashboard },
-  { label: "My Properties", href: "/owner-dashboard/properties", icon: Home },
-  { label: "Listings", href: "/owner-dashboard/listings", icon: ListChecks },
+  { label: "Performance", href: "/owner-dashboard/performance", icon: ChartNoAxesCombined },
+  { label: "Properties", href: "/owner-dashboard/properties", icon: Home },
   { label: "Applications", href: "/owner-dashboard/applications", icon: ClipboardCheck },
-  { label: "Active Rentals", href: "/owner-dashboard/rentals", icon: Key },
+  { label: "Rentals", href: "/owner-dashboard/rentals", icon: Key },
   { label: "Payments", href: "/owner-dashboard/payments", icon: CreditCard },
   { label: "Maintenance", href: "/owner-dashboard/maintenance", icon: Wrench },
-  { label: "Property Managers", href: "/owner-dashboard/management/property-managers", icon: UserCog },
-  { label: "Agents", href: "/owner-dashboard/management/agents", icon: UserRound },
+  { label: "Team", href: "/owner-dashboard/team", icon: UserCog },
   { label: "Messages", href: "/owner-dashboard/messages", icon: MessageSquare },
 ];
 
@@ -167,14 +175,33 @@ function OwnerProfileMenu() {
               <p className="text-carbon-400 mt-0.5 text-xs">{OWNER.role}</p>
             </div>
           </div>
-          <div className="border-b border-black/10 p-2">
+          <div className="space-y-1 border-b border-black/10 p-2">
             <Link
               href="/owner-dashboard/account"
               role="menuitem"
               onClick={() => setOpen(false)}
-              className="flex h-12 items-center rounded-xl bg-black/4.5 px-3 font-medium transition-colors hover:bg-black/8"
+              className="flex h-12 items-center gap-3 rounded-xl bg-black/4.5 px-3 font-medium transition-colors hover:bg-black/8"
             >
-              Account settings
+              <Settings aria-hidden="true" className="text-carbon-500 size-4" />
+              My Account
+            </Link>
+            <Link
+              href="/renter-dashboard/help"
+              role="menuitem"
+              onClick={() => setOpen(false)}
+              className="flex h-12 items-center gap-3 rounded-xl px-3 font-medium transition-colors hover:bg-black/4.5"
+            >
+              <HelpCircle aria-hidden="true" className="text-carbon-500 size-4" />
+              Help Center
+            </Link>
+            <Link
+              href="/feedback"
+              role="menuitem"
+              onClick={() => setOpen(false)}
+              className="flex h-12 items-center gap-3 rounded-xl px-3 font-medium transition-colors hover:bg-black/4.5"
+            >
+              <MessageSquarePlus aria-hidden="true" className="text-carbon-500 size-4" />
+              Send Feedback
             </Link>
           </div>
           <div className="p-2">

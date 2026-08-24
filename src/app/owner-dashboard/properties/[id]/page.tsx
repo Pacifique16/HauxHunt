@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { useParams, useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useReducer, useState } from "react";
 import {
   BadgeCheck,
   Bath,
@@ -15,31 +15,43 @@ import {
   Plus,
   UserRound,
   Users,
+  X,
 } from "lucide-react";
 
 import { OwnerDashboardShell } from "@/components/owner/owner-dashboard-shell";
 import { StatusPill } from "@/components/owner/status-pill";
 import { AssignPropertyManagerDialog } from "@/components/owner/assign-property-manager-dialog";
-import { AssignAgentDialog } from "@/components/owner/assign-agent-dialog";
+import { AssignAgentDialog, type AssignableMember } from "@/components/owner/assign-agent-dialog";
+import { InviteTeamMemberDialog } from "@/components/owner/invite-team-member-dialog";
 import {
   OWNER_LISTINGS,
-  OWNER_MAINTENANCE,
-  OWNER_PAYMENTS,
-  OWNER_RENTALS,
+  getOwnerApplications,
+  getOwnerPayments,
   getOwnerProperty,
-  managementStatusFor,
-  unassignAgent,
-  unassignPropertyManager,
+  getOwnerRentals,
+  managementSummaryFor,
+  subscribeToOwnerApplications,
+  subscribeToOwnerPayments,
+  subscribeToOwnerRentals,
+  OWNER,
+  RENTER_DEMO_NAME,
+  type OwnerListing,
+  type OwnerPayment,
+  type OwnerRental,
+  type PropertyManagerAssignment,
 } from "@/lib/owner-data";
+import { getMaintenanceRequests, subscribeToMaintenance, type MaintenanceRequest } from "@/lib/maintenance-data";
+import { REGISTERED_PROFESSIONALS, TEAM_ID, getActiveMemberships, type ProfessionalRole } from "@/lib/team-data";
+import { OWNER_PARTICIPANT_ID, RENTER_PARTICIPANT_ID, getOrCreateConversation } from "@/lib/messages-data";
 
-type TabKey = "overview" | "listing" | "rental" | "payments" | "maintenance" | "management";
+type TabKey = "overview" | "listing" | "rental" | "payments" | "maintenance" | "team";
 const TABS: { key: TabKey; label: string }[] = [
   { key: "overview", label: "Overview" },
   { key: "listing", label: "Listing" },
   { key: "rental", label: "Rental" },
   { key: "payments", label: "Payments" },
   { key: "maintenance", label: "Maintenance" },
-  { key: "management", label: "Management" },
+  { key: "team", label: "Team" },
 ];
 
 export default function OwnerPropertyDetailPage() {
@@ -56,17 +68,34 @@ function OwnerPropertyDetailPageInner() {
   const property = getOwnerProperty(params.id);
   const initialTab = (searchParams.get("tab") as TabKey | null) ?? "overview";
   const [tab, setTab] = useState<TabKey>(TABS.some((t) => t.key === initialTab) ? initialTab : "overview");
-  const [assignPmOpen, setAssignPmOpen] = useState(false);
-  const [assignAgentOpen, setAssignAgentOpen] = useState(false);
+  const [pickRole, setPickRole] = useState<ProfessionalRole | null>(null);
+  const [assignTarget, setAssignTarget] = useState<{ member: AssignableMember; role: ProfessionalRole } | null>(null);
+  const [inviteOpen, setInviteOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  // Cross-Role Lifecycle Synchronization phase -- Section 32. Rentals,
+  // Payments, and Maintenance now read through the same live getters PM's
+  // dashboard reads, instead of the frozen base arrays, so a PM-created
+  // Rental Setup / recorded Payment / status change is visible here too.
+  const [, forceUpdate] = useReducer((n: number) => n + 1, 0);
+  useEffect(() => subscribeToOwnerApplications(forceUpdate), []);
+  useEffect(() => subscribeToOwnerRentals(forceUpdate), []);
+  useEffect(() => subscribeToOwnerPayments(forceUpdate), []);
+  useEffect(() => subscribeToMaintenance(forceUpdate), []);
 
   if (!property) return notFound();
 
   const listing = OWNER_LISTINGS.find((l) => l.propertyId === property.id) ?? null;
-  const rentals = OWNER_RENTALS.filter((r) => r.propertyId === property.id);
-  const payments = OWNER_PAYMENTS.filter((p) => p.propertyId === property.id);
-  const maintenance = OWNER_MAINTENANCE.filter((m) => m.propertyId === property.id);
+  const rentals = getOwnerRentals().filter((r) => r.propertyId === property.id);
+  const payments = getOwnerPayments().filter((p) => p.propertyId === property.id);
+  const maintenance = getMaintenanceRequests().filter((m) => m.propertyId === property.id);
   const currentRental = rentals.find((r) => r.status === "Active" || r.status === "Upcoming" || r.status === "Ending Soon");
+  // Owner Properties phase -- Section 29/43: the Listing tab's applications
+  // count previously read OWNER_LISTINGS' own static `applications` number,
+  // a second, independently-maintained count that happened to agree with
+  // the real records but had no mechanism keeping it that way. Derived live
+  // from the same shared Applications the Properties card and the Phase 2
+  // Applications screen already use, scoped by propertyId.
+  const applicationsCount = getOwnerApplications().filter((a) => a.propertyId === property.id).length;
 
   return (
     <OwnerDashboardShell>
@@ -76,7 +105,7 @@ function OwnerPropertyDetailPageInner() {
           <header className="flex flex-col gap-6 border-b border-black/10 pb-8 lg:flex-row lg:items-end lg:justify-between">
             <div className="min-w-0">
               <Link href="/owner-dashboard/properties" className="text-carbon-500 text-sm font-medium hover:text-black">
-                ← My Properties
+                ← Properties
               </Link>
               <h1 className="dashboard-page-title text-carbon-900 mt-4">{property.title}</h1>
               <p className="text-carbon-500 mt-3 flex items-center gap-1.5 text-base">
@@ -85,8 +114,9 @@ function OwnerPropertyDetailPageInner() {
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <StatusPill status={property.occupancy} />
-                <StatusPill status={managementStatusFor(property)} tone="outline" />
+                <StatusPill status={listing?.status ?? property.listingStatus} tone="outline" />
               </div>
+              <p className="text-carbon-500 mt-3 text-sm">{managementSummaryFor(property)}</p>
             </div>
             <div className="flex flex-wrap gap-2">
               <Link
@@ -98,7 +128,7 @@ function OwnerPropertyDetailPageInner() {
               </Link>
               <button
                 type="button"
-                onClick={() => setTab("management")}
+                onClick={() => setTab("team")}
                 className="font-bricolage inline-flex h-11 items-center gap-2 rounded-full border border-black/15 px-5 text-sm font-medium hover:border-black"
               >
                 <Users aria-hidden="true" className="size-4" />
@@ -146,43 +176,102 @@ function OwnerPropertyDetailPageInner() {
             {tab === "overview" ? (
               <OverviewTab property={property} rental={currentRental} listing={listing} maintenance={maintenance} />
             ) : null}
-            {tab === "listing" ? <ListingTab property={property} listing={listing} applicationsCount={listing?.applications ?? 0} /> : null}
-            {tab === "rental" ? <RentalTab rentals={rentals} propertyManagerName={property.propertyManager?.name ?? null} /> : null}
+            {tab === "listing" ? <ListingTab property={property} listing={listing} applicationsCount={applicationsCount} /> : null}
+            {tab === "rental" ? <RentalTab rentals={rentals} propertyManager={property.propertyManager} /> : null}
             {tab === "payments" ? <PaymentsTab payments={payments} /> : null}
             {tab === "maintenance" ? <MaintenanceTab requests={maintenance} /> : null}
-            {tab === "management" ? (
-              <ManagementTab
+            {tab === "team" ? (
+              <TeamTab
                 key={refreshKey}
                 property={property}
-                onAssignPm={() => setAssignPmOpen(true)}
-                onAssignAgent={() => setAssignAgentOpen(true)}
-                onUnassignPm={() => {
-                  unassignPropertyManager(property.id);
-                  setRefreshKey((k) => k + 1);
-                }}
-                onUnassignAgent={() => {
-                  unassignAgent(property.id);
-                  setRefreshKey((k) => k + 1);
-                }}
+                onPick={(role) => setPickRole(role)}
+                onInvite={() => setInviteOpen(true)}
               />
             ) : null}
           </div>
         </div>
       </section>
 
+      {pickRole ? (
+        <PickTeamMemberDialog
+          role={pickRole}
+          onClose={() => setPickRole(null)}
+          onPick={(member) => {
+            setAssignTarget({ member, role: pickRole });
+            setPickRole(null);
+          }}
+        />
+      ) : null}
+
       <AssignPropertyManagerDialog
-        open={assignPmOpen}
-        onClose={() => setAssignPmOpen(false)}
+        open={Boolean(assignTarget && assignTarget.role === "property_manager")}
+        onClose={() => setAssignTarget(null)}
+        member={assignTarget?.role === "property_manager" ? assignTarget.member : null}
         propertyId={property.id}
         onAssigned={() => setRefreshKey((k) => k + 1)}
       />
       <AssignAgentDialog
-        open={assignAgentOpen}
-        onClose={() => setAssignAgentOpen(false)}
+        open={Boolean(assignTarget && assignTarget.role === "agent")}
+        onClose={() => setAssignTarget(null)}
+        member={assignTarget?.role === "agent" ? assignTarget.member : null}
         propertyId={property.id}
         onAssigned={() => setRefreshKey((k) => k + 1)}
       />
+      <InviteTeamMemberDialog open={inviteOpen} onClose={() => setInviteOpen(false)} onSent={() => setRefreshKey((k) => k + 1)} />
     </OwnerDashboardShell>
+  );
+}
+
+// A property's Team tab only ever offers ACTIVE team members, never the
+// full registered-professional pool -- registering isn't the same as being
+// on this Owner's team, so assigning a property must go through membership
+// first (see Section 35 of the phase brief).
+function PickTeamMemberDialog({
+  role,
+  onClose,
+  onPick,
+}: {
+  role: ProfessionalRole;
+  onClose: () => void;
+  onPick: (member: AssignableMember) => void;
+}) {
+  const roleLabel = role === "agent" ? "Agent" : "Property Manager";
+  const members = getActiveMemberships(TEAM_ID).filter((m) => m.role === role);
+
+  return (
+    <div className="fixed inset-0 z-200 flex items-center justify-center bg-black/40 p-4" onMouseDown={onClose}>
+      <div role="dialog" aria-modal="true" onMouseDown={(e) => e.stopPropagation()} className="relative w-full max-w-md bg-white text-black shadow-[0_28px_90px_rgba(0,0,0,0.24)]">
+        <div className="flex items-center justify-between border-b border-black/10 px-6 py-5">
+          <h2 className="font-bricolage text-lg font-medium">Assign Team Member</h2>
+          <button type="button" onClick={onClose} aria-label="Close" className="flex size-8 items-center justify-center rounded-full hover:bg-black/5">
+            <X className="size-4" />
+          </button>
+        </div>
+        <div className="max-h-[60vh] overflow-y-auto px-6 py-6">
+          <p className="text-carbon-500 text-xs font-medium tracking-widest uppercase">Select an active {roleLabel}</p>
+          <div className="mt-4 space-y-2">
+            {members.map((m) => {
+              const professional = REGISTERED_PROFESSIONALS.find((p) => p.id === m.professionalId);
+              if (!professional) return null;
+              return (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => onPick({ professionalId: professional.id, name: professional.name, verified: professional.verified, avatar: professional.avatar })}
+                  className="flex w-full items-center gap-3 rounded-2xl border border-black/12 p-4 text-left transition-colors hover:border-black/30"
+                >
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-black text-sm font-medium text-white">{professional.name.slice(0, 1)}</span>
+                  <span className="flex items-center gap-1.5 font-medium">
+                    {professional.name}
+                    {professional.verified ? <BadgeCheck aria-label="Verified" className="size-3.5 shrink-0 fill-black text-white" /> : null}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -197,9 +286,9 @@ function OverviewTab({
   maintenance,
 }: {
   property: NonNullable<ReturnType<typeof getOwnerProperty>>;
-  rental: ReturnType<typeof OWNER_RENTALS.find>;
-  listing: (typeof OWNER_LISTINGS)[number] | null;
-  maintenance: typeof OWNER_MAINTENANCE;
+  rental: OwnerRental | undefined;
+  listing: OwnerListing | null;
+  maintenance: MaintenanceRequest[];
 }) {
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(280px,1fr)]">
@@ -371,7 +460,11 @@ function ListingTab({
           </div>
           <div>
             <dt className="text-carbon-400 text-xs">Applications</dt>
-            <dd className="mt-1 font-medium">{applicationsCount}</dd>
+            <dd className="mt-1 font-medium">
+              <Link href={`/owner-dashboard/applications?propertyId=${property.id}`} className="underline underline-offset-4 hover:no-underline">
+                {applicationsCount}
+              </Link>
+            </dd>
           </div>
           <div>
             <dt className="text-carbon-400 text-xs">Rent</dt>
@@ -408,7 +501,7 @@ function Metric({ label, value }: { label: string; value: number }) {
 // Rental
 // ---------------------------------------------------------------------------
 
-function RentalTab({ rentals, propertyManagerName }: { rentals: typeof OWNER_RENTALS; propertyManagerName: string | null }) {
+function RentalTab({ rentals, propertyManager }: { rentals: OwnerRental[]; propertyManager: PropertyManagerAssignment | null }) {
   if (rentals.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-[1.5rem] border border-dashed border-black/15 bg-white px-6 py-16 text-center">
@@ -433,7 +526,7 @@ function RentalTab({ rentals, propertyManagerName }: { rentals: typeof OWNER_REN
           <dl className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
             <div>
               <dt className="text-carbon-400 text-xs">Managed by</dt>
-              <dd className="mt-1 font-medium">{propertyManagerName ?? "You"}</dd>
+              <dd className="mt-1 font-medium">{propertyManager?.name ?? "You"}</dd>
             </div>
             <div>
               <dt className="text-carbon-400 text-xs">Monthly rent</dt>
@@ -450,13 +543,34 @@ function RentalTab({ rentals, propertyManagerName }: { rentals: typeof OWNER_REN
           </dl>
           <p className="text-carbon-500 mt-5 border-t border-black/8 pt-4 text-sm">{rental.note}</p>
           <div className="mt-5 flex flex-wrap gap-2">
-            <Link
-              href={`/owner-dashboard/messages?context=${encodeURIComponent(rental.propertyId)}`}
-              className="font-bricolage inline-flex h-10 items-center gap-2 rounded-full border border-black/15 px-4 text-sm font-medium hover:border-black"
-            >
-              <MessageSquare aria-hidden="true" className="size-4" />
-              Message {propertyManagerName ?? "Renter"}
-            </Link>
+            {(() => {
+              // Messages Synchronization phase -- Section 37/83: resolves
+              // the SAME participant/conversation as the standalone
+              // Rentals workspace's own Message action, using stable ids
+              // instead of the PM's display name.
+              const target = propertyManager
+                ? { id: propertyManager.professionalId, name: propertyManager.name }
+                : rental.renter === RENTER_DEMO_NAME
+                  ? { id: RENTER_PARTICIPANT_ID, name: rental.renter }
+                  : null;
+              if (!target) return null;
+              const conversation = getOrCreateConversation(OWNER_PARTICIPANT_ID, target.id, {
+                type: "rental",
+                propertyId: rental.propertyId,
+                rentalId: rental.id,
+                label: "Rental",
+              });
+              if (!conversation) return null;
+              return (
+                <Link
+                  href={`/owner-dashboard/messages?open=${conversation.id}`}
+                  className="font-bricolage inline-flex h-10 items-center gap-2 rounded-full border border-black/15 px-4 text-sm font-medium hover:border-black"
+                >
+                  <MessageSquare aria-hidden="true" className="size-4" />
+                  Message {target.name}
+                </Link>
+              );
+            })()}
             <Link
               href={`/owner-dashboard/payments?property=${rental.propertyId}`}
               className="font-bricolage inline-flex h-10 items-center gap-2 rounded-full border border-black/15 px-4 text-sm font-medium hover:border-black"
@@ -474,7 +588,7 @@ function RentalTab({ rentals, propertyManagerName }: { rentals: typeof OWNER_REN
 // Payments
 // ---------------------------------------------------------------------------
 
-function PaymentsTab({ payments }: { payments: typeof OWNER_PAYMENTS }) {
+function PaymentsTab({ payments }: { payments: OwnerPayment[] }) {
   if (payments.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-[1.5rem] border border-dashed border-black/15 bg-white px-6 py-16 text-center">
@@ -508,7 +622,7 @@ function PaymentsTab({ payments }: { payments: typeof OWNER_PAYMENTS }) {
 // Maintenance
 // ---------------------------------------------------------------------------
 
-function MaintenanceTab({ requests }: { requests: typeof OWNER_MAINTENANCE }) {
+function MaintenanceTab({ requests }: { requests: MaintenanceRequest[] }) {
   if (requests.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-[1.5rem] border border-dashed border-black/15 bg-white px-6 py-16 text-center">
@@ -526,11 +640,11 @@ function MaintenanceTab({ requests }: { requests: typeof OWNER_MAINTENANCE }) {
             <div>
               <p className="flex items-center gap-2 font-medium">
                 {request.title}
-                {request.priority === "Urgent" ? <StatusPill status="Urgent" /> : null}
+                {request.urgency === "Urgent" ? <StatusPill status="Urgent" /> : null}
               </p>
               <p className="text-carbon-500 mt-1 text-sm">
                 Reported by {request.reportedBy} · Managed by {request.managedBy ?? "You"}
-                {request.technician ? ` · ${request.technician}` : ""}
+                {request.scheduledVisit ? ` · ${request.scheduledVisit.contact}` : ""}
               </p>
             </div>
             <StatusPill status={request.status} />
@@ -542,99 +656,133 @@ function MaintenanceTab({ requests }: { requests: typeof OWNER_MAINTENANCE }) {
 }
 
 // ---------------------------------------------------------------------------
-// Management (delegation)
+// Team — who owns this property and who's actively delegated to work on it.
+// "Assign Team Member" only ever offers ACTIVE team members (see
+// PickTeamMemberDialog above); a registered professional who hasn't joined
+// this Owner's team can't be assigned here at all.
 // ---------------------------------------------------------------------------
 
-function ManagementTab({
+function TeamTab({
   property,
-  onAssignPm,
-  onAssignAgent,
-  onUnassignPm,
-  onUnassignAgent,
+  onPick,
+  onInvite,
 }: {
   property: NonNullable<ReturnType<typeof getOwnerProperty>>;
-  onAssignPm: () => void;
-  onAssignAgent: () => void;
-  onUnassignPm: () => void;
-  onUnassignAgent: () => void;
+  onPick: (role: ProfessionalRole) => void;
+  onInvite: () => void;
 }) {
+  const hasAgentsOnTeam = getActiveMemberships(TEAM_ID).some((m) => m.role === "agent");
+  const hasPmsOnTeam = getActiveMemberships(TEAM_ID).some((m) => m.role === "property_manager");
+
   return (
-    <div className="grid gap-5 sm:grid-cols-2">
+    <div className="space-y-5">
       <section className="rounded-[1.5rem] border border-black/10 bg-white p-6">
-        <h2 className="font-bricolage text-carbon-900 text-lg font-medium">Property Manager</h2>
-        {property.propertyManager ? (
-          <>
-            <div className="mt-5 flex items-center gap-3">
-              <span className="flex size-11 items-center justify-center rounded-full bg-black text-sm font-medium text-white">{property.propertyManager.name.slice(0, 1)}</span>
-              <div>
-                <p className="flex items-center gap-1.5 font-medium">
-                  {property.propertyManager.name}
-                  {property.propertyManager.verified ? <BadgeCheck aria-label="Verified" className="size-4 fill-black text-white" /> : null}
-                </p>
-                <StatusPill status="Active" />
-              </div>
-            </div>
-            <ul className="mt-4 space-y-1.5">
-              {property.propertyManager.responsibilities.map((r) => (
-                <li key={r} className="text-carbon-500 text-sm">· {r}</li>
-              ))}
-            </ul>
-            <div className="mt-5 flex flex-wrap gap-2">
-              <button type="button" onClick={onAssignPm} className="font-bricolage inline-flex h-10 items-center rounded-full border border-black/15 px-4 text-sm font-medium hover:border-black">
-                Manage Assignment
-              </button>
-              <button type="button" onClick={onUnassignPm} className="font-bricolage text-carbon-500 inline-flex h-10 items-center px-2 text-sm font-medium hover:text-black">
-                Remove
-              </button>
-            </div>
-          </>
-        ) : (
-          <>
-            <p className="text-carbon-500 mt-4 text-sm">No Property Manager assigned. You are managing this property yourself.</p>
-            <button type="button" onClick={onAssignPm} className="font-bricolage mt-5 inline-flex h-11 items-center rounded-full bg-black px-5 text-sm font-medium text-white">
-              Assign Property Manager
-            </button>
-          </>
-        )}
+        <h2 className="font-bricolage text-carbon-900 text-lg font-medium">Property Owner</h2>
+        <div className="mt-5 flex items-center gap-3">
+          <span className="flex size-11 items-center justify-center rounded-full bg-black text-sm font-medium text-white">{OWNER.name.slice(0, 1)}</span>
+          <div>
+            <p className="font-medium">{OWNER.name}</p>
+            <p className="text-carbon-500 text-sm">Owner</p>
+          </div>
+        </div>
       </section>
 
-      <section className="rounded-[1.5rem] border border-black/10 bg-white p-6">
-        <h2 className="font-bricolage text-carbon-900 text-lg font-medium">Agent</h2>
-        {property.agent ? (
-          <>
-            <div className="mt-5 flex items-center gap-3">
-              <span className="flex size-11 items-center justify-center rounded-full bg-black text-sm font-medium text-white">{property.agent.name.slice(0, 1)}</span>
-              <div>
-                <p className="flex items-center gap-1.5 font-medium">
-                  {property.agent.name}
-                  {property.agent.verified ? <BadgeCheck aria-label="Verified" className="size-4 fill-black text-white" /> : null}
-                </p>
-                <StatusPill status="Active" />
+      <div className="grid gap-5 sm:grid-cols-2">
+        <section className="rounded-[1.5rem] border border-black/10 bg-white p-6">
+          <h2 className="font-bricolage text-carbon-900 text-lg font-medium">Property Manager</h2>
+          {property.propertyManager ? (
+            <>
+              <div className="mt-5 flex items-center gap-3">
+                <span className="flex size-11 items-center justify-center rounded-full bg-black text-sm font-medium text-white">{property.propertyManager.name.slice(0, 1)}</span>
+                <div>
+                  <p className="flex items-center gap-1.5 font-medium">
+                    {property.propertyManager.name}
+                    {property.propertyManager.verified ? <BadgeCheck aria-label="Verified" className="size-4 fill-black text-white" /> : null}
+                  </p>
+                  <StatusPill status="Active" />
+                </div>
               </div>
-            </div>
-            <ul className="mt-4 space-y-1.5">
-              {property.agent.responsibilities.map((r) => (
-                <li key={r} className="text-carbon-500 text-sm">· {r}</li>
-              ))}
-            </ul>
-            <div className="mt-5 flex flex-wrap gap-2">
-              <button type="button" onClick={onAssignAgent} className="font-bricolage inline-flex h-10 items-center rounded-full border border-black/15 px-4 text-sm font-medium hover:border-black">
-                Manage Assignment
+              <p className="text-carbon-400 mt-4 text-xs">Responsibilities</p>
+              <p className="text-carbon-600 mt-1 text-sm">{property.propertyManager.responsibilities.join(" · ")}</p>
+              <p className="text-carbon-500 mt-3 text-xs">
+                Manage Agents: <span className="text-carbon-900 font-medium">{property.propertyManager.canManageAgents ? "Allowed" : "Not allowed"}</span>
+              </p>
+              <div className="mt-5">
+                {property.propertyManager.membershipId ? (
+                  <Link
+                    href={`/owner-dashboard/team/${property.propertyManager.membershipId}`}
+                    className="font-bricolage inline-flex h-10 items-center rounded-full border border-black/15 px-4 text-sm font-medium hover:border-black"
+                  >
+                    Manage Access
+                  </Link>
+                ) : null}
+              </div>
+            </>
+          ) : hasPmsOnTeam ? (
+            <>
+              <p className="text-carbon-500 mt-4 text-sm">No Property Manager assigned. You are managing this property yourself.</p>
+              <button type="button" onClick={() => onPick("property_manager")} className="font-bricolage mt-5 inline-flex h-11 items-center rounded-full bg-black px-5 text-sm font-medium text-white">
+                Assign Team Member
               </button>
-              <button type="button" onClick={onUnassignAgent} className="font-bricolage text-carbon-500 inline-flex h-10 items-center px-2 text-sm font-medium hover:text-black">
-                Remove
+            </>
+          ) : (
+            <>
+              <p className="text-carbon-500 mt-4 text-sm">No Property Managers are currently on your team.</p>
+              <button type="button" onClick={onInvite} className="font-bricolage mt-5 inline-flex h-11 items-center rounded-full bg-black px-5 text-sm font-medium text-white">
+                Invite Property Manager
               </button>
-            </div>
-          </>
-        ) : (
-          <>
-            <p className="text-carbon-500 mt-4 text-sm">No Agent is currently assigned to this property.</p>
-            <button type="button" onClick={onAssignAgent} className="font-bricolage mt-5 inline-flex h-11 items-center rounded-full bg-black px-5 text-sm font-medium text-white">
-              Assign Agent
-            </button>
-          </>
-        )}
-      </section>
+            </>
+          )}
+        </section>
+
+        <section className="rounded-[1.5rem] border border-black/10 bg-white p-6">
+          <h2 className="font-bricolage text-carbon-900 text-lg font-medium">Agent</h2>
+          {property.agent ? (
+            <>
+              <div className="mt-5 flex items-center gap-3">
+                <span className="flex size-11 items-center justify-center rounded-full bg-black text-sm font-medium text-white">{property.agent.name.slice(0, 1)}</span>
+                <div>
+                  <p className="flex items-center gap-1.5 font-medium">
+                    {property.agent.name}
+                    {property.agent.verified ? <BadgeCheck aria-label="Verified" className="size-4 fill-black text-white" /> : null}
+                  </p>
+                  <StatusPill status="Active" />
+                </div>
+              </div>
+              <p className="text-carbon-400 mt-4 text-xs">Responsibilities</p>
+              <p className="text-carbon-600 mt-1 text-sm">{property.agent.responsibilities.join(" · ")}</p>
+              <p className="text-carbon-400 mt-3 text-xs">
+                Assigned by <span className="text-carbon-600 font-medium">{property.agent.assignedBy}</span>
+                {property.agent.assignedByProfessionalId ? " · Property Manager" : ""}
+              </p>
+              <div className="mt-5">
+                {property.agent.membershipId ? (
+                  <Link
+                    href={`/owner-dashboard/team/${property.agent.membershipId}`}
+                    className="font-bricolage inline-flex h-10 items-center rounded-full border border-black/15 px-4 text-sm font-medium hover:border-black"
+                  >
+                    Manage Access
+                  </Link>
+                ) : null}
+              </div>
+            </>
+          ) : hasAgentsOnTeam ? (
+            <>
+              <p className="text-carbon-500 mt-4 text-sm">No Agent is currently assigned to this property.</p>
+              <button type="button" onClick={() => onPick("agent")} className="font-bricolage mt-5 inline-flex h-11 items-center rounded-full bg-black px-5 text-sm font-medium text-white">
+                Assign Team Member
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="text-carbon-500 mt-4 text-sm">No Agents are currently on your team.</p>
+              <button type="button" onClick={onInvite} className="font-bricolage mt-5 inline-flex h-11 items-center rounded-full bg-black px-5 text-sm font-medium text-white">
+                Invite Agent
+              </button>
+            </>
+          )}
+        </section>
+      </div>
     </div>
   );
 }

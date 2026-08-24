@@ -16,6 +16,13 @@
 // Messages, not a disconnected new cast — see renter-rentals.ts,
 // renter-applications.ts, maintenance-data.ts, and the Messages seed data in
 // renter-dashboard/messages/page.tsx.
+//
+// Phase 1 of the Property Team model moved "who works on this property" out
+// of this file and into team-data.ts, where it belongs to a Team
+// Membership + Property Assignment, not to the property record itself.
+// getOwnerProperties() below derives .propertyManager/.agent by asking
+// team-data.ts who is actively assigned — this file only owns the physical
+// facts (title, location, size, rent, occupancy, listing status).
 
 import type { StaticImageData } from "next/image";
 
@@ -24,12 +31,7 @@ import house2 from "@/assets/images/house2.jpg";
 import house3 from "@/assets/images/house3.jpg";
 import house4 from "@/assets/images/house4.jpg";
 import house5 from "@/assets/images/house5.jpg";
-import jeanPortrait from "@/assets/images/flatmate-joseph.jpg";
-import patrickPortrait from "@/assets/images/flatmate-patrick.png";
-import gracePortrait from "@/assets/images/flatmate-linda.jpg";
-import kevinPortrait from "@/assets/images/flatmate-jackson.jpg";
-import alinePortrait from "@/assets/images/flatmate-aline.png";
-import sarahPortrait from "@/assets/images/flatmate-queen.jpg";
+import { getAgentAssignmentFor, getPropertyManagerAssignmentFor, subscribeToTeam } from "@/lib/team-data";
 
 // ---------------------------------------------------------------------------
 // Identity
@@ -40,6 +42,16 @@ export const OWNER = {
   email: "owner@gmail.com",
   role: "Property Owner",
 };
+
+// Cross-Role Lifecycle Synchronization phase -- Section 52: the smallest
+// safe prototype identity mapping, not real authentication. "Julien
+// Mugisha" is already the recurring applicant/renter across this file's
+// own Applications/Rentals/Payments (HH-APP-0241, HH-RENT-104, etc.) and
+// across professional-work.ts's Agent/PM lifecycles -- this constant just
+// names that existing convention in one place so Renter-side pages can
+// filter the same shared records down to "my own", by identity rather
+// than by re-deriving the name string in each file.
+export const RENTER_DEMO_NAME = "Julien Mugisha";
 
 // ---------------------------------------------------------------------------
 // Shared status vocabulary — kept identical to the words the renter side
@@ -68,58 +80,35 @@ export type ManagementStatus =
 export type OccupancyStatus = "Occupied" | "Vacant" | "Upcoming";
 
 // ---------------------------------------------------------------------------
-// Delegation — a Property Manager or Agent assigned to a property, with the
-// responsibilities the owner granted them. Kept as simple string checklists
-// on purpose: this communicates the intended permission model without
-// building a real RBAC backend.
+// Delegation — a Property Manager or Agent currently assigned to a
+// property, with the responsibilities the owner granted them for THIS
+// property. The underlying source of truth (who is on the team, who holds
+// which property assignment) now lives in team-data.ts; these shapes are
+// just what getOwnerProperties() derives for display.
 // ---------------------------------------------------------------------------
 
 export type PropertyManagerAssignment = {
+  professionalId: string;
+  membershipId: string | null;
   name: string;
   verified: boolean;
   responsibilities: string[];
+  canManageAgents: boolean;
+  assignedBy: string;
+  assignedByProfessionalId: string | null;
 };
 
 export type AgentAssignment = {
+  professionalId: string;
+  membershipId: string | null;
   name: string;
   verified: boolean;
   responsibilities: string[];
+  // Phase 2: who granted this Agent access to this property -- "You" (the
+  // Owner) or a Property Manager acting within their own delegated scope.
+  assignedBy: string;
+  assignedByProfessionalId: string | null;
 };
-
-export const PM_RESPONSIBILITIES = [
-  "Manage listing",
-  "Manage enquiries & viewings",
-  "Review applications",
-  "Manage rental setup",
-  "Manage active rentals",
-  "Track rent payments",
-  "Handle maintenance",
-  "Communicate with renters",
-] as const;
-
-export const AGENT_RESPONSIBILITIES = [
-  "Manage listing",
-  "Respond to enquiries",
-  "Manage viewings",
-  "Assist with applications",
-] as const;
-
-// People available to assign — a small realistic roster, not a full
-// workforce directory. Jean Mugisha, Patrick, Kevin Nshuti, Aline Uwase and
-// Sarah Uwase already exist elsewhere in the product as the property
-// managers and agents renters deal with; two extra names round out the
-// picker without introducing a new relationship anywhere else.
-export const AVAILABLE_PROPERTY_MANAGERS: { name: string; verified: boolean; avatar: StaticImageData; blurb: string }[] = [
-  { name: "Jean Mugisha", verified: true, avatar: jeanPortrait, blurb: "Currently managing 1 of your properties" },
-  { name: "Patrick", verified: false, avatar: patrickPortrait, blurb: "Currently managing 1 of your properties" },
-  { name: "Grace Umutoni", verified: true, avatar: gracePortrait, blurb: "Manages 7 properties on HauxHunt" },
-];
-
-export const AVAILABLE_AGENTS: { name: string; verified: boolean; avatar: StaticImageData; blurb: string }[] = [
-  { name: "Kevin Nshuti", verified: true, avatar: kevinPortrait, blurb: "Currently representing 1 of your listings" },
-  { name: "Aline Uwase", verified: true, avatar: alinePortrait, blurb: "Currently representing 1 of your listings" },
-  { name: "Sarah Uwase", verified: true, avatar: sarahPortrait, blurb: "Currently representing 1 of your listings" },
-];
 
 // ---------------------------------------------------------------------------
 // Properties — the physical assets the owner holds. PROPERTY is distinct
@@ -128,7 +117,7 @@ export const AVAILABLE_AGENTS: { name: string; verified: boolean; avatar: Static
 // without either of the other two.
 // ---------------------------------------------------------------------------
 
-export type OwnerProperty = {
+export type OwnerPropertyFacts = {
   id: string;
   title: string;
   location: string;
@@ -139,13 +128,24 @@ export type OwnerProperty = {
   amenities: string[];
   image: StaticImageData;
   rent: string | null;
-  occupancy: OccupancyStatus;
   listingStatus: ListingStatus | "Not Listed";
+};
+
+// propertyManager/agent/occupancy are all derived at read time (see
+// getOwnerProperties()) -- occupancy used to be a static fact on the seed
+// object itself, which meant a rental created after the fact (e.g. Owner
+// Rental Setup Continuity's self-managed flow) could never turn a property
+// "Occupied" without someone remembering to also edit this field by hand.
+// It is now computed from the exact same shared OWNER_RENTALS every other
+// Owner/PM/Renter surface already reads (see deriveOccupancy below), so a
+// property's occupancy can never disagree with its own Rental data.
+export type OwnerProperty = OwnerPropertyFacts & {
+  occupancy: OccupancyStatus;
   propertyManager: PropertyManagerAssignment | null;
   agent: AgentAssignment | null;
 };
 
-export const BASE_OWNER_PROPERTIES: OwnerProperty[] = [
+export const BASE_OWNER_PROPERTIES: OwnerPropertyFacts[] = [
   {
     id: "kacyiru-2br",
     title: "Kacyiru Residence",
@@ -157,22 +157,7 @@ export const BASE_OWNER_PROPERTIES: OwnerProperty[] = [
     amenities: ["Furnished", "Parking", "Backup generator", "Quiet street"],
     image: house1,
     rent: "RWF 850,000 / month",
-    occupancy: "Occupied",
     listingStatus: "Not Listed",
-    propertyManager: {
-      name: "Jean Mugisha",
-      verified: true,
-      responsibilities: [
-        "Manage enquiries & viewings",
-        "Review applications",
-        "Manage rental setup",
-        "Manage active rentals",
-        "Track rent payments",
-        "Handle maintenance",
-        "Communicate with renters",
-      ],
-    },
-    agent: null,
   },
   {
     id: "nyarutarama-2br",
@@ -185,14 +170,7 @@ export const BASE_OWNER_PROPERTIES: OwnerProperty[] = [
     amenities: ["Pool access", "Gym", "Secure compound"],
     image: house2,
     rent: "RWF 920,000 / month",
-    occupancy: "Upcoming",
     listingStatus: "Paused",
-    propertyManager: null,
-    agent: {
-      name: "Aline Uwase",
-      verified: true,
-      responsibilities: ["Manage listing", "Respond to enquiries", "Manage viewings", "Assist with applications"],
-    },
   },
   {
     id: "remera-3br",
@@ -205,14 +183,7 @@ export const BASE_OWNER_PROPERTIES: OwnerProperty[] = [
     amenities: ["Garden", "Quiet compound", "Parking"],
     image: house3,
     rent: "RWF 780,000 / month",
-    occupancy: "Occupied",
     listingStatus: "Not Listed",
-    propertyManager: null,
-    agent: {
-      name: "Sarah Uwase",
-      verified: true,
-      responsibilities: ["Manage listing", "Respond to enquiries", "Manage viewings", "Assist with applications"],
-    },
   },
   {
     id: "kibagabaga-modern-family-home",
@@ -225,14 +196,7 @@ export const BASE_OWNER_PROPERTIES: OwnerProperty[] = [
     amenities: ["Furnished", "Parking", "Garden", "Backup power"],
     image: house4,
     rent: "RWF 830,000 / month",
-    occupancy: "Vacant",
     listingStatus: "Live",
-    propertyManager: { name: "Patrick", verified: false, responsibilities: ["Review applications", "Communicate with renters"] },
-    agent: {
-      name: "Kevin Nshuti",
-      verified: true,
-      responsibilities: ["Manage listing", "Respond to enquiries", "Manage viewings"],
-    },
   },
   {
     id: "kimironko-1br",
@@ -245,10 +209,7 @@ export const BASE_OWNER_PROPERTIES: OwnerProperty[] = [
     amenities: ["Balcony", "Water tank"],
     image: house5,
     rent: null,
-    occupancy: "Vacant",
     listingStatus: "Draft",
-    propertyManager: null,
-    agent: null,
   },
 ];
 
@@ -259,22 +220,41 @@ export function managementStatusFor(property: Pick<OwnerProperty, "propertyManag
   return "Self-managed";
 }
 
+// Owner Foundation Cleanup phase -- the one canonical, name-inclusive
+// management summary sentence. Overview's Property Portfolio row previously
+// computed this with its own inline ternary that disagreed with
+// managementStatusFor() above (an Agent-only property read "Self-managed
+// rental" here and "Agent represented" in the Delegation sidebar on the
+// same page). Both surfaces should describe the same property the same
+// way, so this builds directly on managementStatusFor()'s categorization
+// rather than re-deriving it. Deliberately does not render responsibility
+// labels (e.g. "Review applications") -- those stay inside Team/assignment
+// configuration; this only answers "who manages, who leases."
+export function managementSummaryFor(property: Pick<OwnerProperty, "propertyManager" | "agent">): string {
+  switch (managementStatusFor(property)) {
+    case "Managed + Agent represented":
+      return `Managed by ${property.propertyManager!.name} · Leasing by ${property.agent!.name}`;
+    case "Managed":
+      return `Managed by ${property.propertyManager!.name}`;
+    case "Agent represented":
+      return `Leasing by ${property.agent!.name}`;
+    default:
+      return "Self-managed";
+  }
+}
+
 // ---------------------------------------------------------------------------
-// Assignment overrides — local, session-only state so "Assign Property
-// Manager" / "Assign Agent" have a visible effect immediately. Stored
-// separately from the seed data so the seed always reflects the seven
-// starting relationships above; overrides layer on top.
+// Property-detail overrides — local, session-only edits from "Edit
+// Property" (title/location/size/rent/etc). Who's assigned to a property is
+// no longer stored here at all — see team-data.ts's PropertyAssignment.
 // ---------------------------------------------------------------------------
 
-const OVERRIDES_KEY = "hauxhunt-owner-assignments";
-const OVERRIDES_EVENT = "hauxhunt-owner-assignments-changed";
+const OVERRIDES_KEY = "hauxhunt-owner-property-edits";
+const OVERRIDES_EVENT = "hauxhunt-owner-property-edits-changed";
 
-type EditableDetails = Pick<OwnerProperty, "title" | "location" | "type" | "bedrooms" | "bathrooms" | "size" | "rent">;
+type EditableDetails = Pick<OwnerPropertyFacts, "title" | "location" | "type" | "bedrooms" | "bathrooms" | "size" | "rent">;
 
-type Overrides = Record<
-  string,
-  { propertyManager?: PropertyManagerAssignment | null; agent?: AgentAssignment | null; details?: Partial<EditableDetails> }
->;
+type Overrides = Record<string, Partial<EditableDetails>>;
 
 function readOverrides(): Overrides {
   if (typeof window === "undefined") return {};
@@ -297,55 +277,47 @@ function writeOverrides(overrides: Overrides) {
   window.dispatchEvent(new Event(OVERRIDES_EVENT));
 }
 
-export function subscribeToOwnerAssignments(callback: () => void) {
+export function subscribeToOwnerProperties(callback: () => void) {
   window.addEventListener(OVERRIDES_EVENT, callback);
   window.addEventListener("storage", callback);
+  const unsubscribeTeam = subscribeToTeam(callback); // PM/Agent assignment changes also affect derived properties
   return () => {
     window.removeEventListener(OVERRIDES_EVENT, callback);
     window.removeEventListener("storage", callback);
+    unsubscribeTeam();
   };
-}
-
-export function assignPropertyManager(propertyId: string, manager: PropertyManagerAssignment) {
-  const overrides = readOverrides();
-  overrides[propertyId] = { ...overrides[propertyId], propertyManager: manager };
-  writeOverrides(overrides);
-}
-
-export function assignAgent(propertyId: string, agent: AgentAssignment) {
-  const overrides = readOverrides();
-  overrides[propertyId] = { ...overrides[propertyId], agent };
-  writeOverrides(overrides);
-}
-
-export function unassignPropertyManager(propertyId: string) {
-  const overrides = readOverrides();
-  overrides[propertyId] = { ...overrides[propertyId], propertyManager: null };
-  writeOverrides(overrides);
-}
-
-export function unassignAgent(propertyId: string) {
-  const overrides = readOverrides();
-  overrides[propertyId] = { ...overrides[propertyId], agent: null };
-  writeOverrides(overrides);
 }
 
 export function updateProperty(propertyId: string, details: Partial<EditableDetails>) {
   const overrides = readOverrides();
-  overrides[propertyId] = { ...overrides[propertyId], details: { ...overrides[propertyId]?.details, ...details } };
+  overrides[propertyId] = { ...overrides[propertyId], ...details };
   writeOverrides(overrides);
+}
+
+// Owner Properties phase -- Section 9: a property is Occupied/Upcoming
+// purely because a real Rental says so, never because a seed fact claims
+// it. Active/Ending Soon both read as "there is someone renting this right
+// now"; Upcoming means a tenancy is confirmed but hasn't started; anything
+// else (no relevant rental, or only an Ended one) is Vacant. getOwnerRentals
+// is a hoisted function declaration further down this same file.
+function deriveOccupancy(propertyId: string): OccupancyStatus {
+  const relevant = getOwnerRentals().filter((r) => r.propertyId === propertyId);
+  if (relevant.some((r) => r.status === "Active" || r.status === "Ending Soon")) return "Occupied";
+  if (relevant.some((r) => r.status === "Upcoming")) return "Upcoming";
+  return "Vacant";
 }
 
 export function getOwnerProperties(): OwnerProperty[] {
   const overrides = readOverrides();
   return BASE_OWNER_PROPERTIES.map((property) => {
-    const override = overrides[property.id];
-    if (!override) return property;
+    const propertyManagerAssignment = getPropertyManagerAssignmentFor(property.id);
+    const agentAssignment = getAgentAssignmentFor(property.id);
     return {
       ...property,
-      ...override.details,
-      propertyManager: override.propertyManager !== undefined ? override.propertyManager : property.propertyManager,
-      agent: override.agent !== undefined ? override.agent : property.agent,
+      ...overrides[property.id],
+      occupancy: deriveOccupancy(property.id),
+      propertyManager: propertyManagerAssignment,
+      agent: agentAssignment,
     };
   });
 }
@@ -372,7 +344,7 @@ export const OWNER_LISTINGS: OwnerListing[] = [
   { propertyId: "nyarutarama-2br", status: "Paused", views: 618, saves: 54, enquiries: 12, applications: 1 },
   { propertyId: "remera-3br", status: "Not Listed", views: null, saves: null, enquiries: null, applications: 1 },
   { propertyId: "kibagabaga-modern-family-home", status: "Live", views: 742, saves: 67, enquiries: 18, applications: 2 },
-  { propertyId: "kimironko-1br", status: "Draft", views: null, saves: null, enquiries: null, applications: 0 },
+  { propertyId: "kimironko-1br", status: "Draft", views: null, saves: null, enquiries: null, applications: 1 },
 ];
 
 // ---------------------------------------------------------------------------
@@ -391,6 +363,19 @@ export type OwnerApplication = {
   moveIn: string;
   requiresOwnerApproval: boolean;
   note: string;
+  // Set by an assisting Agent/PM (Agent dashboard, Section 34-36) -- a
+  // recommendation, never a final decision. Optional because most
+  // applications never go through this (e.g. ones a PM decides directly).
+  recommendation?: "Approve" | "Not Selected";
+  recommendedBy?: string;
+  // Cross-Role Lifecycle Synchronization phase -- Section 5/44: distinct
+  // from handledBy (kept as historical/original-submission metadata).
+  // assistedBy/assistedByRole names the Agent who recommended a decision,
+  // so Application Detail can show "Assisted by" and "Reviewed by"
+  // separately instead of overloading one field. Set once, by whichever
+  // Agent first recommends -- never overwritten by a later PM/Owner action.
+  assistedBy?: string;
+  assistedByRole?: string;
 };
 
 export const OWNER_APPLICATIONS: OwnerApplication[] = [
@@ -432,6 +417,14 @@ export const OWNER_APPLICATIONS: OwnerApplication[] = [
     moveIn: "1 September 2026",
     requiresOwnerApproval: true,
     note: "Sarah Uwase recommends approving this renewal — the current tenancy is ending soon.",
+    // Cross-Role Lifecycle Synchronization phase -- Section 58's own test
+    // scenario: Sarah (Agent) already assisted; Jean (PM, "Review
+    // applications" on remera-3br) must see this application and Sarah's
+    // recommendation even though handledBy still names Sarah.
+    recommendation: "Approve",
+    recommendedBy: "Sarah Uwase",
+    assistedBy: "Sarah Uwase",
+    assistedByRole: "Agent",
   },
   {
     id: "HH-APP-0239",
@@ -459,7 +452,84 @@ export const OWNER_APPLICATIONS: OwnerApplication[] = [
     requiresOwnerApproval: false,
     note: "This application was not selected.",
   },
+  // Owner Applications phase -- Section 46's own required test scenario:
+  // kimironko-1br has no Team assignment at all (fully self-managed, see
+  // team-data.ts's SEED_ASSIGNMENTS), so this is the one application with
+  // nobody else involved. handledBy names the Owner themselves, exactly
+  // like an Owner-decided property elsewhere -- Application Detail reads
+  // this as "Managed by You" rather than a professional card.
+  {
+    id: "HH-APP-0255",
+    propertyId: "kimironko-1br",
+    applicant: "Divine Keza",
+    status: "Submitted",
+    submitted: "19 August 2026",
+    handledBy: OWNER.name,
+    handledByRole: OWNER.role,
+    proposedRent: "RWF 480,000 / month",
+    moveIn: "1 September 2026",
+    requiresOwnerApproval: false,
+    note: "Divine Keza applied directly. No Agent or Property Manager is assigned to this property.",
+  },
 ];
+
+// ---------------------------------------------------------------------------
+// Application overrides -- same session-only override pattern as property
+// facts above (readOverrides/writeOverrides), so an assisting Agent's
+// status/note/recommendation actually persists and stays visible to the
+// Owner, rather than a second, disconnected copy of "what applications
+// look like." Agent dashboard work (status changes, notes, recommendations)
+// always goes through here, never a parallel application store.
+// ---------------------------------------------------------------------------
+
+const APPLICATION_OVERRIDES_KEY = "hauxhunt-application-overrides";
+const APPLICATION_EVENT = "hauxhunt-applications-changed";
+
+type ApplicationOverride = Partial<Pick<OwnerApplication, "status" | "note" | "recommendation" | "recommendedBy" | "assistedBy" | "assistedByRole">>;
+
+function readApplicationOverrides(): Record<string, ApplicationOverride> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.sessionStorage.getItem(APPLICATION_OVERRIDES_KEY);
+    return raw ? (JSON.parse(raw) as Record<string, ApplicationOverride>) : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeApplicationOverrides(overrides: Record<string, ApplicationOverride>) {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(APPLICATION_OVERRIDES_KEY, JSON.stringify(overrides));
+  } catch {
+    // Storage full/unavailable -- change still applies for this render via the dispatched event below.
+  }
+  window.dispatchEvent(new Event(APPLICATION_EVENT));
+}
+
+export function subscribeToOwnerApplications(callback: () => void) {
+  window.addEventListener(APPLICATION_EVENT, callback);
+  window.addEventListener("storage", callback);
+  return () => {
+    window.removeEventListener(APPLICATION_EVENT, callback);
+    window.removeEventListener("storage", callback);
+  };
+}
+
+export function getOwnerApplications(): OwnerApplication[] {
+  const overrides = readApplicationOverrides();
+  return OWNER_APPLICATIONS.map((application) => ({ ...application, ...overrides[application.id] }));
+}
+
+export function getOwnerApplication(id: string): OwnerApplication | undefined {
+  return getOwnerApplications().find((a) => a.id === id);
+}
+
+export function updateOwnerApplication(applicationId: string, patch: ApplicationOverride) {
+  const overrides = readApplicationOverrides();
+  overrides[applicationId] = { ...overrides[applicationId], ...patch };
+  writeApplicationOverrides(overrides);
+}
 
 // ---------------------------------------------------------------------------
 // Rentals — an active relationship between a property and a renter.
@@ -533,6 +603,93 @@ export const OWNER_RENTALS: OwnerRental[] = [
     note: "This 12-month tenancy was completed.",
   },
 ];
+
+// ---------------------------------------------------------------------------
+// Rental overrides/additions -- same session-only override pattern as
+// Applications above, PLUS the ability to CREATE a new rental (Property
+// Manager Dashboard phase: Rental Setup produces a real OwnerRental, not a
+// disconnected PM-only record). Owner, PM, and (conceptually) Renter all
+// read the same rental this way.
+// ---------------------------------------------------------------------------
+
+const RENTAL_OVERRIDES_KEY = "hauxhunt-rental-overrides";
+const RENTAL_ADDITIONS_KEY = "hauxhunt-rental-additions";
+const RENTAL_EVENT = "hauxhunt-rentals-changed";
+
+type RentalOverride = Partial<Pick<OwnerRental, "status" | "agreementStatus" | "depositStatus" | "paymentStatus" | "note">>;
+
+function readRentalOverrides(): Record<string, RentalOverride> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.sessionStorage.getItem(RENTAL_OVERRIDES_KEY);
+    return raw ? (JSON.parse(raw) as Record<string, RentalOverride>) : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeRentalOverrides(overrides: Record<string, RentalOverride>) {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(RENTAL_OVERRIDES_KEY, JSON.stringify(overrides));
+  } catch {
+    // Storage full/unavailable -- change still applies for this render via the dispatched event below.
+  }
+  window.dispatchEvent(new Event(RENTAL_EVENT));
+}
+
+function readRentalAdditions(): OwnerRental[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.sessionStorage.getItem(RENTAL_ADDITIONS_KEY);
+    return raw ? (JSON.parse(raw) as OwnerRental[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeRentalAdditions(rentals: OwnerRental[]) {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(RENTAL_ADDITIONS_KEY, JSON.stringify(rentals));
+  } catch {
+    // Storage full/unavailable -- change still applies for this render via the dispatched event below.
+  }
+  window.dispatchEvent(new Event(RENTAL_EVENT));
+}
+
+export function subscribeToOwnerRentals(callback: () => void) {
+  window.addEventListener(RENTAL_EVENT, callback);
+  window.addEventListener("storage", callback);
+  return () => {
+    window.removeEventListener(RENTAL_EVENT, callback);
+    window.removeEventListener("storage", callback);
+  };
+}
+
+export function getOwnerRentals(): OwnerRental[] {
+  const overrides = readRentalOverrides();
+  const base = OWNER_RENTALS.map((rental) => ({ ...rental, ...overrides[rental.id] }));
+  const added = readRentalAdditions().map((rental) => ({ ...rental, ...overrides[rental.id] }));
+  return [...base, ...added];
+}
+
+export function getOwnerRental(id: string): OwnerRental | undefined {
+  return getOwnerRentals().find((r) => r.id === id);
+}
+
+export function updateOwnerRental(rentalId: string, patch: RentalOverride) {
+  const overrides = readRentalOverrides();
+  overrides[rentalId] = { ...overrides[rentalId], ...patch };
+  writeRentalOverrides(overrides);
+}
+
+// Property Manager Dashboard phase -- Rental Setup calling this is the ONE
+// place a new Rental comes into existence; nothing else creates one.
+export function createOwnerRental(rental: OwnerRental) {
+  const additions = readRentalAdditions();
+  writeRentalAdditions([...additions, rental]);
+}
 
 // ---------------------------------------------------------------------------
 // Payments — rental payments only. Not HauxHunt platform billing.
@@ -627,6 +784,97 @@ export const OWNER_PAYMENTS: OwnerPayment[] = [
 ];
 
 // ---------------------------------------------------------------------------
+// Payment overrides/additions -- same pattern as Rentals above. PM marking a
+// payment "Paid" (a mock action -- Section 79, no real payment processing)
+// and Rental Setup creating the first "Deposit & First Month" payment both
+// go through here, so Owner/PM see the identical record.
+// ---------------------------------------------------------------------------
+
+const PAYMENT_OVERRIDES_KEY = "hauxhunt-payment-overrides";
+const PAYMENT_ADDITIONS_KEY = "hauxhunt-payment-additions";
+const PAYMENT_EVENT = "hauxhunt-payments-changed";
+
+type PaymentOverride = Partial<Pick<OwnerPayment, "status" | "date" | "method">>;
+
+function readPaymentOverrides(): Record<string, PaymentOverride> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.sessionStorage.getItem(PAYMENT_OVERRIDES_KEY);
+    return raw ? (JSON.parse(raw) as Record<string, PaymentOverride>) : {};
+  } catch {
+    return {};
+  }
+}
+
+function writePaymentOverrides(overrides: Record<string, PaymentOverride>) {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(PAYMENT_OVERRIDES_KEY, JSON.stringify(overrides));
+  } catch {
+    // Storage full/unavailable -- change still applies for this render via the dispatched event below.
+  }
+  window.dispatchEvent(new Event(PAYMENT_EVENT));
+}
+
+function readPaymentAdditions(): OwnerPayment[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.sessionStorage.getItem(PAYMENT_ADDITIONS_KEY);
+    return raw ? (JSON.parse(raw) as OwnerPayment[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writePaymentAdditions(payments: OwnerPayment[]) {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(PAYMENT_ADDITIONS_KEY, JSON.stringify(payments));
+  } catch {
+    // Storage full/unavailable -- change still applies for this render via the dispatched event below.
+  }
+  window.dispatchEvent(new Event(PAYMENT_EVENT));
+}
+
+export function subscribeToOwnerPayments(callback: () => void) {
+  window.addEventListener(PAYMENT_EVENT, callback);
+  window.addEventListener("storage", callback);
+  return () => {
+    window.removeEventListener(PAYMENT_EVENT, callback);
+    window.removeEventListener("storage", callback);
+  };
+}
+
+export function getOwnerPayments(): OwnerPayment[] {
+  const overrides = readPaymentOverrides();
+  const base = OWNER_PAYMENTS.map((payment) => ({ ...payment, ...overrides[payment.id] }));
+  const added = readPaymentAdditions().map((payment) => ({ ...payment, ...overrides[payment.id] }));
+  return [...base, ...added];
+}
+
+export function getOwnerPayment(id: string): OwnerPayment | undefined {
+  return getOwnerPayments().find((p) => p.id === id);
+}
+
+// Cross-Role Lifecycle Synchronization phase -- an unscoped-by-professional
+// lookup, for Renter-side pages (which have no professionalId) to read
+// their own rental's payments by rentalId (Section 51's stable ID rule).
+export function getPaymentsForRentalId(rentalId: string): OwnerPayment[] {
+  return getOwnerPayments().filter((p) => p.rentalId === rentalId);
+}
+
+export function updateOwnerPayment(paymentId: string, patch: PaymentOverride) {
+  const overrides = readPaymentOverrides();
+  overrides[paymentId] = { ...overrides[paymentId], ...patch };
+  writePaymentOverrides(overrides);
+}
+
+export function createOwnerPayment(payment: OwnerPayment) {
+  const additions = readPaymentAdditions();
+  writePaymentAdditions([...additions, payment]);
+}
+
+// ---------------------------------------------------------------------------
 // Maintenance — visibility for the owner; operations belong to whoever is
 // assigned. Reframed from the same requests the renter filed and the
 // technicians already named in maintenance-data.ts, so the same issue reads
@@ -703,24 +951,16 @@ export const OWNER_MAINTENANCE: OwnerMaintenanceRequest[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// Recent activity — lets the owner see what the people they delegated to
-// have been doing, without performing every step personally.
+// Owner Overview phase (Phase 4) -- Section 26-28: OWNER_RECENT_ACTIVITY
+// used to live here as a fixed array Overview rendered as though it were
+// live activity. No record in this file (or pm-work.ts/maintenance-data.ts/
+// team-data.ts) carries a real timestamp for "when did this status last
+// change" -- only owner-notifications.ts's own notification stream does,
+// and deriving Recent Activity from that would just be a second view of
+// Notifications (Section 31), which the brief explicitly says to avoid by
+// removing the section rather than faking the distinction. Removed rather
+// than kept dishonest -- see the Phase 4 implementation report.
 // ---------------------------------------------------------------------------
-
-export type OwnerActivityItem = {
-  id: string;
-  text: string;
-  time: string;
-};
-
-export const OWNER_RECENT_ACTIVITY: OwnerActivityItem[] = [
-  { id: "act-1", text: "Sarah Uwase requested your approval on a renewal application for Remera Family House.", time: "2 hr ago" },
-  { id: "act-2", text: "Jean Mugisha confirmed a maintenance visit at Kacyiru Residence.", time: "5 hr ago" },
-  { id: "act-3", text: "Aline Uwase signed the rental agreement for Nyarutarama Garden Apartment.", time: "Yesterday" },
-  { id: "act-4", text: "August rent received for Kacyiru Residence.", time: "Yesterday" },
-  { id: "act-5", text: "Kevin Nshuti published the Modern Family Home listing.", time: "3 days ago" },
-  { id: "act-6", text: "Patrick reviewed a new application for Modern Family Home.", time: "3 days ago" },
-];
 
 // ---------------------------------------------------------------------------
 // Small formatting helpers shared by the owner pages.
@@ -734,10 +974,37 @@ export function propertyLocation(propertyId: string): string {
   return BASE_OWNER_PROPERTIES.find((property) => property.id === propertyId)?.location ?? "";
 }
 
-export function rentReceivedThisMonth(): number {
-  return OWNER_PAYMENTS.filter(
-    (payment) => payment.status === "Paid" && payment.purpose.toLowerCase().includes("rent") && payment.date.includes("August 2026"),
-  ).reduce((total, payment) => total + payment.amountValue, 0);
+// Owner Overview phase (Phase 4) -- replaces rentReceivedThisMonth(), which
+// read the frozen OWNER_PAYMENTS array (never a PM-recorded payment) and
+// matched a literal "August 2026" substring in the date string -- the same
+// hardcoded-seeded-date pattern Phase 1 already removed from the overdue
+// Attention row. Deliberately not scoped to "this calendar month": the
+// only field that could express that is the same free-form date string,
+// and re-introducing a date match here would be the exact thing Section 50
+// says not to do. Expected/Received/Outstanding/Overdue instead means the
+// full set of currently-tracked payment obligations, live from
+// getOwnerPayments(), status-derived only.
+export type OwnerFinancialSummary = {
+  expected: number;
+  received: number;
+  outstanding: number;
+  overdue: number;
+  overdueCount: number;
+};
+
+export function getOwnerFinancialSummary(): OwnerFinancialSummary {
+  const tracked = getOwnerPayments().filter((p) => p.status === "Paid" || p.status === "Pending" || p.status === "Overdue" || p.status === "Due");
+  const sum = (status: PaymentStatus) => tracked.filter((p) => p.status === status).reduce((total, p) => total + p.amountValue, 0);
+  const received = sum("Paid");
+  const outstanding = sum("Pending") + sum("Due");
+  const overdue = sum("Overdue");
+  return {
+    expected: received + outstanding + overdue,
+    received,
+    outstanding,
+    overdue,
+    overdueCount: tracked.filter((p) => p.status === "Overdue").length,
+  };
 }
 
 export function formatRwf(amount: number): string {

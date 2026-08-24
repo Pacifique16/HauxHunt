@@ -7,6 +7,7 @@ import chatImage from "@/assets/images/chat.png";
 import thankyouImage from "@/assets/images/thankyou.png";
 import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
 import { Navbar } from "@/components/layout/navbar";
+import { OWNER } from "@/lib/owner-data";
 
 const TOPICS = [
   "Search & Listings",
@@ -30,7 +31,7 @@ const ALLOWED_TYPES = ["Word", "Excel", "PPT", "PDF", "Image", "Video", "Audio"]
 type UploadedFile = { name: string; size: number; url: string };
 
 export default function FeedbackPage() {
-  const [isRenter, setIsRenter] = useState(false);
+  const [role, setRole] = useState<string | null>(null);
   const [rating, setRating] = useState<number>(0);
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [message, setMessage] = useState("");
@@ -47,10 +48,24 @@ export default function FeedbackPage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Owner Account Polish phase -- this page previously assumed every
+  // authenticated session was a Renter (hardcoding "Julien Mugisha" /
+  // renter@gmail.com regardless of who was actually signed in), so an
+  // Owner opening Send Feedback from their own profile menu would have
+  // seen the wrong name, email, and "Which best describes you?" selection.
+  // Reads the same session role every dashboard shell already sets.
   useEffect(() => {
-    const role = window.sessionStorage.getItem("hauxhunt-authenticated-role");
-    setIsRenter(Boolean(role));
-    if (role) {
+    const authRole = window.sessionStorage.getItem("hauxhunt-authenticated-role");
+    setRole(authRole);
+    if (authRole === "owner") {
+      setEmail(OWNER.email);
+      setName(OWNER.name);
+      setUserType("Property Owner");
+    } else if (authRole === "agent") {
+      setUserType("Agent");
+    } else if (authRole === "property_manager") {
+      setUserType("Property Manager");
+    } else if (authRole === "renter") {
       setEmail("renter@gmail.com");
       setName("Julien Mugisha");
       setUserType("Renter");
@@ -108,7 +123,7 @@ export default function FeedbackPage() {
     setSubmitted(true);
   }
 
-  const TopBar = isRenter ? RenterCatalogueTopBar : Navbar;
+  const TopBar = role === "renter" ? RenterCatalogueTopBar : Navbar;
 
   if (submitted) {
     return (

@@ -13,8 +13,8 @@ const TONE_CLASSES: Record<Tone, string> = {
   outline: "border border-black/15 text-black",
 };
 
-const SOLID = new Set(["Live", "Active", "Paid", "Resolved", "Approved", "Occupied", "Signed", "Confirmed"]);
-const OUTLINE_URGENT = new Set(["Overdue", "Failed", "Not Selected", "Urgent", "Ending Soon", "Action Required"]);
+const SOLID = new Set(["Live", "Active", "Paid", "Resolved", "Approved", "Occupied", "Signed", "Confirmed", "Accepted", "Verified"]);
+const OUTLINE_URGENT = new Set(["Overdue", "Failed", "Not Selected", "Urgent", "Ending Soon", "Action Required", "Declined", "Cancelled", "Removed", "Left", "Needs Attention", "Rejected"]);
 
 export function toneForStatus(status: string): Tone {
   if (SOLID.has(status)) return "solid";

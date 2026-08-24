@@ -48,7 +48,7 @@ export default function OwnerListingsPage() {
             ))}
           </div>
 
-          <div className="mt-6 overflow-hidden rounded-[1.5rem] border border-black/10 bg-white">
+          <div className="mt-6 overflow-hidden rounded-[1.5rem] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.06)]">
             <div className="divide-y divide-black/8">
               {rows.map(({ listing, property }) => (
                 <Link
