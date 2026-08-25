@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   ArrowUpRight,
-  Building2,
+  ChevronDown,
   Eye,
   Heart,
   KeyRound,
@@ -89,6 +89,39 @@ const PROPERTY_ROWS = [
   },
 ];
 
+const RENTAL_INCOME = [
+  {
+    id: "kacyiru-2br",
+    shortTitle: "Kacyiru",
+    title: "Kacyiru Residence",
+    monthly: 850_000,
+  },
+  {
+    id: "nyarutarama-2br",
+    shortTitle: "Nyarutarama",
+    title: "Nyarutarama Garden Apartment",
+    monthly: 920_000,
+  },
+  {
+    id: "remera-3br",
+    shortTitle: "Remera",
+    title: "Remera Family House",
+    monthly: 780_000,
+  },
+  {
+    id: "kibagabaga-modern-family-home",
+    shortTitle: "Kibagabaga",
+    title: "Modern Family Home",
+    monthly: 830_000,
+  },
+  {
+    id: "kimironko-1br",
+    shortTitle: "Kimironko",
+    title: "Kimironko Apartment",
+    monthly: 480_000,
+  },
+];
+
 export default function OwnerPerformancePage() {
   const [range, setRange] = useState<Range>("30 days");
   const [propertyId, setPropertyId] = useState("all");
@@ -116,40 +149,43 @@ export default function OwnerPerformancePage() {
         <div className="mx-auto max-w-[1360px]">
           <header className="flex flex-col gap-6 border-b border-black/10 pb-8 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <div className="flex items-center gap-3">
-                <h1 className="dashboard-page-title text-carbon-900">
-                  Performance
-                </h1>
-                <span className="rounded-full bg-black/[0.06] px-3 py-1 text-[10px] font-medium tracking-[0.08em] uppercase">
-                  Demo analytics
-                </span>
-              </div>
+              <h1 className="dashboard-page-title text-carbon-900">
+                Performance
+              </h1>
               <p className="text-carbon-600 mt-5 max-w-2xl text-base leading-7 sm:text-lg">
                 Understand listing traffic, conversion, rental outcomes, and
                 portfolio performance.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <select
-                value={propertyId}
-                onChange={(event) => setPropertyId(event.target.value)}
-                className="h-11 rounded-full border-0 bg-white px-4 pr-9 text-sm shadow-[0_8px_24px_rgba(0,0,0,0.06)] outline-none"
-              >
-                {PROPERTIES.map((property) => (
-                  <option key={property.id} value={property.id}>
-                    {property.title}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={range}
-                onChange={(event) => setRange(event.target.value as Range)}
-                className="h-11 rounded-full border-0 bg-white px-4 pr-9 text-sm shadow-[0_8px_24px_rgba(0,0,0,0.06)] outline-none"
-              >
-                {(Object.keys(RANGE_FACTOR) as Range[]).map((item) => (
-                  <option key={item}>{item}</option>
-                ))}
-              </select>
+              <label className="relative">
+                <span className="sr-only">Filter by property</span>
+                <select
+                  value={propertyId}
+                  onChange={(event) => setPropertyId(event.target.value)}
+                  className="h-11 appearance-none rounded-full border-0 bg-white py-0 pr-11 pl-4 text-sm shadow-[0_8px_24px_rgba(0,0,0,0.06)] outline-none"
+                >
+                  {PROPERTIES.map((property) => (
+                    <option key={property.id} value={property.id}>
+                      {property.title}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="text-carbon-500 pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2" />
+              </label>
+              <label className="relative">
+                <span className="sr-only">Filter by date</span>
+                <select
+                  value={range}
+                  onChange={(event) => setRange(event.target.value as Range)}
+                  className="h-11 appearance-none rounded-full border-0 bg-white py-0 pr-11 pl-4 text-sm shadow-[0_8px_24px_rgba(0,0,0,0.06)] outline-none"
+                >
+                  {(Object.keys(RANGE_FACTOR) as Range[]).map((item) => (
+                    <option key={item}>{item}</option>
+                  ))}
+                </select>
+                <ChevronDown className="text-carbon-500 pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2" />
+              </label>
             </div>
           </header>
 
@@ -180,42 +216,42 @@ export default function OwnerPerformancePage() {
             />
           </div>
 
-          <div className="mt-7 grid gap-7 xl:grid-cols-[minmax(0,1.65fr)_minmax(300px,0.7fr)]">
+          <div className="mt-7">
             <TrafficChart totals={totals} range={range} />
-            <ConversionFunnel totals={totals} signed={signedRentals} />
           </div>
 
-          <div className="mt-7 grid gap-7 xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.8fr)]">
-            <PropertyComparison range={range} propertyId={propertyId} />
-            <div className="space-y-7">
-              <SummaryPanel
-                title="Occupancy"
-                rows={[
-                  ["Occupied", "3"],
-                  ["Upcoming", "1"],
-                  ["Vacant", "1"],
-                  ["Occupancy rate", "60%"],
-                ]}
-              />
-              <SummaryPanel
-                title="Rental outcomes"
-                rows={[
-                  ["Active rentals", "3"],
-                  ["Renewals pending", "1"],
-                  ["Ending soon", "1"],
-                  ["Average vacancy", "18 days"],
-                ]}
-              />
-              <SummaryPanel
-                title="Rent collection"
-                rows={[
-                  ["Expected", "RWF 3,130,000"],
-                  ["Received", "RWF 2,350,000"],
-                  ["Overdue", "RWF 780,000"],
-                  ["Collection rate", "75.1%"],
-                ]}
-              />
-            </div>
+          <div className="mt-7">
+            <RentalIncomeChart range={range} propertyId={propertyId} />
+          </div>
+
+          <div className="mt-7 grid gap-7 md:grid-cols-2 xl:grid-cols-3">
+            <SummaryPanel
+              title="Occupancy"
+              rows={[
+                ["Occupied", "3"],
+                ["Upcoming", "1"],
+                ["Vacant", "1"],
+                ["Occupancy rate", "60%"],
+              ]}
+            />
+            <SummaryPanel
+              title="Rental outcomes"
+              rows={[
+                ["Active rentals", "3"],
+                ["Renewals pending", "1"],
+                ["Ending soon", "1"],
+                ["Average vacancy", "18 days"],
+              ]}
+            />
+            <SummaryPanel
+              title="Rent collection"
+              rows={[
+                ["Expected", "RWF 3,130,000"],
+                ["Received", "RWF 2,350,000"],
+                ["Overdue", "RWF 780,000"],
+                ["Collection rate", "75.1%"],
+              ]}
+            />
           </div>
         </div>
       </section>
@@ -343,11 +379,8 @@ function TrafficChart({
           ))}
         </div>
       </div>
-      <p className="font-bricolage mt-7 text-3xl font-medium">
-        {totals[metric].toLocaleString()}
-      </p>
       <div
-        className="relative mt-5 h-64 overflow-hidden"
+        className="relative mt-7 h-64 overflow-hidden"
         onMouseMove={(event) => {
           const bounds = event.currentTarget.getBoundingClientRect();
           setHovered(
@@ -436,108 +469,78 @@ function TrafficChart({
   );
 }
 
-function ConversionFunnel({
-  totals,
-  signed,
-}: {
-  totals: Record<Metric, number>;
-  signed: number;
-}) {
-  const stages = [
-    ["Views", totals.Views],
-    ["Viewing requests", totals["Viewing requests"]],
-    ["Applications", totals.Applications],
-    ["Signed rentals", signed],
-  ] as const;
-  return (
-    <section className="rounded-[1.75rem] bg-white p-5 shadow-[0_16px_45px_rgba(0,0,0,0.055)] sm:p-6">
-      <h2 className="font-bricolage text-xl font-medium">Conversion funnel</h2>
-      <p className="text-carbon-500 mt-1 text-sm">
-        From discovery to signed rental.
-      </p>
-      <div className="mt-6 space-y-5">
-        {stages.map(([label, value], index) => (
-          <div key={label}>
-            <div className="mb-2 flex justify-between gap-3 text-sm">
-              <span>{label}</span>
-              <strong>{value.toLocaleString()}</strong>
-            </div>
-            <div className="h-2.5 rounded-full bg-black/[0.06]">
-              <div
-                className="h-full rounded-full bg-black"
-                style={{
-                  width: `${(value / Math.max(totals.Views, 1)) * 100}%`,
-                  opacity: 1 - index * 0.2,
-                }}
-              />
-            </div>
-            {index > 0 ? (
-              <p className="text-carbon-400 mt-1 text-[10px]">
-                {percent(value, stages[index - 1][1])}% from previous stage
-              </p>
-            ) : null}
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function PropertyComparison({
+function RentalIncomeChart({
   range,
   propertyId,
 }: {
   range: Range;
   propertyId: string;
 }) {
-  const rows = PROPERTY_ROWS.filter(
-    (item) => propertyId === "all" || item.id === propertyId,
-  );
-  const factor = RANGE_FACTOR[range];
-  const maximum = Math.max(...rows.map((row) => row.views), 1);
+  const incomeFactor: Record<Range, number> = {
+    "7 days": 0.25,
+    "30 days": 1,
+    "90 days": 3,
+    "This year": 12,
+  };
+  const rows = RENTAL_INCOME.filter(
+    (property) => propertyId === "all" || property.id === propertyId,
+  ).map((property) => ({
+    ...property,
+    amount: Math.round(property.monthly * incomeFactor[range]),
+  }));
+  const maximum = Math.max(...rows.map((property) => property.amount), 1);
+  const chartMaximum = maximum * 1.12;
+
   return (
-    <section className="rounded-[1.75rem] bg-white p-5 shadow-[0_16px_45px_rgba(0,0,0,0.055)] sm:p-6">
-      <div className="flex items-start justify-between">
+    <section className="max-w-[760px] rounded-[1.75rem] bg-white p-5 shadow-[0_16px_45px_rgba(0,0,0,0.055)] sm:p-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="font-bricolage text-xl font-medium">
-            Property comparison
+            Rental income by property
           </h2>
           <p className="text-carbon-500 mt-1 text-sm">
-            Traffic and conversion by listing.
+            Gross rent generated for the selected period.
           </p>
         </div>
-        <Building2 className="size-5" />
+        <span className="text-xs font-medium">RWF</span>
       </div>
-      <div className="mt-6 divide-y divide-black/8">
-        {rows.map((row) => (
-          <Link
-            key={row.id}
-            href={`/owner-dashboard/properties/${row.id}`}
-            className="block py-4"
-          >
-            <div className="flex justify-between gap-4">
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium">{row.title}</p>
-                <p className="text-carbon-500 mt-1 text-xs">
-                  {Math.round(row.requests * factor)} viewing requests ·{" "}
-                  {Math.round(row.applications * factor)} applications
-                </p>
-              </div>
-              <span className="shrink-0 text-sm font-medium">
-                {Math.round(row.views * factor).toLocaleString()} views
-              </span>
-            </div>
-            <div className="mt-3 h-2 rounded-full bg-black/[0.06]">
+      <div className="mt-8 px-5 pt-7 sm:px-8">
+        <div className="flex h-60 items-end justify-around gap-3 border-b-2 border-black px-1 sm:gap-6 sm:px-4">
+          {rows.map((property) => (
+            <div
+              key={property.id}
+              className="relative flex h-full min-w-0 flex-1 items-end justify-center"
+              title={`${property.title}: RWF ${property.amount.toLocaleString()}`}
+            >
               <div
-                className="h-full rounded-full bg-black"
-                style={{ width: `${(row.views / maximum) * 100}%` }}
-              />
+                className="relative w-7 translate-y-[2px] sm:w-9"
+                style={{
+                  height: `${Math.max((property.amount / chartMaximum) * 100, 3)}%`,
+                }}
+              >
+                <span
+                  aria-hidden="true"
+                  className="absolute right-[-4px] bottom-0 h-[calc(100%_-_3px)] w-full rounded-t-[10px] bg-black"
+                />
+                <span className="absolute inset-0 z-10 rounded-t-[10px] border-2 border-black bg-white" />
+                <span className="absolute -top-5 left-1/2 z-20 -translate-x-1/2 text-[0.6rem] font-bold whitespace-nowrap text-black">
+                  {formatCompactRwf(property.amount)}
+                </span>
+              </div>
             </div>
-            <p className="text-carbon-400 mt-1 text-[10px]">
-              {row.conversion}% application conversion
-            </p>
-          </Link>
-        ))}
+          ))}
+        </div>
+        <div className="flex justify-around gap-3 px-1 py-3 sm:gap-6 sm:px-4">
+          {rows.map((property) => (
+            <span
+              key={property.id}
+              className="min-w-0 flex-1 text-center text-[0.62rem] leading-tight font-bold break-words text-black sm:text-xs"
+              title={property.title}
+            >
+              {property.title}
+            </span>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -575,4 +578,11 @@ function distribute(total: number, weights: number[]) {
 
 function percent(value: number, total: number) {
   return total ? Math.round((value / total) * 1_000) / 10 : 0;
+}
+
+function formatCompactRwf(value: number) {
+  if (value >= 1_000_000) {
+    return `${Math.round((value / 1_000_000) * 10) / 10}m`;
+  }
+  return `${Math.round(value / 1_000)}k`;
 }
