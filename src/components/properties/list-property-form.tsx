@@ -9,6 +9,7 @@ import {
   Check,
   ChevronLeft,
   ChevronDown,
+  FileCheck2,
   ImagePlus,
   KeyRound,
   UserRound,
@@ -37,7 +38,7 @@ const STEPS = [
   { label: "About you", icon: UserRound },
   { label: "Property", icon: Building2 },
   { label: "Pricing", icon: KeyRound },
-  { label: "Photos", icon: ImagePlus },
+  { label: "Photos & documents", icon: ImagePlus },
   { label: "Review", icon: Check },
 ] as const;
 
@@ -171,7 +172,11 @@ export function ListPropertyForm({
   const today = new Date().toISOString().slice(0, 10);
   const [step, setStep] = useState(firstStep);
   const [photoNames, setPhotoNames] = useState<string[]>([]);
-  const [amenities, setAmenities] = useState<string[]>(initialValues?.amenities ?? []);
+  const [documentNames, setDocumentNames] = useState<string[]>([]);
+  const [documentError, setDocumentError] = useState("");
+  const [amenities, setAmenities] = useState<string[]>(
+    initialValues?.amenities ?? [],
+  );
   const [submitted, setSubmitted] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
@@ -207,7 +212,9 @@ export function ListPropertyForm({
     return {
       title: String(data.get("title") ?? ""),
       description: String(data.get("description") ?? ""),
-      rent: price ? `${currency ?? "USD"} ${price}${period ? ` / ${String(period).toLowerCase().replace("per ", "")}` : ""}` : "",
+      rent: price
+        ? `${currency ?? "USD"} ${price}${period ? ` / ${String(period).toLowerCase().replace("per ", "")}` : ""}`
+        : "",
       availableFrom: String(data.get("availableFrom") ?? ""),
       amenities,
     };
@@ -228,7 +235,10 @@ export function ListPropertyForm({
     setDraftSaved(true);
     if (onSaved) {
       onSaved(collectListingValues(), "Draft");
-      window.setTimeout(() => (onDone ? onDone() : router.push("/partner-dashboard/listings")), 900);
+      window.setTimeout(
+        () => (onDone ? onDone() : router.push("/partner-dashboard/listings")),
+        900,
+      );
       return;
     }
     window.setTimeout(() => router.push("/partner-dashboard/listings"), 900);
@@ -241,12 +251,14 @@ export function ListPropertyForm({
           <Check aria-hidden="true" className="size-7" />
         </span>
         <h2 className="font-bricolage text-carbon-900 mt-7 text-4xl font-medium tracking-[-0.04em]">
-          {propertyContext ? "Your listing is under review" : "Your property is under review"}
+          {propertyContext
+            ? "Your listing is under review"
+            : "Your property is under review"}
         </h2>
         <p className="text-carbon-600 mx-auto mt-4 max-w-xl leading-7">
-          Your listing has been submitted to the HauxHunt team and is now under
-          review. We will notify you when it is approved or if any changes are
-          needed.
+          Your listing and property documents have been submitted to the
+          HauxHunt team. Ownership verification is pending, and we will notify
+          you when it is approved or if any changes are needed.
         </p>
         <button
           type="button"
@@ -258,6 +270,8 @@ export function ListPropertyForm({
             setSubmitted(false);
             setStep(firstStep);
             setPhotoNames([]);
+            setDocumentNames([]);
+            setDocumentError("");
             setAmenities([]);
             setDraftSaved(false);
             requestAnimationFrame(() => formRef.current?.reset());
@@ -274,10 +288,14 @@ export function ListPropertyForm({
     <form ref={formRef} onSubmit={handleSubmit} noValidate>
       {propertyContext ? (
         <div className="mb-6 flex items-center gap-4 rounded-2xl bg-black/3 p-4">
-          <span className="bg-black/4.5 rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap">{propertyContext.badge}</span>
+          <span className="rounded-full bg-black/4.5 px-3 py-1 text-xs font-medium whitespace-nowrap">
+            {propertyContext.badge}
+          </span>
           <div className="min-w-0">
             <p className="truncate font-medium">{propertyContext.title}</p>
-            <p className="text-carbon-500 truncate text-sm">{propertyContext.location}</p>
+            <p className="text-carbon-500 truncate text-sm">
+              {propertyContext.location}
+            </p>
           </div>
         </div>
       ) : null}
@@ -374,8 +392,18 @@ export function ListPropertyForm({
               defaultValue={initialValues?.country}
               required
             />
-            <Field label="City" name="city" defaultValue={initialValues?.city} required />
-            <Field label="Neighbourhood" name="neighbourhood" defaultValue={initialValues?.neighbourhood} required />
+            <Field
+              label="City"
+              name="city"
+              defaultValue={initialValues?.city}
+              required
+            />
+            <Field
+              label="Neighbourhood"
+              name="neighbourhood"
+              defaultValue={initialValues?.neighbourhood}
+              required
+            />
             <Field
               label="Exact street address"
               name="streetAddress"
@@ -424,7 +452,13 @@ export function ListPropertyForm({
               defaultValue={initialValues?.bathrooms}
               required
             />
-            <Field label="Floor area (m²)" name="area" type="number" min="1" defaultValue={initialValues?.area} />
+            <Field
+              label="Floor area (m²)"
+              name="area"
+              type="number"
+              min="1"
+              defaultValue={initialValues?.area}
+            />
             <SelectField
               label="Furnishing"
               name="furnishing"
@@ -610,6 +644,79 @@ export function ListPropertyForm({
               </ul>
             </div>
           )}
+
+          <div className="mt-9 border-t border-black/10 pt-8">
+            <div className="flex items-start gap-3">
+              <FileCheck2
+                aria-hidden="true"
+                className="mt-0.5 size-5 shrink-0"
+              />
+              <div>
+                <h3 className="font-bricolage text-xl font-medium">
+                  Ownership or authorization documents
+                </h3>
+                <p className="text-carbon-600 mt-2 max-w-2xl text-sm leading-6">
+                  Upload proof that you own this property or have permission to
+                  list it. You can provide a title deed, ownership certificate,
+                  recent land record, or a signed authorization letter from the
+                  owner.
+                </p>
+                <p className="text-carbon-500 mt-2 text-xs leading-5">
+                  These files stay private and are used only by HauxHunt for
+                  property verification.
+                </p>
+              </div>
+            </div>
+            <label className="mt-5 flex min-h-40 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-black/30 bg-black/[0.025] px-6 text-center transition-colors hover:border-black hover:bg-black/[0.045]">
+              <FileCheck2 aria-hidden="true" className="size-7" />
+              <span className="font-bricolage mt-3 text-base font-medium">
+                Choose verification documents
+              </span>
+              <span className="text-carbon-500 mt-1 text-sm">
+                PDF, JPG or PNG · up to 5 files · 10 MB each
+              </span>
+              <input
+                type="file"
+                name="ownershipDocuments"
+                accept="application/pdf,image/jpeg,image/png"
+                multiple
+                required
+                className="sr-only"
+                onChange={(event) => {
+                  const files = Array.from(event.target.files ?? []);
+                  const error =
+                    files.length > 5
+                      ? "Choose no more than 5 documents."
+                      : files.some((file) => file.size > 10 * 1024 * 1024)
+                        ? "Each document must be 10 MB or smaller."
+                        : "";
+                  event.currentTarget.setCustomValidity(error);
+                  setDocumentError(error);
+                  setDocumentNames(error ? [] : files.map((file) => file.name));
+                }}
+              />
+            </label>
+            {documentError ? (
+              <p className="mt-2 text-sm font-medium text-red-700" role="alert">
+                {documentError}
+              </p>
+            ) : null}
+            {documentNames.length > 0 ? (
+              <div className="mt-4 rounded-xl border border-black/10 bg-black/[0.025] p-4">
+                <p className="text-sm font-medium">
+                  {documentNames.length} verification document
+                  {documentNames.length === 1 ? "" : "s"} selected
+                </p>
+                <ul className="text-carbon-600 mt-2 grid gap-1 text-sm sm:grid-cols-2">
+                  {documentNames.map((name) => (
+                    <li key={name} className="truncate">
+                      {name}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </div>
         </StepPanel>
 
         <StepPanel
@@ -619,7 +726,7 @@ export function ListPropertyForm({
           totalSteps={visibleSteps.length}
           title="Review and submit"
         >
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {[
               ["Identity", "Your representative details will be reviewed."],
               ["Property", "Property information and pricing will be checked."],
@@ -628,6 +735,10 @@ export function ListPropertyForm({
                 `Exact coordinates and ${amenities.length} selected ${amenities.length === 1 ? "amenity" : "amenities"} are ready for review.`,
               ],
               ["Photos", `${photoNames.length} photos are ready for review.`],
+              [
+                "Verification",
+                `${documentNames.length} ownership or authorization ${documentNames.length === 1 ? "document is" : "documents are"} ready for review.`,
+              ],
             ].map(([title, body]) => (
               <div
                 key={title}
@@ -791,7 +902,13 @@ type SelectFieldProps = {
   defaultValue?: string;
 };
 
-function SelectField({ label, name, options, required, defaultValue }: SelectFieldProps) {
+function SelectField({
+  label,
+  name,
+  options,
+  required,
+  defaultValue,
+}: SelectFieldProps) {
   return (
     <label>
       <span className="text-carbon-900 mb-2 block text-sm font-medium">
