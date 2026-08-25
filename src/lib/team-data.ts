@@ -105,20 +105,101 @@ export type RegisteredProfessional = {
 
 export const REGISTERED_PROFESSIONALS: RegisteredProfessional[] = [
   // Agents
-  { id: "kevin-nshuti", name: "Kevin Nshuti", role: "agent", verified: true, location: "Kigali, Rwanda", email: "kevin.nshuti@example.com", avatar: kevinPortrait },
-  { id: "aline-uwase", name: "Aline Uwase", role: "agent", verified: true, location: "Kigali, Rwanda", email: "aline.uwase@example.com", avatar: alinePortrait },
-  { id: "sarah-uwase", name: "Sarah Uwase", role: "agent", verified: true, location: "Kigali, Rwanda", email: "sarah.uwase@example.com", avatar: sarahPortrait },
-  { id: "david-m", name: "David M.", role: "agent", verified: false, location: "Kigali, Rwanda", email: "david.m@example.com", avatar: davidPortrait },
-  { id: "emmanuel-bizimana", name: "Emmanuel Bizimana", role: "agent", verified: true, location: "Kigali, Rwanda", email: "emmanuel.b@example.com", avatar: emmanuelPortrait },
-  { id: "eric-rugamba", name: "Eric Rugamba", role: "agent", verified: false, location: "Kigali, Rwanda", email: "eric.rugamba@example.com" },
+  {
+    id: "kevin-nshuti",
+    name: "Kevin Nshuti",
+    role: "agent",
+    verified: true,
+    location: "Kigali, Rwanda",
+    email: "kevin.nshuti@example.com",
+    avatar: kevinPortrait,
+  },
+  {
+    id: "aline-uwase",
+    name: "Aline Uwase",
+    role: "agent",
+    verified: true,
+    location: "Kigali, Rwanda",
+    email: "aline.uwase@example.com",
+    avatar: alinePortrait,
+  },
+  {
+    id: "sarah-uwase",
+    name: "Sarah Uwase",
+    role: "agent",
+    verified: true,
+    location: "Kigali, Rwanda",
+    email: "sarah.uwase@example.com",
+    avatar: sarahPortrait,
+  },
+  {
+    id: "david-m",
+    name: "David M.",
+    role: "agent",
+    verified: false,
+    location: "Kigali, Rwanda",
+    email: "david.m@example.com",
+    avatar: davidPortrait,
+  },
+  {
+    id: "emmanuel-bizimana",
+    name: "Emmanuel Bizimana",
+    role: "agent",
+    verified: true,
+    location: "Kigali, Rwanda",
+    email: "emmanuel.b@example.com",
+    avatar: emmanuelPortrait,
+  },
+  {
+    id: "eric-rugamba",
+    name: "Eric Rugamba",
+    role: "agent",
+    verified: false,
+    location: "Kigali, Rwanda",
+    email: "eric.rugamba@example.com",
+  },
   // Property Managers
-  { id: "jean-mugisha", name: "Jean Mugisha", role: "property_manager", verified: true, location: "Kigali, Rwanda", email: "jean.mugisha@example.com", avatar: jeanPortrait },
-  { id: "patrick", name: "Patrick", role: "property_manager", verified: false, location: "Kigali, Rwanda", email: "patrick@example.com", avatar: patrickPortrait },
-  { id: "grace-umutoni", name: "Grace Umutoni", role: "property_manager", verified: true, location: "Kigali, Rwanda", email: "grace.umutoni@example.com", avatar: gracePortrait },
-  { id: "immaculee-mukamana", name: "Immaculee Mukamana", role: "property_manager", verified: true, location: "Kigali, Rwanda", email: "immaculee.m@example.com", avatar: immaculeePortrait },
+  {
+    id: "jean-mugisha",
+    name: "Jean Mugisha",
+    role: "property_manager",
+    verified: true,
+    location: "Kigali, Rwanda",
+    email: "jean.mugisha@example.com",
+    avatar: jeanPortrait,
+  },
+  {
+    id: "patrick",
+    name: "Patrick",
+    role: "property_manager",
+    verified: false,
+    location: "Kigali, Rwanda",
+    email: "patrick@example.com",
+    avatar: patrickPortrait,
+  },
+  {
+    id: "grace-umutoni",
+    name: "Grace Umutoni",
+    role: "property_manager",
+    verified: true,
+    location: "Kigali, Rwanda",
+    email: "grace.umutoni@example.com",
+    avatar: gracePortrait,
+  },
+  {
+    id: "immaculee-mukamana",
+    name: "Immaculee Mukamana",
+    role: "property_manager",
+    verified: true,
+    location: "Kigali, Rwanda",
+    email: "immaculee.m@example.com",
+    avatar: immaculeePortrait,
+  },
 ];
 
-export function getProfessional(id: string): RegisteredProfessional | undefined {
+export function getProfessional(
+  id: string,
+): RegisteredProfessional | undefined {
   return REGISTERED_PROFESSIONALS.find((p) => p.id === id);
 }
 
@@ -128,7 +209,9 @@ export function getProfessional(id: string): RegisteredProfessional | undefined 
 // a one-time bridge at the exact call sites that have nothing but a name to
 // start from -- the conversation itself is still addressed by the
 // resolved, stable professionalId afterward, never by this name again.
-export function getProfessionalByName(name: string): RegisteredProfessional | undefined {
+export function getProfessionalByName(
+  name: string,
+): RegisteredProfessional | undefined {
   return REGISTERED_PROFESSIONALS.find((p) => p.name === name);
 }
 
@@ -138,7 +221,12 @@ export function getProfessionalByName(name: string): RegisteredProfessional | un
 // property record directly.
 // ---------------------------------------------------------------------------
 
-export const AGENT_RESPONSIBILITIES = ["Manage listing", "Respond to enquiries", "Manage viewings", "Assist with applications"] as const;
+export const AGENT_RESPONSIBILITIES = [
+  "Manage listing",
+  "Respond to enquiries",
+  "Manage viewings",
+  "Assist with applications",
+] as const;
 
 export const PM_RESPONSIBILITIES = [
   "Manage listing",
@@ -152,20 +240,27 @@ export const PM_RESPONSIBILITIES = [
 ] as const;
 
 export function defaultResponsibilitiesFor(role: ProfessionalRole): string[] {
-  return role === "agent" ? [...AGENT_RESPONSIBILITIES] : [...PM_RESPONSIBILITIES];
+  return role === "agent"
+    ? [...AGENT_RESPONSIBILITIES]
+    : [...PM_RESPONSIBILITIES];
 }
 
 // The person performing an invite/assign action, for display purposes only
 // (Phase 2). `professionalId` is who to look up (role, verified, etc);
 // `roleLabel` is what to print next to their name ("Property Manager").
 // Absent everywhere an Owner acted -- the Owner has no professionalId here.
-export type TeamActor = { name: string; professionalId: string; roleLabel: string };
+export type TeamActor = {
+  name: string;
+  professionalId: string;
+  roleLabel: string;
+};
 
 // ---------------------------------------------------------------------------
 // Invitations
 // ---------------------------------------------------------------------------
 
-export type InvitationStatus = "Pending" | "Accepted" | "Declined" | "Cancelled";
+export type InvitationStatus =
+  "Pending" | "Accepted" | "Declined" | "Cancelled";
 
 export type TeamInvitation = {
   id: string;
@@ -185,20 +280,119 @@ export type TeamInvitation = {
 };
 
 const SEED_INVITATIONS: TeamInvitation[] = [
-  { id: "inv-kevin", teamId: TEAM_ID, professionalId: "kevin-nshuti", role: "agent", status: "Accepted", invitedBy: "You", invitedAt: "18 Aug 2026", ts: Date.parse("2026-08-18") },
-  { id: "inv-aline", teamId: TEAM_ID, professionalId: "aline-uwase", role: "agent", status: "Accepted", invitedBy: "You", invitedAt: "16 Aug 2026", ts: Date.parse("2026-08-16") },
-  { id: "inv-sarah", teamId: TEAM_ID, professionalId: "sarah-uwase", role: "agent", status: "Accepted", invitedBy: "You", invitedAt: "14 Aug 2026", ts: Date.parse("2026-08-14") },
-  { id: "inv-david", teamId: TEAM_ID, professionalId: "david-m", role: "agent", status: "Accepted", invitedBy: "You", invitedAt: "20 Aug 2026", ts: Date.parse("2026-08-20") },
-  { id: "inv-jean", teamId: TEAM_ID, professionalId: "jean-mugisha", role: "property_manager", status: "Accepted", invitedBy: "You", invitedAt: "15 Aug 2026", ts: Date.parse("2026-08-15") },
-  { id: "inv-patrick", teamId: TEAM_ID, professionalId: "patrick", role: "property_manager", status: "Accepted", invitedBy: "You", invitedAt: "12 Aug 2026", ts: Date.parse("2026-08-12") },
-  { id: "inv-grace", teamId: TEAM_ID, professionalId: "grace-umutoni", role: "property_manager", status: "Accepted", invitedBy: "You", invitedAt: "17 Aug 2026", ts: Date.parse("2026-08-17") },
-  { id: "inv-emmanuel", teamId: TEAM_ID, professionalId: "emmanuel-bizimana", role: "agent", status: "Pending", invitedBy: "You", invitedAt: "20 Aug 2026", ts: Date.parse("2026-08-20") },
-  { id: "inv-immaculee", teamId: TEAM_ID, professionalId: "immaculee-mukamana", role: "property_manager", status: "Pending", invitedBy: "You", invitedAt: "19 Aug 2026", ts: Date.parse("2026-08-19") },
-  { id: "inv-eric", teamId: TEAM_ID, professionalId: "eric-rugamba", role: "agent", status: "Declined", invitedBy: "You", invitedAt: "10 Aug 2026", ts: Date.parse("2026-08-10") },
+  {
+    id: "inv-kevin",
+    teamId: TEAM_ID,
+    professionalId: "kevin-nshuti",
+    role: "agent",
+    status: "Accepted",
+    invitedBy: "You",
+    invitedAt: "18 Aug 2026",
+    ts: Date.parse("2026-08-18"),
+  },
+  {
+    id: "inv-aline",
+    teamId: TEAM_ID,
+    professionalId: "aline-uwase",
+    role: "agent",
+    status: "Accepted",
+    invitedBy: "You",
+    invitedAt: "16 Aug 2026",
+    ts: Date.parse("2026-08-16"),
+  },
+  {
+    id: "inv-sarah",
+    teamId: TEAM_ID,
+    professionalId: "sarah-uwase",
+    role: "agent",
+    status: "Accepted",
+    invitedBy: "You",
+    invitedAt: "14 Aug 2026",
+    ts: Date.parse("2026-08-14"),
+  },
+  {
+    id: "inv-david",
+    teamId: TEAM_ID,
+    professionalId: "david-m",
+    role: "agent",
+    status: "Accepted",
+    invitedBy: "You",
+    invitedAt: "20 Aug 2026",
+    ts: Date.parse("2026-08-20"),
+  },
+  {
+    id: "inv-jean",
+    teamId: TEAM_ID,
+    professionalId: "jean-mugisha",
+    role: "property_manager",
+    status: "Accepted",
+    invitedBy: "You",
+    invitedAt: "15 Aug 2026",
+    ts: Date.parse("2026-08-15"),
+  },
+  {
+    id: "inv-patrick",
+    teamId: TEAM_ID,
+    professionalId: "patrick",
+    role: "property_manager",
+    status: "Accepted",
+    invitedBy: "You",
+    invitedAt: "12 Aug 2026",
+    ts: Date.parse("2026-08-12"),
+  },
+  {
+    id: "inv-grace",
+    teamId: TEAM_ID,
+    professionalId: "grace-umutoni",
+    role: "property_manager",
+    status: "Accepted",
+    invitedBy: "You",
+    invitedAt: "17 Aug 2026",
+    ts: Date.parse("2026-08-17"),
+  },
+  {
+    id: "inv-emmanuel",
+    teamId: TEAM_ID,
+    professionalId: "emmanuel-bizimana",
+    role: "agent",
+    status: "Pending",
+    invitedBy: "You",
+    invitedAt: "20 Aug 2026",
+    ts: Date.parse("2026-08-20"),
+  },
+  {
+    id: "inv-immaculee",
+    teamId: TEAM_ID,
+    professionalId: "immaculee-mukamana",
+    role: "property_manager",
+    status: "Pending",
+    invitedBy: "You",
+    invitedAt: "19 Aug 2026",
+    ts: Date.parse("2026-08-19"),
+  },
+  {
+    id: "inv-eric",
+    teamId: TEAM_ID,
+    professionalId: "eric-rugamba",
+    role: "agent",
+    status: "Declined",
+    invitedBy: "You",
+    invitedAt: "10 Aug 2026",
+    ts: Date.parse("2026-08-10"),
+  },
   // Phase 3 -- Kevin's second Team membership, on a completely different
   // Owner's team. "You" wouldn't mean anything from Kevin's point of view
   // here, so invitedBy is Kigali Homes' own owner name.
-  { id: "inv-kevin-kigali", teamId: "kigali-homes-team", professionalId: "kevin-nshuti", role: "agent", status: "Accepted", invitedBy: "Diane Umuhoza", invitedAt: "3 Aug 2026", ts: Date.parse("2026-08-03") },
+  {
+    id: "inv-kevin-kigali",
+    teamId: "kigali-homes-team",
+    professionalId: "kevin-nshuti",
+    role: "agent",
+    status: "Accepted",
+    invitedBy: "Diane Umuhoza",
+    invitedAt: "3 Aug 2026",
+    ts: Date.parse("2026-08-03"),
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -219,15 +413,74 @@ export type TeamMembership = {
 };
 
 const SEED_MEMBERSHIPS: TeamMembership[] = [
-  { id: "mem-kevin", teamId: TEAM_ID, professionalId: "kevin-nshuti", role: "agent", status: "Active", joinedAt: "18 Aug 2026" },
-  { id: "mem-aline", teamId: TEAM_ID, professionalId: "aline-uwase", role: "agent", status: "Active", joinedAt: "16 Aug 2026" },
-  { id: "mem-sarah", teamId: TEAM_ID, professionalId: "sarah-uwase", role: "agent", status: "Active", joinedAt: "14 Aug 2026" },
-  { id: "mem-david", teamId: TEAM_ID, professionalId: "david-m", role: "agent", status: "Active", joinedAt: "20 Aug 2026" },
-  { id: "mem-jean", teamId: TEAM_ID, professionalId: "jean-mugisha", role: "property_manager", status: "Active", joinedAt: "15 Aug 2026", canManageAgents: true },
-  { id: "mem-patrick", teamId: TEAM_ID, professionalId: "patrick", role: "property_manager", status: "Active", joinedAt: "12 Aug 2026", canManageAgents: false },
-  { id: "mem-grace", teamId: TEAM_ID, professionalId: "grace-umutoni", role: "property_manager", status: "Active", joinedAt: "17 Aug 2026", canManageAgents: false },
+  {
+    id: "mem-kevin",
+    teamId: TEAM_ID,
+    professionalId: "kevin-nshuti",
+    role: "agent",
+    status: "Active",
+    joinedAt: "18 Aug 2026",
+  },
+  {
+    id: "mem-aline",
+    teamId: TEAM_ID,
+    professionalId: "aline-uwase",
+    role: "agent",
+    status: "Active",
+    joinedAt: "16 Aug 2026",
+  },
+  {
+    id: "mem-sarah",
+    teamId: TEAM_ID,
+    professionalId: "sarah-uwase",
+    role: "agent",
+    status: "Active",
+    joinedAt: "14 Aug 2026",
+  },
+  {
+    id: "mem-david",
+    teamId: TEAM_ID,
+    professionalId: "david-m",
+    role: "agent",
+    status: "Active",
+    joinedAt: "20 Aug 2026",
+  },
+  {
+    id: "mem-jean",
+    teamId: TEAM_ID,
+    professionalId: "jean-mugisha",
+    role: "property_manager",
+    status: "Active",
+    joinedAt: "15 Aug 2026",
+    canManageAgents: true,
+  },
+  {
+    id: "mem-patrick",
+    teamId: TEAM_ID,
+    professionalId: "patrick",
+    role: "property_manager",
+    status: "Active",
+    joinedAt: "12 Aug 2026",
+    canManageAgents: false,
+  },
+  {
+    id: "mem-grace",
+    teamId: TEAM_ID,
+    professionalId: "grace-umutoni",
+    role: "property_manager",
+    status: "Active",
+    joinedAt: "17 Aug 2026",
+    canManageAgents: false,
+  },
   // Phase 3 -- Kevin also belongs to a second, unrelated team.
-  { id: "mem-kevin-kigali", teamId: "kigali-homes-team", professionalId: "kevin-nshuti", role: "agent", status: "Active", joinedAt: "3 Aug 2026" },
+  {
+    id: "mem-kevin-kigali",
+    teamId: "kigali-homes-team",
+    professionalId: "kevin-nshuti",
+    role: "agent",
+    status: "Active",
+    joinedAt: "3 Aug 2026",
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -302,7 +555,12 @@ const SEED_ASSIGNMENTS: PropertyAssignment[] = [
     role: "agent",
     status: "Active",
     assignedBy: "You",
-    responsibilities: ["Manage listing", "Respond to enquiries", "Manage viewings", "Assist with applications"],
+    responsibilities: [
+      "Manage listing",
+      "Respond to enquiries",
+      "Manage viewings",
+      "Assist with applications",
+    ],
   },
   {
     id: "asn-sarah-remera",
@@ -312,7 +570,12 @@ const SEED_ASSIGNMENTS: PropertyAssignment[] = [
     role: "agent",
     status: "Active",
     assignedBy: "You",
-    responsibilities: ["Manage listing", "Respond to enquiries", "Manage viewings", "Assist with applications"],
+    responsibilities: [
+      "Manage listing",
+      "Respond to enquiries",
+      "Manage viewings",
+      "Assist with applications",
+    ],
   },
   {
     id: "asn-patrick-kibagabaga",
@@ -332,7 +595,11 @@ const SEED_ASSIGNMENTS: PropertyAssignment[] = [
     role: "agent",
     status: "Active",
     assignedBy: "You",
-    responsibilities: ["Manage listing", "Respond to enquiries", "Manage viewings"],
+    responsibilities: [
+      "Manage listing",
+      "Respond to enquiries",
+      "Manage viewings",
+    ],
   },
   // Grace Umutoni and David M. are deliberately left with no assignment
   // here -- they are the "Active team member, zero properties" example
@@ -351,7 +618,12 @@ const SEED_ASSIGNMENTS: PropertyAssignment[] = [
     role: "agent",
     status: "Active",
     assignedBy: "Diane Umuhoza",
-    responsibilities: ["Manage listing", "Respond to enquiries", "Manage viewings", "Assist with applications"],
+    responsibilities: [
+      "Manage listing",
+      "Respond to enquiries",
+      "Manage viewings",
+      "Assist with applications",
+    ],
   },
 ];
 
@@ -418,52 +690,94 @@ export function getPropertyAssignments(): PropertyAssignment[] {
 // want -- this reads as "everyone", not "my team"). Owner-dashboard code
 // always passes TEAM_ID explicitly.
 export function getActiveMemberships(teamId?: string): TeamMembership[] {
-  return getTeamMemberships().filter((m) => m.status === "Active" && (teamId === undefined || m.teamId === teamId));
+  return getTeamMemberships().filter(
+    (m) =>
+      m.status === "Active" && (teamId === undefined || m.teamId === teamId),
+  );
 }
 
-export function getMembershipFor(professionalId: string, teamId?: string): TeamMembership | undefined {
-  return getTeamMemberships().find((m) => m.professionalId === professionalId && (teamId === undefined || m.teamId === teamId));
+export function getMembershipFor(
+  professionalId: string,
+  teamId?: string,
+): TeamMembership | undefined {
+  return getTeamMemberships().find(
+    (m) =>
+      m.professionalId === professionalId &&
+      (teamId === undefined || m.teamId === teamId),
+  );
 }
 
 // Every Team this professional is currently an Active member of -- the
 // professional's OWN view of their memberships (contrast with
 // getActiveMemberships, which is a Team's view of its members).
-export function getActiveMembershipsFor(professionalId: string): TeamMembership[] {
-  return getTeamMemberships().filter((m) => m.professionalId === professionalId && m.status === "Active");
+export function getActiveMembershipsFor(
+  professionalId: string,
+): TeamMembership[] {
+  return getTeamMemberships().filter(
+    (m) => m.professionalId === professionalId && m.status === "Active",
+  );
 }
 
 export function getPendingInvitations(teamId?: string): TeamInvitation[] {
-  return getTeamInvitations().filter((i) => i.status === "Pending" && (teamId === undefined || i.teamId === teamId));
+  return getTeamInvitations().filter(
+    (i) =>
+      i.status === "Pending" && (teamId === undefined || i.teamId === teamId),
+  );
 }
 
 // Every Pending invitation for this professional, across any Team --
 // a professional can have more than one open invitation at once.
-export function getPendingInvitationsFor(professionalId: string): TeamInvitation[] {
+export function getPendingInvitationsFor(
+  professionalId: string,
+): TeamInvitation[] {
   return getTeamInvitations()
-    .filter((i) => i.professionalId === professionalId && i.status === "Pending")
+    .filter(
+      (i) => i.professionalId === professionalId && i.status === "Pending",
+    )
     .sort((a, b) => b.ts - a.ts);
 }
 
-export function getInvitationFor(professionalId: string, teamId?: string): TeamInvitation | undefined {
+export function getInvitationFor(
+  professionalId: string,
+  teamId?: string,
+): TeamInvitation | undefined {
   // Most recent invitation for this person on this Team, if any.
   return getTeamInvitations()
-    .filter((i) => i.professionalId === professionalId && (teamId === undefined || i.teamId === teamId))
+    .filter(
+      (i) =>
+        i.professionalId === professionalId &&
+        (teamId === undefined || i.teamId === teamId),
+    )
     .sort((a, b) => b.ts - a.ts)[0];
 }
 
-export function getActiveAssignmentsFor(professionalId: string, teamId?: string): PropertyAssignment[] {
-  return getPropertyAssignments().filter((a) => a.professionalId === professionalId && a.status === "Active" && (teamId === undefined || a.teamId === teamId));
+export function getActiveAssignmentsFor(
+  professionalId: string,
+  teamId?: string,
+): PropertyAssignment[] {
+  return getPropertyAssignments().filter(
+    (a) =>
+      a.professionalId === professionalId &&
+      a.status === "Active" &&
+      (teamId === undefined || a.teamId === teamId),
+  );
 }
 
-export function getActiveAssignmentsForProperty(propertyId: string): PropertyAssignment[] {
-  return getPropertyAssignments().filter((a) => a.propertyId === propertyId && a.status === "Active");
+export function getActiveAssignmentsForProperty(
+  propertyId: string,
+): PropertyAssignment[] {
+  return getPropertyAssignments().filter(
+    (a) => a.propertyId === propertyId && a.status === "Active",
+  );
 }
 
 // A property's current PM/Agent, joined with their professional identity.
 // This is what owner-data.ts's getOwnerProperties() calls to derive
 // OwnerProperty.propertyManager / .agent.
 export function getPropertyManagerAssignmentFor(propertyId: string) {
-  const assignment = getActiveAssignmentsForProperty(propertyId).find((a) => a.role === "property_manager");
+  const assignment = getActiveAssignmentsForProperty(propertyId).find(
+    (a) => a.role === "property_manager",
+  );
   if (!assignment) return null;
   const professional = getProfessional(assignment.professionalId);
   if (!professional) return null;
@@ -481,7 +795,9 @@ export function getPropertyManagerAssignmentFor(propertyId: string) {
 }
 
 export function getAgentAssignmentFor(propertyId: string) {
-  const assignment = getActiveAssignmentsForProperty(propertyId).find((a) => a.role === "agent");
+  const assignment = getActiveAssignmentsForProperty(propertyId).find(
+    (a) => a.role === "agent",
+  );
   if (!assignment) return null;
   const professional = getProfessional(assignment.professionalId);
   if (!professional) return null;
@@ -515,9 +831,18 @@ export function getAgentAssignmentFor(propertyId: string) {
 // ever silently spanning a Team it wasn't granted on, e.g. an independently
 // managed property, which never has a teamId at all and so can never match
 // (see the Phase 3 brief, Section 57 / Scenario I).
-export function getManagedPropertyIdsFor(professionalId: string, teamId?: string): string[] {
+export function getManagedPropertyIdsFor(
+  professionalId: string,
+  teamId?: string,
+): string[] {
   return getPropertyAssignments()
-    .filter((a) => a.professionalId === professionalId && a.role === "property_manager" && a.status === "Active" && (teamId === undefined || a.teamId === teamId))
+    .filter(
+      (a) =>
+        a.professionalId === professionalId &&
+        a.role === "property_manager" &&
+        a.status === "Active" &&
+        (teamId === undefined || a.teamId === teamId),
+    )
     .map((a) => a.propertyId);
 }
 
@@ -525,15 +850,29 @@ export function getManagedPropertyIdsFor(professionalId: string, teamId?: string
 // managed scope, if any. Deliberately blind to the Agent's assignments
 // OUTSIDE that scope -- a PM must never see (or be able to infer) where an
 // Agent works on properties the PM doesn't manage.
-export function getAgentAssignmentWithinScope(pmProfessionalId: string, agentProfessionalId: string, teamId?: string): PropertyAssignment | null {
-  const managedIds = new Set(getManagedPropertyIdsFor(pmProfessionalId, teamId));
-  return getActiveAssignmentsFor(agentProfessionalId).find((a) => a.role === "agent" && managedIds.has(a.propertyId)) ?? null;
+export function getAgentAssignmentWithinScope(
+  pmProfessionalId: string,
+  agentProfessionalId: string,
+  teamId?: string,
+): PropertyAssignment | null {
+  const managedIds = new Set(
+    getManagedPropertyIdsFor(pmProfessionalId, teamId),
+  );
+  return (
+    getActiveAssignmentsFor(agentProfessionalId).find(
+      (a) => a.role === "agent" && managedIds.has(a.propertyId),
+    ) ?? null
+  );
 }
 
 // Properties within the PM's managed scope that this Agent is NOT already
 // assigned to -- what "Assign Property" may offer. Empty means either the
 // PM manages nothing, or the Agent already covers everything they manage.
-export function getAssignablePropertyIdsFor(pmProfessionalId: string, agentProfessionalId: string, teamId?: string): string[] {
+export function getAssignablePropertyIdsFor(
+  pmProfessionalId: string,
+  agentProfessionalId: string,
+  teamId?: string,
+): string[] {
   const managedIds = getManagedPropertyIdsFor(pmProfessionalId, teamId);
   const alreadyAssigned = new Set(
     getActiveAssignmentsFor(agentProfessionalId)
@@ -546,7 +885,9 @@ export function getAssignablePropertyIdsFor(pmProfessionalId: string, agentProfe
 // Invitations THIS professional personally created -- a PM's own
 // "Invitations" tab is scoped to invitations they sent, not every
 // invitation on the team (that view is Owner-only, see the Team page).
-export function getInvitationsCreatedBy(professionalId: string): TeamInvitation[] {
+export function getInvitationsCreatedBy(
+  professionalId: string,
+): TeamInvitation[] {
   return getTeamInvitations()
     .filter((i) => i.invitedByProfessionalId === professionalId)
     .sort((a, b) => b.ts - a.ts);
@@ -568,72 +909,18 @@ export function getInvitationsCreatedBy(professionalId: string): TeamInvitation[
 export const DEMO_AGENT_ID = "kevin-nshuti";
 export const DEMO_PM_ID = "jean-mugisha";
 
-// "Preview as" -- a discreet, prototype-only override so testing/demoing can
-// reliably pick a SPECIFIC registered professional instead of relying only
-// on the fallback chain below (which was never meant to distinguish more
-// than one interesting person per role -- see the professional-dashboard
-// audit). Not authentication, not account switching: just an explicit id in
-// localStorage that wins over the fallback when present. Reuses TEAM_EVENT
-// for reactivity, since every professional-aware page already subscribes to
-// subscribeToTeam(forceUpdate) -- no separate subscription needed.
-const PREVIEW_KEY = "hauxhunt-preview-professional-id";
-
-export function getPreviewProfessionalId(): string | null {
-  if (typeof window === "undefined") return null;
-  try {
-    return window.localStorage.getItem(PREVIEW_KEY);
-  } catch {
-    return null;
-  }
-}
-
-// syncRole lets the caller (the "Preview as" control) also keep the
-// existing agent/property_manager role state (use-partner-role.ts) in sync
-// with whoever was just selected -- previewing a Property Manager while the
-// dashboard still thinks you're an Agent is exactly the contradictory state
-// this phase exists to avoid (Section 9). Kept as a callback rather than an
-// import so this stays a plain data module, not a React one.
-export function setPreviewProfessional(professionalId: string, syncRole?: (role: ProfessionalRole) => void) {
-  if (typeof window === "undefined") return;
-  const professional = getProfessional(professionalId);
-  try {
-    window.localStorage.setItem(PREVIEW_KEY, professionalId);
-  } catch {
-    // Storage full/unavailable -- change still applies for this render via the dispatched event below.
-  }
-  if (professional && syncRole) syncRole(professional.role);
-  window.dispatchEvent(new Event(TEAM_EVENT));
-}
-
-export function clearPreviewProfessional() {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.removeItem(PREVIEW_KEY);
-  } catch {
-    // ignore
-  }
-  window.dispatchEvent(new Event(TEAM_EVENT));
-}
-
-export function resolveDemoProfessional(role: ProfessionalRole): RegisteredProfessional | undefined {
-  const previewId = getPreviewProfessionalId();
-  if (previewId) {
-    const preview = getProfessional(previewId);
-    // Only honor the preview when its role actually matches what's being
-    // asked for -- role routing (Section 9) keeps these in sync via
-    // syncRole above, so a mismatch here is only ever transient.
-    if (preview && preview.role === role) return preview;
-  }
+export function resolveDemoProfessional(
+  role: ProfessionalRole,
+): RegisteredProfessional | undefined {
   const anyPending = getPendingInvitations().find((i) => i.role === role);
   const defaultId = role === "agent" ? DEMO_AGENT_ID : DEMO_PM_ID;
   return getProfessional(anyPending?.professionalId ?? defaultId);
 }
 
 // Cross-Role Lifecycle Synchronization phase (hydration fix) --
-// resolveDemoProfessional is impure with respect to SSR: it reads
-// localStorage (Preview As) and sessionStorage-backed team data (the "any
-// pending invitation for this role" fallback), both of which the server
-// can never see. The server always evaluates it against pure seed data;
+// resolveDemoProfessional reads sessionStorage-backed team data through the
+// pending-invitation fallback, which the server cannot see. The server
+// always evaluates it against pure seed data;
 // a client whose session has since diverged (e.g. a seeded pending
 // invitation was accepted) resolves someone else entirely -- a hydration
 // mismatch in whatever text renders that name, not just a stale badge.
@@ -657,7 +944,12 @@ function nextId(prefix: string) {
 // 2) rather than the Owner -- it does NOT change teamId: the invitation
 // still always joins the OWNER's team. It's provenance only, so the Owner
 // (and the invitee) can see who actually acted.
-export function inviteProfessional(professionalId: string, role: ProfessionalRole, invitedBy = "You", invitedByProfessionalId?: string) {
+export function inviteProfessional(
+  professionalId: string,
+  role: ProfessionalRole,
+  invitedBy = "You",
+  invitedByProfessionalId?: string,
+) {
   const invitations = getTeamInvitations();
   invitations.push({
     id: nextId("inv"),
@@ -667,20 +959,36 @@ export function inviteProfessional(professionalId: string, role: ProfessionalRol
     status: "Pending",
     invitedBy,
     invitedByProfessionalId,
-    invitedAt: new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),
+    invitedAt: new Date().toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }),
     ts: Date.now(),
   });
   writeList(INVITATIONS_KEY, invitations);
 }
 
 export function cancelInvitation(invitationId: string) {
-  const invitations = getTeamInvitations().map((i) => (i.id === invitationId ? { ...i, status: "Cancelled" as const } : i));
+  const invitations = getTeamInvitations().map((i) =>
+    i.id === invitationId ? { ...i, status: "Cancelled" as const } : i,
+  );
   writeList(INVITATIONS_KEY, invitations);
 }
 
 export function resendInvitation(invitationId: string) {
   const invitations = getTeamInvitations().map((i) =>
-    i.id === invitationId ? { ...i, invitedAt: new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }), ts: Date.now() } : i,
+    i.id === invitationId
+      ? {
+          ...i,
+          invitedAt: new Date().toLocaleDateString("en-GB", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          }),
+          ts: Date.now(),
+        }
+      : i,
   );
   writeList(INVITATIONS_KEY, invitations);
 }
@@ -693,25 +1001,39 @@ export function acceptInvitation(invitationId: string) {
   if (!invitation) return;
   writeList(
     INVITATIONS_KEY,
-    invitations.map((i) => (i.id === invitationId ? { ...i, status: "Accepted" as const } : i)),
+    invitations.map((i) =>
+      i.id === invitationId ? { ...i, status: "Accepted" as const } : i,
+    ),
   );
   const memberships = getTeamMemberships();
-  if (!memberships.some((m) => m.professionalId === invitation.professionalId && m.status === "Active")) {
+  if (
+    !memberships.some(
+      (m) =>
+        m.professionalId === invitation.professionalId && m.status === "Active",
+    )
+  ) {
     memberships.push({
       id: nextId("mem"),
       teamId: TEAM_ID,
       professionalId: invitation.professionalId,
       role: invitation.role,
       status: "Active",
-      joinedAt: new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),
-      canManageAgents: invitation.role === "property_manager" ? false : undefined,
+      joinedAt: new Date().toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      }),
+      canManageAgents:
+        invitation.role === "property_manager" ? false : undefined,
     });
     writeList(MEMBERSHIPS_KEY, memberships);
   }
 }
 
 export function declineInvitation(invitationId: string) {
-  const invitations = getTeamInvitations().map((i) => (i.id === invitationId ? { ...i, status: "Declined" as const } : i));
+  const invitations = getTeamInvitations().map((i) =>
+    i.id === invitationId ? { ...i, status: "Declined" as const } : i,
+  );
   writeList(INVITATIONS_KEY, invitations);
 }
 
@@ -729,23 +1051,48 @@ export function assignPropertyToMember(
   assignedByProfessionalId?: string,
 ) {
   const assignments = getPropertyAssignments();
-  const existingIndex = assignments.findIndex((a) => a.propertyId === propertyId && a.professionalId === professionalId);
+  const existingIndex = assignments.findIndex(
+    (a) => a.propertyId === propertyId && a.professionalId === professionalId,
+  );
   if (existingIndex >= 0) {
-    assignments[existingIndex] = { ...assignments[existingIndex], responsibilities, status: "Active", assignedBy, assignedByProfessionalId };
+    assignments[existingIndex] = {
+      ...assignments[existingIndex],
+      responsibilities,
+      status: "Active",
+      assignedBy,
+      assignedByProfessionalId,
+    };
   } else {
-    assignments.push({ id: nextId("asn"), teamId: TEAM_ID, propertyId, professionalId, role, responsibilities, status: "Active", assignedBy, assignedByProfessionalId });
+    assignments.push({
+      id: nextId("asn"),
+      teamId: TEAM_ID,
+      propertyId,
+      professionalId,
+      role,
+      responsibilities,
+      status: "Active",
+      assignedBy,
+      assignedByProfessionalId,
+    });
   }
   writeList(ASSIGNMENTS_KEY, assignments);
 }
 
-export function updateAssignmentResponsibilities(assignmentId: string, responsibilities: string[]) {
-  const assignments = getPropertyAssignments().map((a) => (a.id === assignmentId ? { ...a, responsibilities } : a));
+export function updateAssignmentResponsibilities(
+  assignmentId: string,
+  responsibilities: string[],
+) {
+  const assignments = getPropertyAssignments().map((a) =>
+    a.id === assignmentId ? { ...a, responsibilities } : a,
+  );
   writeList(ASSIGNMENTS_KEY, assignments);
 }
 
 // Removes access to ONE property. The member stays on the team.
 export function removeAssignment(assignmentId: string) {
-  const assignments = getPropertyAssignments().map((a) => (a.id === assignmentId ? { ...a, status: "Removed" as const } : a));
+  const assignments = getPropertyAssignments().map((a) =>
+    a.id === assignmentId ? { ...a, status: "Removed" as const } : a,
+  );
   writeList(ASSIGNMENTS_KEY, assignments);
 }
 
@@ -753,7 +1100,13 @@ export function removeAssignment(assignmentId: string) {
 // property access this professional holds through Team B or independently
 // (Sections 32/36/37 of the Phase 3 brief).
 function deactivateAllAssignmentsFor(professionalId: string, teamId: string) {
-  const assignments = getPropertyAssignments().map((a) => (a.professionalId === professionalId && a.teamId === teamId && a.status === "Active" ? { ...a, status: "Removed" as const } : a));
+  const assignments = getPropertyAssignments().map((a) =>
+    a.professionalId === professionalId &&
+    a.teamId === teamId &&
+    a.status === "Active"
+      ? { ...a, status: "Removed" as const }
+      : a,
+  );
   writeList(ASSIGNMENTS_KEY, assignments);
 }
 
@@ -768,7 +1121,9 @@ export function removeTeamMember(membershipId: string) {
   if (!membership) return;
   writeList(
     MEMBERSHIPS_KEY,
-    memberships.map((m) => (m.id === membershipId ? { ...m, status: "Removed" as const } : m)),
+    memberships.map((m) =>
+      m.id === membershipId ? { ...m, status: "Removed" as const } : m,
+    ),
   );
   deactivateAllAssignmentsFor(membership.professionalId, membership.teamId);
 }
@@ -780,7 +1135,9 @@ export function leaveTeam(membershipId: string) {
   if (!membership) return;
   writeList(
     MEMBERSHIPS_KEY,
-    memberships.map((m) => (m.id === membershipId ? { ...m, status: "Left" as const } : m)),
+    memberships.map((m) =>
+      m.id === membershipId ? { ...m, status: "Left" as const } : m,
+    ),
   );
   deactivateAllAssignmentsFor(membership.professionalId, membership.teamId);
 }
@@ -789,6 +1146,8 @@ export function leaveTeam(membershipId: string) {
 // property responsibility. Full PM -> Agent invitation/assignment flow is
 // out of scope for this phase; this only records the grant.
 export function setCanManageAgents(membershipId: string, value: boolean) {
-  const memberships = getTeamMemberships().map((m) => (m.id === membershipId ? { ...m, canManageAgents: value } : m));
+  const memberships = getTeamMemberships().map((m) =>
+    m.id === membershipId ? { ...m, canManageAgents: value } : m,
+  );
   writeList(MEMBERSHIPS_KEY, memberships);
 }

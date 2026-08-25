@@ -3,24 +3,38 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { Plus } from "lucide-react";
 
+import emptyIllustration from "@/assets/images/empty.png";
 import { OwnerDashboardShell } from "@/components/owner/owner-dashboard-shell";
+import { useOwnerEmptyMode } from "@/components/owner/use-owner-demo-mode";
 import { StatusPill } from "@/components/owner/status-pill";
 import { OWNER_LISTINGS, getOwnerProperties } from "@/lib/owner-data";
 
-const FILTERS = ["All", "Draft", "In Review", "Live", "Paused", "Archived", "Not Listed"] as const;
+const FILTERS = [
+  "All",
+  "Draft",
+  "In Review",
+  "Live",
+  "Paused",
+  "Archived",
+  "Not Listed",
+] as const;
 
 export default function OwnerListingsPage() {
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>("All");
-  const properties = getOwnerProperties();
+  const emptyMode = useOwnerEmptyMode();
+  const properties = emptyMode ? [] : getOwnerProperties();
 
   const rows = useMemo(
     () =>
-      OWNER_LISTINGS.map((listing) => ({
-        listing,
-        property: properties.find((p) => p.id === listing.propertyId)!,
-      })).filter((row) => filter === "All" || row.listing.status === filter),
-    [properties, filter],
+      (emptyMode ? [] : OWNER_LISTINGS)
+        .map((listing) => ({
+          listing,
+          property: properties.find((p) => p.id === listing.propertyId)!,
+        }))
+        .filter((row) => filter === "All" || row.listing.status === filter),
+    [emptyMode, properties, filter],
   );
 
   return (
@@ -57,25 +71,63 @@ export default function OwnerListingsPage() {
                   className="grid gap-4 p-5 transition-colors hover:bg-black/2 sm:p-6 lg:grid-cols-[minmax(0,1fr)_auto_auto_auto] lg:items-center"
                 >
                   <div className="flex min-w-0 items-center gap-4">
-                    <Image src={property.image} alt="" className="size-14 shrink-0 rounded-xl object-cover" />
+                    <Image
+                      src={property.image}
+                      alt=""
+                      className="size-14 shrink-0 rounded-xl object-cover"
+                    />
                     <div className="min-w-0">
-                      <h3 className="font-bricolage text-carbon-900 truncate font-medium">{property.title}</h3>
-                      <p className="text-carbon-500 mt-1 text-sm">{property.location}</p>
+                      <h3 className="font-bricolage text-carbon-900 truncate font-medium">
+                        {property.title}
+                      </h3>
+                      <p className="text-carbon-500 mt-1 text-sm">
+                        {property.location}
+                      </p>
                     </div>
                   </div>
                   <StatusPill status={listing.status} />
                   <div className="flex gap-6 text-sm">
                     <MiniMetric label="Views" value={listing.views} />
-                    <MiniMetric label="Applications" value={listing.applications} />
+                    <MiniMetric
+                      label="Applications"
+                      value={listing.applications}
+                    />
                   </div>
                   <div className="text-carbon-500 text-sm lg:text-right">
                     <p>{property.propertyManager?.name ?? "You"}</p>
-                    <p className="text-carbon-400 text-xs">{property.agent?.name ?? "No agent"}</p>
+                    <p className="text-carbon-400 text-xs">
+                      {property.agent?.name ?? "No agent"}
+                    </p>
                   </div>
                 </Link>
               ))}
               {rows.length === 0 ? (
-                <p className="text-carbon-500 p-8 text-center text-sm">No listings match this filter.</p>
+                <div className="flex flex-col items-center px-6 py-14 text-center">
+                  <Image
+                    src={emptyIllustration}
+                    alt=""
+                    className="h-32 w-auto object-contain"
+                  />
+                  <h2 className="font-bricolage mt-5 text-xl font-medium">
+                    {emptyMode
+                      ? "No listings yet"
+                      : "No listings match this filter"}
+                  </h2>
+                  <p className="text-carbon-500 mt-2 max-w-sm text-sm leading-6">
+                    {emptyMode
+                      ? "Add your first property before creating a public listing."
+                      : "Try a different listing filter."}
+                  </p>
+                  {emptyMode ? (
+                    <Link
+                      href="/owner-dashboard/properties/new"
+                      className="font-bricolage mt-6 inline-flex h-11 items-center gap-2 rounded-full bg-black px-5 text-sm font-medium text-white"
+                    >
+                      <Plus aria-hidden="true" className="size-4" />
+                      Add Property
+                    </Link>
+                  ) : null}
+                </div>
               ) : null}
             </div>
           </div>

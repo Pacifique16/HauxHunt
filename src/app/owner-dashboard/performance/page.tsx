@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
@@ -9,9 +10,12 @@ import {
   Heart,
   KeyRound,
   MousePointerClick,
+  Plus,
 } from "lucide-react";
 
+import emptyIllustration from "@/assets/images/empty.png";
 import { OwnerDashboardShell } from "@/components/owner/owner-dashboard-shell";
+import { useOwnerEmptyMode } from "@/components/owner/use-owner-demo-mode";
 
 type Range = "7 days" | "30 days" | "90 days" | "This year";
 type Metric = "Views" | "Saves" | "Viewing requests" | "Applications";
@@ -125,6 +129,7 @@ const RENTAL_INCOME = [
 export default function OwnerPerformancePage() {
   const [range, setRange] = useState<Range>("30 days");
   const [propertyId, setPropertyId] = useState("all");
+  const emptyMode = useOwnerEmptyMode();
   const factor = RANGE_FACTOR[range];
   const propertyFactor =
     propertyId === "all"
@@ -142,6 +147,47 @@ export default function OwnerPerformancePage() {
     [factor, propertyFactor],
   );
   const signedRentals = Math.max(1, Math.round(100 * factor * propertyFactor));
+
+  if (emptyMode) {
+    return (
+      <OwnerDashboardShell>
+        <section className="px-5 pt-8 pb-24 sm:px-6 lg:px-10 lg:pt-10 xl:px-12">
+          <div className="mx-auto max-w-[1360px]">
+            <header className="border-b border-black/10 pb-8">
+              <h1 className="dashboard-page-title text-carbon-900">
+                Performance
+              </h1>
+              <p className="text-carbon-600 mt-5 max-w-2xl text-base leading-7 sm:text-lg">
+                Understand listing traffic, conversion, rental outcomes, and
+                portfolio performance.
+              </p>
+            </header>
+            <section className="mt-7 flex min-h-105 flex-col items-center justify-center rounded-[1.75rem] bg-white px-6 py-14 text-center shadow-[0_16px_45px_rgba(0,0,0,0.055)]">
+              <Image
+                src={emptyIllustration}
+                alt=""
+                className="h-40 w-auto object-contain"
+              />
+              <h2 className="font-bricolage mt-5 text-2xl font-medium">
+                No performance data yet
+              </h2>
+              <p className="text-carbon-500 mt-2 max-w-md text-sm leading-6">
+                Add and publish your first property. Views, saves, viewing
+                requests, rental income, and conversion data will appear here.
+              </p>
+              <Link
+                href="/owner-dashboard/properties/new"
+                className="font-bricolage mt-6 inline-flex h-11 items-center gap-2 rounded-full bg-black px-5 text-sm font-medium text-white"
+              >
+                <Plus aria-hidden="true" className="size-4" />
+                Add Property
+              </Link>
+            </section>
+          </div>
+        </section>
+      </OwnerDashboardShell>
+    );
+  }
 
   return (
     <OwnerDashboardShell>

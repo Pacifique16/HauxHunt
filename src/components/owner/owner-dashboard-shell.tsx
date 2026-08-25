@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useSyncExternalStore } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -30,11 +30,17 @@ import {
 import { Wordmark } from "@/components/layout/wordmark";
 import { CurrencySelector } from "@/components/currency/currency-selector";
 import { VoiceInputButton } from "@/components/listings/voice-input-button";
+import { DashboardNotificationsDrawer } from "@/components/dashboard-notifications-drawer";
 import appIllustration from "@/assets/images/illustrated-black-man-using-mobile-phone.png";
 import ownerProfile from "@/assets/images/flatmate-billy.jpg";
 import { OWNER } from "@/lib/owner-data";
 import {
+  clearAllOwnerNotifications,
+  clearOwnerNotification,
+  getOwnerNotifications,
   getOwnerUnreadNotificationCount,
+  markAllOwnerNotificationsRead,
+  markOwnerNotificationRead,
   subscribeToOwnerNotifications,
 } from "@/lib/owner-notifications";
 
@@ -60,9 +66,17 @@ type OwnerNavItem = { label: string; href: string; icon: LucideIcon };
 // itself covers Active/Upcoming/Ending Soon/Ended, not only active ones.
 const ALL_ITEMS: OwnerNavItem[] = [
   { label: "Overview", href: "/owner-dashboard", icon: LayoutDashboard },
-  { label: "Performance", href: "/owner-dashboard/performance", icon: ChartNoAxesCombined },
+  {
+    label: "Performance",
+    href: "/owner-dashboard/performance",
+    icon: ChartNoAxesCombined,
+  },
   { label: "Properties", href: "/owner-dashboard/properties", icon: Home },
-  { label: "Applications", href: "/owner-dashboard/applications", icon: ClipboardCheck },
+  {
+    label: "Applications",
+    href: "/owner-dashboard/applications",
+    icon: ClipboardCheck,
+  },
   { label: "Rentals", href: "/owner-dashboard/rentals", icon: Key },
   { label: "Payments", href: "/owner-dashboard/payments", icon: CreditCard },
   { label: "Maintenance", href: "/owner-dashboard/maintenance", icon: Wrench },
@@ -105,6 +119,12 @@ function isActive(pathname: string, href: string) {
 }
 
 function OwnerTopBar() {
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const notifications = useSyncExternalStore(
+    subscribeToOwnerNotifications,
+    getOwnerNotifications,
+    getOwnerNotifications,
+  );
   const unreadCount = useSyncExternalStore(
     subscribeToOwnerNotifications,
     getOwnerUnreadNotificationCount,
@@ -117,7 +137,10 @@ function OwnerTopBar() {
         <label className="mr-auto block w-full max-w-sm">
           <span className="sr-only">Search your properties</span>
           <span className="catalogue-location-filter flex items-center gap-2 px-4">
-            <Search aria-hidden="true" className="text-carbon-500 size-4 shrink-0" />
+            <Search
+              aria-hidden="true"
+              className="text-carbon-500 size-4 shrink-0"
+            />
             <input
               type="search"
               placeholder="Search your properties"
@@ -127,8 +150,9 @@ function OwnerTopBar() {
           </span>
         </label>
         <CurrencySelector openOnHover />
-        <Link
-          href="/owner-dashboard/notifications"
+        <button
+          type="button"
+          onClick={() => setNotificationsOpen(true)}
           aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ""}`}
           className="relative mr-4 flex size-11 items-center justify-center rounded-full bg-transparent text-black hover:bg-black/4.5"
         >
@@ -138,9 +162,19 @@ function OwnerTopBar() {
               {unreadCount}
             </span>
           ) : null}
-        </Link>
+        </button>
         <OwnerProfileMenu />
       </div>
+      <DashboardNotificationsDrawer
+        open={notificationsOpen}
+        onClose={() => setNotificationsOpen(false)}
+        notifications={notifications}
+        settingsHref="/owner-dashboard/account"
+        onMarkRead={markOwnerNotificationRead}
+        onMarkAllRead={markAllOwnerNotificationsRead}
+        onClear={clearOwnerNotification}
+        onClearAll={clearAllOwnerNotifications}
+      />
     </header>
   );
 }
@@ -150,9 +184,18 @@ function OwnerTopBar() {
 // profile lives. The sidebar deliberately has no profile control of its own.
 function OwnerProfileMenu() {
   const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function closeOnOutsideClick(event: MouseEvent) {
+      if (!menuRef.current?.contains(event.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    return () => document.removeEventListener("mousedown", closeOnOutsideClick);
+  }, []);
 
   return (
-    <div className="relative ml-1">
+    <div ref={menuRef} className="relative ml-1">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
@@ -160,7 +203,11 @@ function OwnerProfileMenu() {
         aria-haspopup="menu"
         className="flex size-12 items-center justify-center rounded-full shadow-[0_4px_14px_rgba(0,0,0,0.14)] transition-shadow hover:shadow-[0_6px_18px_rgba(0,0,0,0.2)]"
       >
-        <Image src={ownerProfile} alt="" className="size-12 rounded-full object-cover" />
+        <Image
+          src={ownerProfile}
+          alt=""
+          className="size-12 rounded-full object-cover"
+        />
       </button>
       {open ? (
         <div
@@ -168,9 +215,15 @@ function OwnerProfileMenu() {
           className="absolute top-[calc(100%+0.75rem)] right-0 z-50 w-[min(360px,calc(100vw-3rem))] overflow-hidden rounded-2xl border border-black/10 bg-white text-black shadow-[0_20px_55px_rgba(0,0,0,0.16)]"
         >
           <div className="flex items-center gap-4 border-b border-black/10 p-5">
-            <Image src={ownerProfile} alt="" className="size-12 shrink-0 rounded-full object-cover shadow-[0_4px_14px_rgba(0,0,0,0.14)]" />
+            <Image
+              src={ownerProfile}
+              alt=""
+              className="size-12 shrink-0 rounded-full object-cover shadow-[0_4px_14px_rgba(0,0,0,0.14)]"
+            />
             <div className="min-w-0">
-              <p className="font-bricolage truncate text-lg font-medium">{OWNER.name}</p>
+              <p className="font-bricolage truncate text-lg font-medium">
+                {OWNER.name}
+              </p>
               <p className="text-carbon-500 truncate text-sm">{OWNER.email}</p>
               <p className="text-carbon-400 mt-0.5 text-xs">{OWNER.role}</p>
             </div>
@@ -186,12 +239,15 @@ function OwnerProfileMenu() {
               My Account
             </Link>
             <Link
-              href="/renter-dashboard/help"
+              href="/help"
               role="menuitem"
               onClick={() => setOpen(false)}
               className="flex h-12 items-center gap-3 rounded-xl px-3 font-medium transition-colors hover:bg-black/4.5"
             >
-              <HelpCircle aria-hidden="true" className="text-carbon-500 size-4" />
+              <HelpCircle
+                aria-hidden="true"
+                className="text-carbon-500 size-4"
+              />
               Help Center
             </Link>
             <Link
@@ -200,7 +256,10 @@ function OwnerProfileMenu() {
               onClick={() => setOpen(false)}
               className="flex h-12 items-center gap-3 rounded-xl px-3 font-medium transition-colors hover:bg-black/4.5"
             >
-              <MessageSquarePlus aria-hidden="true" className="text-carbon-500 size-4" />
+              <MessageSquarePlus
+                aria-hidden="true"
+                className="text-carbon-500 size-4"
+              />
               Send Feedback
             </Link>
           </div>
@@ -208,7 +267,10 @@ function OwnerProfileMenu() {
             <Link
               href="/login"
               role="menuitem"
-              onClick={() => window.sessionStorage.removeItem("hauxhunt-authenticated-role")}
+              onClick={() => {
+                window.sessionStorage.removeItem("hauxhunt-authenticated-role");
+                window.sessionStorage.removeItem("hauxhunt-owner-empty-state");
+              }}
               className="flex h-12 items-center justify-between rounded-xl px-3 font-medium transition-colors hover:bg-black/4.5"
             >
               Log out
@@ -237,7 +299,9 @@ function OwnerSidebar({
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
         <div className="absolute inset-0 [background-image:radial-gradient(circle_at_center,white_1px,transparent_1px)] [background-size:20px_20px] opacity-[0.07]" />
       </div>
-      <div className={`relative z-20 flex items-center ${collapsed ? "flex-col justify-center gap-4" : "justify-between"}`}>
+      <div
+        className={`relative z-20 flex items-center ${collapsed ? "flex-col justify-center gap-4" : "justify-between"}`}
+      >
         {collapsed ? (
           <button
             type="button"
@@ -256,7 +320,11 @@ function OwnerSidebar({
           </button>
         ) : (
           <>
-            <Link href="/" aria-label="HauxHunt home" className="shrink-0 invert transition-all w-auto">
+            <Link
+              href="/"
+              aria-label="HauxHunt home"
+              className="w-auto shrink-0 invert transition-all"
+            >
               <Wordmark height={42} />
             </Link>
             <button
@@ -274,7 +342,12 @@ function OwnerSidebar({
       <nav aria-label="Owner dashboard" className="relative z-10 mt-7 flex-1">
         <ul className={collapsed ? "space-y-2" : "mt-2 space-y-1"}>
           {ALL_ITEMS.map((item) => (
-            <OwnerNavLink key={item.href} item={item} collapsed={collapsed} active={isActive(pathname, item.href)} />
+            <OwnerNavLink
+              key={item.href}
+              item={item}
+              collapsed={collapsed}
+              active={isActive(pathname, item.href)}
+            />
           ))}
         </ul>
       </nav>
@@ -296,8 +369,12 @@ function OwnerSidebar({
             />
           </svg>
           <div className="relative z-10 max-w-[135px]">
-            <p className="font-bricolage text-lg leading-5 font-medium tracking-[-0.025em]">HauxHunt on the go.</p>
-            <p className="mt-2 text-xs leading-4 text-black/55">Manage your properties anywhere.</p>
+            <p className="font-bricolage text-lg leading-5 font-medium tracking-[-0.025em]">
+              HauxHunt on the go.
+            </p>
+            <p className="mt-2 text-xs leading-4 text-black/55">
+              Manage your properties anywhere.
+            </p>
           </div>
           <button
             type="button"
@@ -316,7 +393,15 @@ function OwnerSidebar({
   );
 }
 
-function OwnerNavLink({ item, collapsed, active }: { item: OwnerNavItem; collapsed: boolean; active: boolean }) {
+function OwnerNavLink({
+  item,
+  collapsed,
+  active,
+}: {
+  item: OwnerNavItem;
+  collapsed: boolean;
+  active: boolean;
+}) {
   return (
     <li>
       <Link
@@ -330,7 +415,9 @@ function OwnerNavLink({ item, collapsed, active }: { item: OwnerNavItem; collaps
         }`}
       >
         <item.icon aria-hidden="true" className="size-[18px] shrink-0" />
-        {!collapsed && <span className="flex-1 whitespace-nowrap">{item.label}</span>}
+        {!collapsed && (
+          <span className="flex-1 whitespace-nowrap">{item.label}</span>
+        )}
         {collapsed ? (
           <span className="pointer-events-none absolute top-1/2 left-[calc(100%+0.85rem)] z-50 -translate-x-1 -translate-y-1/2 rounded-full border border-white/10 bg-[#242424] px-4 py-2 text-xs font-medium whitespace-nowrap text-white opacity-0 shadow-[0_10px_30px_rgba(0,0,0,0.28)] transition-[opacity,transform] duration-200 group-hover:translate-x-0 group-hover:opacity-100">
             {item.label}
@@ -342,6 +429,12 @@ function OwnerNavLink({ item, collapsed, active }: { item: OwnerNavItem; collaps
 }
 
 function MobileOwnerNav({ pathname }: { pathname: string }) {
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const notifications = useSyncExternalStore(
+    subscribeToOwnerNotifications,
+    getOwnerNotifications,
+    getOwnerNotifications,
+  );
   return (
     <div className="border-b border-black/10 bg-white lg:hidden">
       <div className="flex items-center justify-between px-5 py-4 sm:px-6">
@@ -349,13 +442,14 @@ function MobileOwnerNav({ pathname }: { pathname: string }) {
           <Wordmark height={36} />
         </Link>
         <div className="flex items-center gap-1.5">
-          <Link
-            href="/owner-dashboard/notifications"
+          <button
+            type="button"
+            onClick={() => setNotificationsOpen(true)}
             aria-label="Notifications"
             className="relative flex size-9 items-center justify-center rounded-full border border-black/10"
           >
             <Bell aria-hidden="true" className="size-4" />
-          </Link>
+          </button>
           <Link
             href="/owner-dashboard/account"
             aria-label="Account"
@@ -365,13 +459,18 @@ function MobileOwnerNav({ pathname }: { pathname: string }) {
           </Link>
         </div>
       </div>
-      <nav aria-label="Owner dashboard" className="overflow-x-auto px-5 pb-3 sm:px-6">
+      <nav
+        aria-label="Owner dashboard"
+        className="overflow-x-auto px-5 pb-3 sm:px-6"
+      >
         <ul className="flex min-w-max gap-2">
           {ALL_ITEMS.map((item) => (
             <li key={item.href}>
               <Link
                 href={item.href}
-                aria-current={isActive(pathname, item.href) ? "page" : undefined}
+                aria-current={
+                  isActive(pathname, item.href) ? "page" : undefined
+                }
                 className={`inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-medium ${isActive(pathname, item.href) ? "bg-black text-white" : "border border-black/10 bg-white text-black"}`}
               >
                 <item.icon className="size-4" />
@@ -381,6 +480,16 @@ function MobileOwnerNav({ pathname }: { pathname: string }) {
           ))}
         </ul>
       </nav>
+      <DashboardNotificationsDrawer
+        open={notificationsOpen}
+        onClose={() => setNotificationsOpen(false)}
+        notifications={notifications}
+        settingsHref="/owner-dashboard/account"
+        onMarkRead={markOwnerNotificationRead}
+        onMarkAllRead={markAllOwnerNotificationsRead}
+        onClear={clearOwnerNotification}
+        onClearAll={clearAllOwnerNotifications}
+      />
     </div>
   );
 }

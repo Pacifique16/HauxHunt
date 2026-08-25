@@ -113,7 +113,8 @@ export const OWNER_MOCK_NOTIFICATIONS: OwnerNotification[] = [
     timestamp: NOW - 3 * DAY,
     read: true,
     actionLabel: "View Listing",
-    actionHref: "/owner-dashboard/properties/kibagabaga-modern-family-home?tab=listing",
+    actionHref:
+      "/owner-dashboard/properties/kibagabaga-modern-family-home?tab=listing",
   },
   {
     id: "owner-maintenance-submitted",
@@ -142,6 +143,7 @@ export const OWNER_MOCK_NOTIFICATIONS: OwnerNotification[] = [
 // ---------------------------------------------------------------------------
 
 const READ_KEY = "hauxhunt-owner-notification-read-ids";
+const CLEARED_KEY = "hauxhunt-owner-notification-cleared-ids";
 
 function getReadIds(): Set<string> {
   if (typeof window === "undefined") return new Set();
@@ -185,6 +187,36 @@ export function markAllOwnerNotificationsRead() {
   window.dispatchEvent(new Event("hauxhunt-owner-notifications-changed"));
 }
 
+export function clearOwnerNotification(id: string) {
+  const ids = readStoredIds(CLEARED_KEY);
+  ids.add(id);
+  saveStoredIds(CLEARED_KEY, ids);
+  invalidateCache();
+  window.dispatchEvent(new Event("hauxhunt-owner-notifications-changed"));
+}
+
+export function clearAllOwnerNotifications() {
+  saveStoredIds(
+    CLEARED_KEY,
+    new Set(getOwnerNotifications().map((item) => item.id)),
+  );
+  invalidateCache();
+  window.dispatchEvent(new Event("hauxhunt-owner-notifications-changed"));
+}
+
+function readStoredIds(key: string): Set<string> {
+  try {
+    const parsed = JSON.parse(window.sessionStorage.getItem(key) ?? "[]");
+    return new Set(Array.isArray(parsed) ? parsed : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function saveStoredIds(key: string, ids: Set<string>) {
+  window.sessionStorage.setItem(key, JSON.stringify([...ids]));
+}
+
 // ---------------------------------------------------------------------------
 // Phase 2 -- live prototype notifications. The list above is static seed
 // history; these are appended at the moment a Property Manager actually
@@ -208,10 +240,21 @@ function getSessionNotifications(): OwnerNotification[] {
   }
 }
 
-export function pushOwnerNotification(notification: Omit<OwnerNotification, "id" | "timestamp" | "read"> & { id?: string }) {
+export function pushOwnerNotification(
+  notification: Omit<OwnerNotification, "id" | "timestamp" | "read"> & {
+    id?: string;
+  },
+) {
   if (typeof window === "undefined") return;
   const list = getSessionNotifications();
-  list.unshift({ id: notification.id ?? `session-${Date.now().toString(36)}-${Math.round(Math.random() * 1e4).toString(36)}`, timestamp: Date.now(), read: false, ...notification });
+  list.unshift({
+    id:
+      notification.id ??
+      `session-${Date.now().toString(36)}-${Math.round(Math.random() * 1e4).toString(36)}`,
+    timestamp: Date.now(),
+    read: false,
+    ...notification,
+  });
   try {
     window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(list));
   } catch {
@@ -236,8 +279,17 @@ export function getOwnerNotifications(): OwnerNotification[] {
     ...n,
     read: n.read || readIds.has(n.id),
   }));
-  const live = getSessionNotifications().map((n) => ({ ...n, read: n.read || readIds.has(n.id) }));
-  cachedNotifications = [...live, ...seeded];
+  const live = getSessionNotifications().map((n) => ({
+    ...n,
+    read: n.read || readIds.has(n.id),
+  }));
+  const clearedIds =
+    typeof window === "undefined"
+      ? new Set<string>()
+      : readStoredIds(CLEARED_KEY);
+  cachedNotifications = [...live, ...seeded].filter(
+    (item) => !clearedIds.has(item.id),
+  );
   return cachedNotifications;
 }
 
@@ -249,5 +301,9 @@ export function getOwnerUnreadNotificationCount(): number {
 
 export function subscribeToOwnerNotifications(callback: () => void) {
   window.addEventListener("hauxhunt-owner-notifications-changed", callback);
-  return () => window.removeEventListener("hauxhunt-owner-notifications-changed", callback);
+  return () =>
+    window.removeEventListener(
+      "hauxhunt-owner-notifications-changed",
+      callback,
+    );
 }

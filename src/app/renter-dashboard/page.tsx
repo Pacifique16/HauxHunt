@@ -247,7 +247,7 @@ const RENTER_NAV_GROUPS = [
 
 const PROFILE_LINKS = [
   ["My Account", "/renter-dashboard/account"],
-  ["Help Center", "/renter-dashboard/help"],
+  ["Help Center", "/help"],
   ["Send Feedback", "/feedback"],
 ] as const;
 
@@ -295,7 +295,7 @@ export default function RenterDashboardPage() {
   const unreadMessageCount = useSyncExternalStore(
     subscribeToStorage,
     () => getTotalUnreadCount(),
-    () => 0
+    () => 0,
   );
   const unreadNotificationCount = useSyncExternalStore(
     subscribeToNotifications,

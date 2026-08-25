@@ -1,14 +1,31 @@
 "use client";
 
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useReducer, useState } from "react";
 import { X } from "lucide-react";
 
 import { OwnerDashboardShell } from "@/components/owner/owner-dashboard-shell";
+import emptyIllustration from "@/assets/images/empty.png";
+import { useOwnerEmptyMode } from "@/components/owner/use-owner-demo-mode";
 import { StatusPill } from "@/components/owner/status-pill";
-import { formatRwf, getOwnerPayments, propertyTitle, subscribeToOwnerPayments, type OwnerPayment, type PaymentStatus } from "@/lib/owner-data";
+import {
+  formatRwf,
+  getOwnerPayments,
+  propertyTitle,
+  subscribeToOwnerPayments,
+  type OwnerPayment,
+  type PaymentStatus,
+} from "@/lib/owner-data";
 
-const FILTERS: Array<PaymentStatus | "All"> = ["All", "Paid", "Pending", "Overdue", "Due", "Failed"];
+const FILTERS: Array<PaymentStatus | "All"> = [
+  "All",
+  "Paid",
+  "Pending",
+  "Overdue",
+  "Due",
+  "Failed",
+];
 
 export default function OwnerPaymentsPage() {
   return (
@@ -26,17 +43,32 @@ function OwnerPaymentsPageInner() {
   const [, forceUpdate] = useReducer((n: number) => n + 1, 0);
   useEffect(() => subscribeToOwnerPayments(forceUpdate), []);
 
-  const allPayments = getOwnerPayments();
+  const emptyMode = useOwnerEmptyMode();
+  const allPayments = emptyMode ? [] : getOwnerPayments();
   const propertyFilter = searchParams.get("property");
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>("All");
-  const [selectedId, setSelectedId] = useState<string | null>(searchParams.get("open"));
+  const [selectedId, setSelectedId] = useState<string | null>(
+    searchParams.get("open"),
+  );
 
-  const base = propertyFilter ? allPayments.filter((p) => p.propertyId === propertyFilter) : allPayments;
-  const rows = filter === "All" ? base : base.filter((p) => p.status === filter);
+  const base = propertyFilter
+    ? allPayments.filter((p) => p.propertyId === propertyFilter)
+    : allPayments;
+  const rows =
+    filter === "All" ? base : base.filter((p) => p.status === filter);
 
   const summary = useMemo(() => {
-    const received = allPayments.filter((p) => p.status === "Paid").reduce((sum, p) => sum + p.amountValue, 0);
-    const outstanding = allPayments.filter((p) => p.status === "Pending" || p.status === "Overdue" || p.status === "Due").reduce((sum, p) => sum + p.amountValue, 0);
+    const received = allPayments
+      .filter((p) => p.status === "Paid")
+      .reduce((sum, p) => sum + p.amountValue, 0);
+    const outstanding = allPayments
+      .filter(
+        (p) =>
+          p.status === "Pending" ||
+          p.status === "Overdue" ||
+          p.status === "Due",
+      )
+      .reduce((sum, p) => sum + p.amountValue, 0);
     return { received, outstanding, expected: received + outstanding };
   }, [allPayments]);
 
@@ -49,14 +81,21 @@ function OwnerPaymentsPageInner() {
           <header className="border-b border-black/10 pb-8">
             <h1 className="dashboard-page-title text-carbon-900">Payments</h1>
             <p className="text-carbon-600 mt-5 max-w-2xl text-base leading-7 sm:text-lg">
-              Rent activity across your portfolio. This does not include HauxHunt account billing.
+              Rent activity across your portfolio. This does not include
+              HauxHunt account billing.
             </p>
           </header>
 
           <div className="mt-7 grid gap-4 sm:grid-cols-3">
-            <SummaryCard label="Expected this month" value={formatRwf(summary.expected)} />
+            <SummaryCard
+              label="Expected this month"
+              value={formatRwf(summary.expected)}
+            />
             <SummaryCard label="Received" value={formatRwf(summary.received)} />
-            <SummaryCard label="Outstanding" value={formatRwf(summary.outstanding)} />
+            <SummaryCard
+              label="Outstanding"
+              value={formatRwf(summary.outstanding)}
+            />
           </div>
 
           <div className="mt-6 flex flex-wrap gap-1.5">
@@ -84,22 +123,41 @@ function OwnerPaymentsPageInner() {
                 >
                   <div>
                     <p className="font-medium">{payment.purpose}</p>
-                    <p className="text-carbon-500 mt-1 text-sm">{payment.renter} · {propertyTitle(payment.propertyId)}</p>
-                    <p className="text-carbon-400 mt-0.5 text-xs">{payment.date}</p>
+                    <p className="text-carbon-500 mt-1 text-sm">
+                      {payment.renter} · {propertyTitle(payment.propertyId)}
+                    </p>
+                    <p className="text-carbon-400 mt-0.5 text-xs">
+                      {payment.date}
+                    </p>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="font-bricolage text-lg font-medium">{payment.amount}</span>
+                    <span className="font-bricolage text-lg font-medium">
+                      {payment.amount}
+                    </span>
                     <StatusPill status={payment.status} />
                   </div>
                 </button>
               ))}
-              {rows.length === 0 ? <p className="text-carbon-500 p-8 text-center text-sm">No payments match this filter.</p> : null}
+              {rows.length === 0 ? (
+                <div className="flex flex-col items-center px-6 py-14 text-center">
+                  <Image
+                    src={emptyIllustration}
+                    alt=""
+                    className="h-32 w-auto object-contain"
+                  />
+                  <p className="text-carbon-500 mt-5 text-sm">
+                    No payments match this filter.
+                  </p>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
       </section>
 
-      {selected ? <PaymentDetail payment={selected} onClose={() => setSelectedId(null)} /> : null}
+      {selected ? (
+        <PaymentDetail payment={selected} onClose={() => setSelectedId(null)} />
+      ) : null}
     </OwnerDashboardShell>
   );
 }
@@ -108,12 +166,20 @@ function SummaryCard({ label, value }: { label: string; value: string }) {
   return (
     <article className="rounded-[1.5rem] bg-white p-6 shadow-[0_8px_24px_rgba(0,0,0,0.06)]">
       <p className="text-carbon-500 text-sm">{label}</p>
-      <p className="font-bricolage text-carbon-900 mt-4 text-2xl font-medium tracking-[-0.03em]">{value}</p>
+      <p className="font-bricolage text-carbon-900 mt-4 text-2xl font-medium tracking-[-0.03em]">
+        {value}
+      </p>
     </article>
   );
 }
 
-function PaymentDetail({ payment, onClose }: { payment: OwnerPayment; onClose: () => void }) {
+function PaymentDetail({
+  payment,
+  onClose,
+}: {
+  payment: OwnerPayment;
+  onClose: () => void;
+}) {
   const rows: [string, string][] = [
     ["Renter", payment.renter],
     ["Property", propertyTitle(payment.propertyId)],
@@ -127,7 +193,10 @@ function PaymentDetail({ payment, onClose }: { payment: OwnerPayment; onClose: (
   ];
 
   return (
-    <div className="fixed inset-0 z-190 flex items-center justify-center bg-black/40 p-4" onMouseDown={onClose}>
+    <div
+      className="fixed inset-0 z-190 flex items-center justify-center bg-black/40 p-4"
+      onMouseDown={onClose}
+    >
       <div
         role="dialog"
         aria-modal="true"
@@ -136,19 +205,31 @@ function PaymentDetail({ payment, onClose }: { payment: OwnerPayment; onClose: (
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-carbon-400 text-xs">Receipt · {payment.reference}</p>
-            <p className="font-bricolage mt-2 text-3xl font-medium">{payment.amount}</p>
+            <p className="text-carbon-400 text-xs">
+              Receipt · {payment.reference}
+            </p>
+            <p className="font-bricolage mt-2 text-3xl font-medium">
+              {payment.amount}
+            </p>
           </div>
           <div className="flex items-center gap-3">
             <StatusPill status={payment.status} />
-            <button type="button" onClick={onClose} aria-label="Close" className="flex size-8 items-center justify-center rounded-full hover:bg-black/5">
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className="flex size-8 items-center justify-center rounded-full hover:bg-black/5"
+            >
               <X className="size-4" />
             </button>
           </div>
         </div>
         <dl className="mt-6 divide-y divide-black/8 border-y border-black/8">
           {rows.map(([label, value]) => (
-            <div key={label} className="grid grid-cols-[120px_1fr] gap-4 py-3 text-sm">
+            <div
+              key={label}
+              className="grid grid-cols-[120px_1fr] gap-4 py-3 text-sm"
+            >
               <dt className="text-carbon-500">{label}</dt>
               <dd className="text-right font-medium">{value}</dd>
             </div>

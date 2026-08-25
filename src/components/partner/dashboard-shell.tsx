@@ -2,12 +2,11 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useReducer, useState, type ReactNode } from "react";
+import { useEffect, useReducer, useRef, useState, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   Bell,
   CalendarDays,
-  ChevronDown,
   ClipboardCheck,
   CreditCard,
   HelpCircle,
@@ -28,19 +27,32 @@ import {
 
 import { Wordmark } from "@/components/layout/wordmark";
 import { VoiceInputButton } from "@/components/listings/voice-input-button";
+import { DashboardNotificationsDrawer } from "@/components/dashboard-notifications-drawer";
 import appIllustration from "@/assets/images/illustrated-black-man-using-mobile-phone.png";
-import { usePartnerRole, setPartnerRole } from "@/components/partner/use-partner-role";
+import { usePartnerRole } from "@/components/partner/use-partner-role";
+import { subscribeToTeam, type RegisteredProfessional } from "@/lib/team-data";
 import {
-  REGISTERED_PROFESSIONALS,
-  clearPreviewProfessional,
-  getPreviewProfessionalId,
-  setPreviewProfessional,
-  subscribeToTeam,
-  type RegisteredProfessional,
-} from "@/lib/team-data";
-import { useDemoProfessional, useMounted } from "@/components/partner/use-demo-professional";
-import { getApplicationsFor, getConversationsFor, getEnquiriesFor, getProfessionalUnreadCount, subscribeToProfessionalWork } from "@/lib/professional-work";
-import { getMaintenanceFor, getPaymentsFor, subscribeToPmWork } from "@/lib/pm-work";
+  clearSessionProfessional,
+  useDemoProfessional,
+  useMounted,
+} from "@/components/partner/use-demo-professional";
+import {
+  getApplicationsFor,
+  getConversationsFor,
+  getEnquiriesFor,
+  getProfessionalUnreadCount,
+  getProfessionalNotifications,
+  clearAllProfessionalNotifications,
+  clearProfessionalNotification,
+  markAllProfessionalNotificationsRead,
+  markProfessionalNotificationRead,
+  subscribeToProfessionalWork,
+} from "@/lib/professional-work";
+import {
+  getMaintenanceFor,
+  getPaymentsFor,
+  subscribeToPmWork,
+} from "@/lib/pm-work";
 
 type DashboardNavItem = {
   label: string;
@@ -194,37 +206,68 @@ export function DashboardShell({
   const agentProfessional = isAgent ? agentIdentity : undefined;
   const pmProfessional = isPm ? pmIdentity : undefined;
   const professional = agentProfessional ?? pmProfessional;
-  const notificationCount = mounted && professional ? getProfessionalUnreadCount(professional.id) : 0;
+  const notificationCount =
+    mounted && professional ? getProfessionalUnreadCount(professional.id) : 0;
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const notifications =
+    mounted && professional
+      ? getProfessionalNotifications(professional.id)
+      : [];
   const dashboardNav = isAgent
     ? AGENT_NAV.map((item) => {
         if (!mounted || !agentProfessional) return item;
         if (item.section === "enquiries") {
-          const newCount = getEnquiriesFor(agentProfessional.id).filter((e) => e.status === "New").length;
-          return { ...item, badge: newCount > 0 ? String(newCount) : undefined };
+          const newCount = getEnquiriesFor(agentProfessional.id).filter(
+            (e) => e.status === "New",
+          ).length;
+          return {
+            ...item,
+            badge: newCount > 0 ? String(newCount) : undefined,
+          };
         }
         if (item.section === "messages") {
-          const unreadCount = getConversationsFor(agentProfessional.id).filter((c) => c.unread).length;
-          return { ...item, badge: unreadCount > 0 ? String(unreadCount) : undefined };
+          const unreadCount = getConversationsFor(agentProfessional.id).filter(
+            (c) => c.unread,
+          ).length;
+          return {
+            ...item,
+            badge: unreadCount > 0 ? String(unreadCount) : undefined,
+          };
         }
         return item;
       })
     : PROPERTY_MANAGER_NAV.map((item) => {
         if (!mounted || !pmProfessional) return item;
         if (item.section === "applications") {
-          const actionable = getApplicationsFor(pmProfessional.id).filter((a) => a.status === "Under Review" || a.status === "Action Required").length;
-          return { ...item, badge: actionable > 0 ? String(actionable) : undefined };
+          const actionable = getApplicationsFor(pmProfessional.id).filter(
+            (a) =>
+              a.status === "Under Review" || a.status === "Action Required",
+          ).length;
+          return {
+            ...item,
+            badge: actionable > 0 ? String(actionable) : undefined,
+          };
         }
         if (item.section === "payments") {
-          const overdue = getPaymentsFor(pmProfessional.id).filter((p) => p.status === "Overdue").length;
+          const overdue = getPaymentsFor(pmProfessional.id).filter(
+            (p) => p.status === "Overdue",
+          ).length;
           return { ...item, badge: overdue > 0 ? String(overdue) : undefined };
         }
         if (item.section === "maintenance") {
-          const open = getMaintenanceFor(pmProfessional.id).filter((m) => m.status === "Submitted" || m.status === "Under Review").length;
+          const open = getMaintenanceFor(pmProfessional.id).filter(
+            (m) => m.status === "Submitted" || m.status === "Under Review",
+          ).length;
           return { ...item, badge: open > 0 ? String(open) : undefined };
         }
         if (item.section === "messages") {
-          const unreadCount = getConversationsFor(pmProfessional.id).filter((c) => c.unread).length;
-          return { ...item, badge: unreadCount > 0 ? String(unreadCount) : undefined };
+          const unreadCount = getConversationsFor(pmProfessional.id).filter(
+            (c) => c.unread,
+          ).length;
+          return {
+            ...item,
+            badge: unreadCount > 0 ? String(unreadCount) : undefined,
+          };
         }
         return item;
       });
@@ -260,10 +303,31 @@ export function DashboardShell({
           onNavigate={setActiveSection}
           notificationCount={notificationCount}
           professional={professional}
+          onNotificationsOpen={() => setNotificationsOpen(true)}
         />
-        <DashboardTopBar role={role} onNavigate={setActiveSection} notificationCount={notificationCount} professional={professional} />
+        <DashboardTopBar
+          role={role}
+          onNavigate={setActiveSection}
+          notificationCount={notificationCount}
+          professional={professional}
+          onNotificationsOpen={() => setNotificationsOpen(true)}
+        />
         {children}
       </div>
+      <DashboardNotificationsDrawer
+        open={notificationsOpen}
+        onClose={() => setNotificationsOpen(false)}
+        notifications={notifications}
+        settingsHref="/partner-dashboard/settings"
+        onMarkRead={markProfessionalNotificationRead}
+        onMarkAllRead={() =>
+          professional && markAllProfessionalNotificationsRead(professional.id)
+        }
+        onClear={clearProfessionalNotification}
+        onClearAll={() =>
+          professional && clearAllProfessionalNotifications(professional.id)
+        }
+      />
     </main>
   );
 }
@@ -273,13 +337,26 @@ function DashboardTopBar({
   onNavigate,
   notificationCount,
   professional,
+  onNotificationsOpen,
 }: {
   role: "property_manager" | "agent";
   onNavigate: (section: string) => void;
   notificationCount: number;
   professional: RegisteredProfessional | undefined;
+  onNotificationsOpen: () => void;
 }) {
   const [profileOpen, setProfileOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function closeOnOutsideClick(event: MouseEvent) {
+      if (!profileMenuRef.current?.contains(event.target as Node)) {
+        setProfileOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    return () => document.removeEventListener("mousedown", closeOnOutsideClick);
+  }, []);
 
   return (
     <header className="bg-carbon-50/95 sticky top-0 z-30 hidden h-20 px-6 backdrop-blur-md lg:block lg:px-10 xl:px-12">
@@ -291,7 +368,10 @@ function DashboardTopBar({
         <label className="mr-auto block w-full max-w-sm">
           <span className="sr-only">Search dashboard</span>
           <span className="catalogue-location-filter flex items-center gap-2 px-4">
-            <Search aria-hidden="true" className="text-carbon-500 size-4 shrink-0" />
+            <Search
+              aria-hidden="true"
+              className="text-carbon-500 size-4 shrink-0"
+            />
             <input
               type="search"
               placeholder="Search"
@@ -300,9 +380,9 @@ function DashboardTopBar({
             <VoiceInputButton />
           </span>
         </label>
-        <Link
-          href="/partner-dashboard/notifications"
-          onClick={() => onNavigate("notifications")}
+        <button
+          type="button"
+          onClick={onNotificationsOpen}
           aria-label="Notifications"
           className="relative mr-4 flex size-11 items-center justify-center rounded-full bg-transparent text-black"
         >
@@ -312,8 +392,8 @@ function DashboardTopBar({
               {notificationCount}
             </span>
           ) : null}
-        </Link>
-        <div className="relative ml-1">
+        </button>
+        <div ref={profileMenuRef} className="relative ml-1">
           <button
             type="button"
             onClick={() => setProfileOpen((open) => !open)}
@@ -329,7 +409,8 @@ function DashboardTopBar({
               />
             ) : (
               <span className="font-bricolage flex size-12 items-center justify-center rounded-full bg-black text-lg font-medium text-white">
-                {professional?.name.trim().charAt(0).toUpperCase() || (role === "agent" ? "A" : "P")}
+                {professional?.name.trim().charAt(0).toUpperCase() ||
+                  (role === "agent" ? "A" : "P")}
               </span>
             )}
           </button>
@@ -339,7 +420,12 @@ function DashboardTopBar({
               role="menu"
               className="absolute top-[calc(100%+0.75rem)] right-0 w-[min(360px,calc(100vw-3rem))] overflow-hidden rounded-2xl border border-black/10 bg-white text-black shadow-[0_20px_55px_rgba(0,0,0,0.16)]"
             >
-              <ProfileMenuContent role={role} onNavigate={onNavigate} onClose={() => setProfileOpen(false)} professional={professional} />
+              <ProfileMenuContent
+                role={role}
+                onNavigate={onNavigate}
+                onClose={() => setProfileOpen(false)}
+                professional={professional}
+              />
             </div>
           ) : null}
         </div>
@@ -349,8 +435,7 @@ function DashboardTopBar({
 }
 
 // Shared by the desktop topbar's avatar dropdown and the mobile nav's
-// profile button -- same content, same "Preview as" control, one
-// implementation (Section 60: must work on both).
+// profile button.
 function ProfileMenuContent({
   role,
   onNavigate,
@@ -362,29 +447,7 @@ function ProfileMenuContent({
   onClose: () => void;
   professional: RegisteredProfessional | undefined;
 }) {
-  // Re-render whenever the preview selection (or any team-data mutation)
-  // changes -- reuses subscribeToTeam rather than a new event, since
-  // setPreviewProfessional already dispatches it (see team-data.ts).
-  const [, forceUpdate] = useReducer((n: number) => n + 1, 0);
-  useEffect(() => subscribeToTeam(forceUpdate), []);
-  const [previewOpen, setPreviewOpen] = useState(false);
-
-  // Final Presentation Readiness Cleanup -- the identity block (avatar,
-  // name, email, role) now comes from the same hydration-safe
-  // `professional` DashboardShell already resolves via useDemoProfessional
-  // (which itself honors an active Preview As selection), instead of
-  // recomputing it here and hardcoding a Renter photo regardless of who is
-  // being previewed. `previewId` below is kept only to highlight the
-  // active row inside the Prototype Preview picker.
   const activeProfessional = professional;
-  const previewId = getPreviewProfessionalId();
-  const agents = REGISTERED_PROFESSIONALS.filter((p) => p.role === "agent");
-  const propertyManagers = REGISTERED_PROFESSIONALS.filter((p) => p.role === "property_manager");
-
-  function choose(professionalId: string) {
-    setPreviewProfessional(professionalId, setPartnerRole);
-    setPreviewOpen(false);
-  }
 
   return (
     <>
@@ -397,86 +460,23 @@ function ProfileMenuContent({
           />
         ) : (
           <span className="font-bricolage flex size-12 shrink-0 items-center justify-center rounded-full bg-black text-lg font-medium text-white shadow-[0_4px_14px_rgba(0,0,0,0.14)]">
-            {activeProfessional?.name.trim().charAt(0).toUpperCase() || (role === "agent" ? "A" : "P")}
+            {activeProfessional?.name.trim().charAt(0).toUpperCase() ||
+              (role === "agent" ? "A" : "P")}
           </span>
         )}
         <div className="min-w-0">
           <p className="font-bricolage truncate text-lg font-medium">
-            {activeProfessional?.name ?? (role === "agent" ? "Alex Agent" : "Alex Partner")}
+            {activeProfessional?.name ??
+              (role === "agent" ? "Alex Agent" : "Alex Partner")}
           </p>
           <p className="text-carbon-500 truncate text-sm">
-            {activeProfessional?.email ?? (role === "agent" ? "agent@gmail.com" : "partner@gmail.com")}
+            {activeProfessional?.email ??
+              (role === "agent" ? "agent@gmail.com" : "manager@gmail.com")}
           </p>
           <p className="text-carbon-400 mt-0.5 text-xs">
             {role === "agent" ? "Agent" : "Property manager"}
           </p>
         </div>
-      </div>
-
-      <div className="border-b border-black/10 p-4">
-        <p className="text-carbon-400 text-[11px] font-medium tracking-wide uppercase">Prototype Preview</p>
-        <button
-          type="button"
-          onClick={() => setPreviewOpen((v) => !v)}
-          aria-expanded={previewOpen}
-          className="mt-2 flex w-full items-center justify-between gap-3 rounded-xl border border-dashed border-black/20 px-3 py-2.5 text-left transition-colors hover:border-black/35"
-        >
-          <span className="min-w-0">
-            <span className="block text-sm font-medium">Preview as</span>
-            <span className="text-carbon-500 block truncate text-xs">
-              {activeProfessional ? `${activeProfessional.name} · ${activeProfessional.role === "agent" ? "Agent" : "Property Manager"}` : "Default"}
-            </span>
-          </span>
-          <ChevronDown aria-hidden="true" className={`size-4 shrink-0 transition-transform ${previewOpen ? "rotate-180" : ""}`} />
-        </button>
-        {previewOpen ? (
-          <div className="mt-2 max-h-56 space-y-3 overflow-y-auto pr-1">
-            <div>
-              <p className="text-carbon-400 px-1 text-[10px] font-medium tracking-wide uppercase">Agents</p>
-              <div className="mt-1 space-y-0.5">
-                {agents.map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => choose(p.id)}
-                    aria-pressed={p.id === previewId}
-                    className={`block w-full rounded-lg px-2 py-1.5 text-left text-sm ${p.id === previewId ? "bg-black text-white" : "hover:bg-black/5"}`}
-                  >
-                    {p.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <p className="text-carbon-400 px-1 text-[10px] font-medium tracking-wide uppercase">Property Managers</p>
-              <div className="mt-1 space-y-0.5">
-                {propertyManagers.map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => choose(p.id)}
-                    aria-pressed={p.id === previewId}
-                    className={`block w-full rounded-lg px-2 py-1.5 text-left text-sm ${p.id === previewId ? "bg-black text-white" : "hover:bg-black/5"}`}
-                  >
-                    {p.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-            {previewId ? (
-              <button
-                type="button"
-                onClick={() => {
-                  clearPreviewProfessional();
-                  setPreviewOpen(false);
-                }}
-                className="text-carbon-500 block w-full rounded-lg px-2 py-1.5 text-left text-sm hover:text-black"
-              >
-                Reset to default
-              </button>
-            ) : null}
-          </div>
-        ) : null}
       </div>
 
       <div className="space-y-1 border-b border-black/10 p-2">
@@ -493,7 +493,7 @@ function ProfileMenuContent({
           My Account
         </Link>
         <Link
-          href="/renter-dashboard/help"
+          href="/help"
           role="menuitem"
           onClick={onClose}
           className="flex h-12 items-center gap-3 rounded-xl px-3 font-medium transition-colors hover:bg-black/[0.045]"
@@ -507,7 +507,10 @@ function ProfileMenuContent({
           onClick={onClose}
           className="flex h-12 items-center gap-3 rounded-xl px-3 font-medium transition-colors hover:bg-black/[0.045]"
         >
-          <MessageSquarePlus aria-hidden="true" className="text-carbon-500 size-4" />
+          <MessageSquarePlus
+            aria-hidden="true"
+            className="text-carbon-500 size-4"
+          />
           Send Feedback
         </Link>
       </div>
@@ -518,6 +521,7 @@ function ProfileMenuContent({
           role="menuitem"
           onClick={() => {
             window.sessionStorage.removeItem("hauxhunt-authenticated-role");
+            clearSessionProfessional();
           }}
           className="flex h-12 items-center justify-between rounded-xl px-3 font-medium transition-colors hover:bg-black/[0.045]"
         >
@@ -576,7 +580,7 @@ function DashboardSidebar({
             <Link
               href="/"
               aria-label="HauxHunt home"
-              className="shrink-0 invert transition-all w-auto"
+              className="w-auto shrink-0 invert transition-all"
             >
               <Wordmark height={42} />
             </Link>
@@ -697,7 +701,7 @@ function NavItem({
             {item.label}
           </span>
         ) : null}
-        {"badge" in item &&
+        {item.badge &&
           (!collapsed ? (
             <span
               className={`flex size-6 shrink-0 items-center justify-center rounded-full text-[0.65rem] font-medium ${active ? "bg-black text-white" : "bg-white/10 text-white/65"}`}
@@ -720,15 +724,28 @@ function MobileDashboardNav({
   onNavigate,
   notificationCount,
   professional,
+  onNotificationsOpen,
 }: {
   dashboardNav: DashboardNavItem[];
   activeSection: string;
   onNavigate: (section: string) => void;
   notificationCount: number;
   professional: RegisteredProfessional | undefined;
+  onNotificationsOpen: () => void;
 }) {
   const role = usePartnerRole();
   const [profileOpen, setProfileOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function closeOnOutsideClick(event: MouseEvent) {
+      if (!profileMenuRef.current?.contains(event.target as Node)) {
+        setProfileOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    return () => document.removeEventListener("mousedown", closeOnOutsideClick);
+  }, []);
 
   return (
     <div className="border-b border-black/10 bg-white lg:hidden">
@@ -737,15 +754,17 @@ function MobileDashboardNav({
           <Wordmark height={36} />
         </Link>
         <div className="flex items-center gap-1.5">
-          <Link
-            href="/partner-dashboard/notifications"
-            onClick={() => onNavigate("notifications")}
+          <button
+            type="button"
+            onClick={onNotificationsOpen}
             aria-label="Notifications"
             className="relative flex size-9 items-center justify-center rounded-full border border-black/10"
           >
             <Bell aria-hidden="true" className="size-4" />
-            {notificationCount > 0 ? <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-black ring-2 ring-white" /> : null}
-          </Link>
+            {notificationCount > 0 ? (
+              <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-black ring-2 ring-white" />
+            ) : null}
+          </button>
           <Link
             href="/partner-dashboard/settings"
             onClick={() => onNavigate("settings")}
@@ -754,7 +773,7 @@ function MobileDashboardNav({
           >
             <Settings aria-hidden="true" className="size-4" />
           </Link>
-          <div className="relative">
+          <div ref={profileMenuRef} className="relative">
             <button
               type="button"
               onClick={() => setProfileOpen((v) => !v)}
@@ -770,7 +789,12 @@ function MobileDashboardNav({
                 role="menu"
                 className="absolute top-[calc(100%+0.6rem)] right-0 z-40 w-[min(320px,calc(100vw-2.5rem))] overflow-hidden rounded-2xl border border-black/10 bg-white text-black shadow-[0_20px_55px_rgba(0,0,0,0.16)]"
               >
-                <ProfileMenuContent role={role} onNavigate={onNavigate} onClose={() => setProfileOpen(false)} professional={professional} />
+                <ProfileMenuContent
+                  role={role}
+                  onNavigate={onNavigate}
+                  onClose={() => setProfileOpen(false)}
+                  professional={professional}
+                />
               </div>
             ) : null}
           </div>

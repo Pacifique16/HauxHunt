@@ -2,15 +2,32 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useReducer, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useReducer,
+  useState,
+  type ReactNode,
+} from "react";
 import { AlertCircle, MapPin, Plus, Search } from "lucide-react";
 
 import { OwnerDashboardShell } from "@/components/owner/owner-dashboard-shell";
+import { useOwnerEmptyMode } from "@/components/owner/use-owner-demo-mode";
 import { StatusPill } from "@/components/owner/status-pill";
-import { OWNER_LISTINGS, getOwnerProperties, managementSummaryFor, subscribeToOwnerApplications, subscribeToOwnerRentals, subscribeToOwnerPayments } from "@/lib/owner-data";
+import {
+  OWNER_LISTINGS,
+  getOwnerProperties,
+  managementSummaryFor,
+  subscribeToOwnerApplications,
+  subscribeToOwnerRentals,
+  subscribeToOwnerPayments,
+} from "@/lib/owner-data";
 import { subscribeToMaintenance } from "@/lib/maintenance-data";
 import { subscribeToTeam } from "@/lib/team-data";
-import { attentionReasonFor, getPropertyOperationalSummary } from "@/lib/owner-property-summary";
+import {
+  attentionReasonFor,
+  getPropertyOperationalSummary,
+} from "@/lib/owner-property-summary";
 import noDataIllustration from "@/assets/images/empty.png";
 
 // Owner Properties phase (Phase 3) -- Properties is the portfolio
@@ -21,8 +38,16 @@ import noDataIllustration from "@/assets/images/empty.png";
 // property's own fact) so the two screens can never disagree about the
 // same property.
 
-type Filter = "All" | "Needs Attention" | "Occupied" | "Vacant" | "Listed" | "Unlisted";
-const FILTERS: Filter[] = ["All", "Needs Attention", "Occupied", "Vacant", "Listed", "Unlisted"];
+type Filter =
+  "All" | "Needs Attention" | "Occupied" | "Vacant" | "Listed" | "Unlisted";
+const FILTERS: Filter[] = [
+  "All",
+  "Needs Attention",
+  "Occupied",
+  "Vacant",
+  "Listed",
+  "Unlisted",
+];
 
 export default function OwnerPropertiesPage() {
   const [, forceUpdate] = useReducer((n: number) => n + 1, 0);
@@ -34,13 +59,16 @@ export default function OwnerPropertiesPage() {
 
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("All");
-  const properties = getOwnerProperties();
+  const emptyMode = useOwnerEmptyMode();
+  const properties = emptyMode ? [] : getOwnerProperties();
 
   const rows = useMemo(
     () =>
       properties.map((property) => ({
         property,
-        listingStatus: OWNER_LISTINGS.find((l) => l.propertyId === property.id)?.status ?? property.listingStatus,
+        listingStatus:
+          OWNER_LISTINGS.find((l) => l.propertyId === property.id)?.status ??
+          property.listingStatus,
         summary: getPropertyOperationalSummary(property.id),
       })),
     [properties],
@@ -48,15 +76,24 @@ export default function OwnerPropertiesPage() {
 
   const filtered = rows.filter(({ property, listingStatus, summary }) => {
     const matchesQuery = query.trim()
-      ? `${property.title} ${property.location} ${property.propertyManager?.name ?? ""} ${property.agent?.name ?? ""}`.toLowerCase().includes(query.trim().toLowerCase())
+      ? `${property.title} ${property.location} ${property.propertyManager?.name ?? ""} ${property.agent?.name ?? ""}`
+          .toLowerCase()
+          .includes(query.trim().toLowerCase())
       : true;
     if (!matchesQuery) return false;
     if (filter === "All") return true;
     if (filter === "Needs Attention") return summary.needsAttention;
     if (filter === "Occupied") return property.occupancy === "Occupied";
     if (filter === "Vacant") return property.occupancy === "Vacant";
-    if (filter === "Listed") return listingStatus === "Live" || listingStatus === "In Review";
-    if (filter === "Unlisted") return listingStatus === "Not Listed" || listingStatus === "Draft" || listingStatus === "Paused" || listingStatus === "Archived";
+    if (filter === "Listed")
+      return listingStatus === "Live" || listingStatus === "In Review";
+    if (filter === "Unlisted")
+      return (
+        listingStatus === "Not Listed" ||
+        listingStatus === "Draft" ||
+        listingStatus === "Paused" ||
+        listingStatus === "Archived"
+      );
     return true;
   });
 
@@ -66,9 +103,12 @@ export default function OwnerPropertiesPage() {
         <div className="mx-auto max-w-[1360px]">
           <header className="flex flex-col gap-6 border-b border-black/10 pb-9 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h1 className="dashboard-page-title text-carbon-900">Properties</h1>
+              <h1 className="dashboard-page-title text-carbon-900">
+                Properties
+              </h1>
               <p className="text-carbon-600 mt-5 max-w-2xl text-base leading-7 sm:text-lg">
-                What you own, how it&apos;s managed, and what needs your attention.
+                What you own, how it&apos;s managed, and what needs your
+                attention.
               </p>
             </div>
             <Link
@@ -84,7 +124,10 @@ export default function OwnerPropertiesPage() {
             <label className="block w-full max-w-sm">
               <span className="sr-only">Search your properties</span>
               <span className="catalogue-location-filter flex items-center gap-2 px-4">
-                <Search aria-hidden="true" className="text-carbon-500 size-4 shrink-0" />
+                <Search
+                  aria-hidden="true"
+                  className="text-carbon-500 size-4 shrink-0"
+                />
                 <input
                   type="search"
                   value={query}
@@ -111,9 +154,15 @@ export default function OwnerPropertiesPage() {
 
           {filtered.length === 0 ? (
             <section className="mt-6 flex min-h-[420px] flex-col items-center justify-center bg-white px-6 py-14 text-center shadow-[0_18px_55px_rgba(0,0,0,0.055)]">
-              <Image src={noDataIllustration} alt="" className="h-40 w-auto object-contain" />
+              <Image
+                src={noDataIllustration}
+                alt=""
+                className="h-40 w-auto object-contain"
+              />
               <h3 className="font-bricolage text-carbon-900 mt-5 text-2xl font-medium">
-                {properties.length === 0 ? "No properties yet" : "No properties match these filters"}
+                {properties.length === 0
+                  ? "No properties yet"
+                  : "No properties match these filters"}
               </h3>
               <p className="text-carbon-500 mt-2 max-w-md text-sm leading-6">
                 {properties.length === 0
@@ -121,7 +170,10 @@ export default function OwnerPropertiesPage() {
                   : "Try a different filter or search term."}
               </p>
               {properties.length === 0 ? (
-                <Link href="/owner-dashboard/properties/new" className="font-bricolage mt-6 inline-flex h-11 items-center gap-2 rounded-full bg-black px-5 text-sm font-medium text-white">
+                <Link
+                  href="/owner-dashboard/properties/new"
+                  className="font-bricolage mt-6 inline-flex h-11 items-center gap-2 rounded-full bg-black px-5 text-sm font-medium text-white"
+                >
                   <Plus aria-hidden="true" className="size-4" />
                   Add Property
                 </Link>
@@ -143,7 +195,13 @@ export default function OwnerPropertiesPage() {
                 // clicking it never reaches the stretched link underneath.
                 const signalNodes: ReactNode[] = [];
                 if (summary.currentRental) {
-                  signalNodes.push(<span key="rental">{summary.currentRental.status === "Upcoming" ? "1 upcoming rental" : "1 active rental"}</span>);
+                  signalNodes.push(
+                    <span key="rental">
+                      {summary.currentRental.status === "Upcoming"
+                        ? "1 upcoming rental"
+                        : "1 active rental"}
+                    </span>,
+                  );
                 }
                 if (summary.activeApplications > 0) {
                   signalNodes.push(
@@ -152,12 +210,17 @@ export default function OwnerPropertiesPage() {
                       href={`/owner-dashboard/applications?propertyId=${property.id}`}
                       className="relative z-10 underline underline-offset-2 hover:no-underline"
                     >
-                      {summary.activeApplications} application{summary.activeApplications === 1 ? "" : "s"}
+                      {summary.activeApplications} application
+                      {summary.activeApplications === 1 ? "" : "s"}
                     </Link>,
                   );
                 }
                 if (summary.openMaintenanceCount > 0) {
-                  signalNodes.push(<span key="maintenance">{summary.openMaintenanceCount} open maintenance</span>);
+                  signalNodes.push(
+                    <span key="maintenance">
+                      {summary.openMaintenanceCount} open maintenance
+                    </span>,
+                  );
                 }
 
                 return (
@@ -165,7 +228,11 @@ export default function OwnerPropertiesPage() {
                     key={property.id}
                     className="group relative overflow-hidden rounded-2xl bg-white shadow-[0_14px_38px_rgba(0,0,0,0.055)] transition-shadow hover:shadow-[0_18px_50px_rgba(0,0,0,0.09)]"
                   >
-                    <Link href={`/owner-dashboard/properties/${property.id}`} aria-label={`View ${property.title}`} className="absolute inset-0 z-0" />
+                    <Link
+                      href={`/owner-dashboard/properties/${property.id}`}
+                      aria-label={`View ${property.title}`}
+                      className="absolute inset-0 z-0"
+                    />
                     <div className="relative aspect-[4/3] overflow-hidden">
                       <Image
                         src={property.image}
@@ -181,20 +248,31 @@ export default function OwnerPropertiesPage() {
                       </div>
                     </div>
                     <div className="relative p-5">
-                      <h3 className="font-bricolage text-carbon-900 text-lg font-medium tracking-[-0.02em]">{property.title}</h3>
+                      <h3 className="font-bricolage text-carbon-900 text-lg font-medium tracking-[-0.02em]">
+                        {property.title}
+                      </h3>
                       <p className="text-carbon-500 mt-1.5 flex items-center gap-1.5 text-sm">
-                        <MapPin aria-hidden="true" className="size-3.5 shrink-0" />
+                        <MapPin
+                          aria-hidden="true"
+                          className="size-3.5 shrink-0"
+                        />
                         {property.location}
                       </p>
                       <p className="text-carbon-400 mt-1.5 text-xs">
-                        {property.type} · {property.bedrooms} bed · {property.bathrooms} bath
+                        {property.type} · {property.bedrooms} bed ·{" "}
+                        {property.bathrooms} bath
                       </p>
 
-                      <p className="text-carbon-600 mt-4 border-t border-black/8 pt-4 text-sm font-medium">{managementSummaryFor(property)}</p>
+                      <p className="text-carbon-600 mt-4 border-t border-black/8 pt-4 text-sm font-medium">
+                        {managementSummaryFor(property)}
+                      </p>
 
                       {attentionReason ? (
                         <p className="text-carbon-900 mt-2 flex items-center gap-1.5 text-sm font-medium">
-                          <AlertCircle aria-hidden="true" className="size-3.5 shrink-0" />
+                          <AlertCircle
+                            aria-hidden="true"
+                            className="size-3.5 shrink-0"
+                          />
                           {attentionReason}
                         </p>
                       ) : null}
@@ -210,7 +288,11 @@ export default function OwnerPropertiesPage() {
                         </p>
                       ) : null}
 
-                      {property.rent ? <p className="text-carbon-900 mt-3 text-sm font-medium">{property.rent}</p> : null}
+                      {property.rent ? (
+                        <p className="text-carbon-900 mt-3 text-sm font-medium">
+                          {property.rent}
+                        </p>
+                      ) : null}
                     </div>
                   </article>
                 );

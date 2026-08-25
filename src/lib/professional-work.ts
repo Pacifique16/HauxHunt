@@ -33,8 +33,19 @@ import {
   type ApplicationStatus,
   type OwnerApplication,
 } from "@/lib/owner-data";
-import { getActiveAssignmentsFor, getActiveAssignmentsForProperty, getProfessional, type ProfessionalRole, type RegisteredProfessional } from "@/lib/team-data";
-import { getPropertyAccessDetail, getProfessionalPropertyCards, resolveAnyPropertyLocation, resolveAnyPropertyTitle } from "@/lib/professional-properties";
+import {
+  getActiveAssignmentsFor,
+  getActiveAssignmentsForProperty,
+  getProfessional,
+  type ProfessionalRole,
+  type RegisteredProfessional,
+} from "@/lib/team-data";
+import {
+  getPropertyAccessDetail,
+  getProfessionalPropertyCards,
+  resolveAnyPropertyLocation,
+  resolveAnyPropertyTitle,
+} from "@/lib/professional-properties";
 import {
   RENTER_PARTICIPANT_ID,
   getConversationsFor as getSharedConversationsFor,
@@ -69,7 +80,8 @@ const SEED_ENQUIRIES: Enquiry[] = [
     propertyId: "kibagabaga-modern-family-home",
     professionalId: "kevin-nshuti",
     renterName: "Divine Keza",
-    message: "Hello, is the Modern Family Home still available? We'd like to come see it this week.",
+    message:
+      "Hello, is the Modern Family Home still available? We'd like to come see it this week.",
     receivedAt: "3 days ago",
     ts: Date.now() - 3 * 86_400_000,
     status: "Viewing Scheduled",
@@ -81,7 +93,8 @@ const SEED_ENQUIRIES: Enquiry[] = [
     propertyId: "kibagabaga-modern-family-home",
     professionalId: "kevin-nshuti",
     renterName: "Aline Mukamana",
-    message: "Hi, does the rent include water and backup power? I'm relocating with my family next month.",
+    message:
+      "Hi, does the rent include water and backup power? I'm relocating with my family next month.",
     receivedAt: "20 min ago",
     ts: Date.now() - 20 * 60_000,
     status: "New",
@@ -91,7 +104,8 @@ const SEED_ENQUIRIES: Enquiry[] = [
     propertyId: "remera-house-independent",
     professionalId: "kevin-nshuti",
     renterName: "Julien Mugisha",
-    message: "Good afternoon, I saw Remera House listed. Is it still for rent, and can I arrange a viewing?",
+    message:
+      "Good afternoon, I saw Remera House listed. Is it still for rent, and can I arrange a viewing?",
     receivedAt: "Yesterday",
     ts: Date.now() - 1 * 86_400_000 - 3 * 3_600_000,
     status: "Viewing Scheduled",
@@ -103,7 +117,8 @@ const SEED_ENQUIRIES: Enquiry[] = [
     propertyId: "remera-3br",
     professionalId: "sarah-uwase",
     renterName: "Julien Mugisha",
-    message: "Hello, I'm interested in renewing at Remera Family House. Could we schedule a walkthrough first?",
+    message:
+      "Hello, I'm interested in renewing at Remera Family House. Could we schedule a walkthrough first?",
     receivedAt: "2 days ago",
     ts: Date.now() - 2 * 86_400_000,
     status: "Viewing Scheduled",
@@ -129,7 +144,8 @@ const SEED_ENQUIRIES: Enquiry[] = [
     propertyId: "kacyiru-2br",
     professionalId: "jean-mugisha",
     renterName: "Emmanuel Nzeyimana",
-    message: "Hello, I heard Kacyiru Residence may become available soon. Could you let me know if a unit opens up?",
+    message:
+      "Hello, I heard Kacyiru Residence may become available soon. Could you let me know if a unit opens up?",
     receivedAt: "4 hr ago",
     ts: Date.now() - 4 * 3_600_000,
     status: "New",
@@ -316,7 +332,9 @@ function writeIndependentApplications(list: IndependentApplication[]) {
 // ---------------------------------------------------------------------------
 
 function accessiblePropertyIds(professionalId: string): Set<string> {
-  return new Set(getProfessionalPropertyCards(professionalId).map((c) => c.propertyId));
+  return new Set(
+    getProfessionalPropertyCards(professionalId).map((c) => c.propertyId),
+  );
 }
 
 export function getEnquiriesFor(professionalId: string): Enquiry[] {
@@ -328,7 +346,9 @@ export function getEnquiriesFor(professionalId: string): Enquiry[] {
 
 export function getViewingsFor(professionalId: string): Viewing[] {
   const ids = accessiblePropertyIds(professionalId);
-  return getViewings().filter((v) => v.professionalId === professionalId && ids.has(v.propertyId));
+  return getViewings().filter(
+    (v) => v.professionalId === professionalId && ids.has(v.propertyId),
+  );
 }
 
 export function getEnquiry(enquiryId: string): Enquiry | undefined {
@@ -344,10 +364,18 @@ export function getViewing(viewingId: string): Viewing | undefined {
 // (PM), read straight from their granted responsibilities for that specific
 // assignment. Independent applications are gated by Verified authorization
 // instead (mirrors the Listing permission rule from Foundation Cleanup).
-function hasApplicationAccess(professionalId: string, propertyId: string): boolean {
-  const assignment = getActiveAssignmentsFor(professionalId).find((a) => a.propertyId === propertyId);
+function hasApplicationAccess(
+  professionalId: string,
+  propertyId: string,
+): boolean {
+  const assignment = getActiveAssignmentsFor(professionalId).find(
+    (a) => a.propertyId === propertyId,
+  );
   if (!assignment) return false;
-  return assignment.responsibilities.includes("Assist with applications") || assignment.responsibilities.includes("Review applications");
+  return (
+    assignment.responsibilities.includes("Assist with applications") ||
+    assignment.responsibilities.includes("Review applications")
+  );
 }
 
 export type AgentApplicationView = {
@@ -376,7 +404,10 @@ export type AgentApplicationView = {
 //   - PM visibility is now property-responsibility-based: a PM with
 //     "Review applications" for a property sees EVERY application on it,
 //     regardless of who handledBy currently names. This is the actual fix.
-function isApplicationVisibleTo(professional: RegisteredProfessional, application: OwnerApplication): boolean {
+function isApplicationVisibleTo(
+  professional: RegisteredProfessional,
+  application: OwnerApplication,
+): boolean {
   if (professional.role === "property_manager") return true;
   return application.handledBy === professional.name;
 }
@@ -386,12 +417,18 @@ function isApplicationVisibleTo(professional: RegisteredProfessional, applicatio
 // this file's Independent applications (gated by Verified authorization,
 // checked via professional-properties.ts). Never a disconnected second
 // architecture.
-export function getApplicationsFor(professionalId: string): AgentApplicationView[] {
+export function getApplicationsFor(
+  professionalId: string,
+): AgentApplicationView[] {
   const professional = getProfessional(professionalId);
   if (!professional) return [];
 
   const team: AgentApplicationView[] = getOwnerApplications()
-    .filter((a) => isApplicationVisibleTo(professional, a) && hasApplicationAccess(professionalId, a.propertyId))
+    .filter(
+      (a) =>
+        isApplicationVisibleTo(professional, a) &&
+        hasApplicationAccess(professionalId, a.propertyId),
+    )
     .map((a) => ({
       id: a.id,
       propertyId: a.propertyId,
@@ -432,15 +469,23 @@ export function getApplicationsFor(professionalId: string): AgentApplicationView
       source: "INDEPENDENT_AUTHORIZATION",
     }));
 
-  return [...team, ...independent].sort((a, b) => b.submitted.localeCompare(a.submitted));
+  return [...team, ...independent].sort((a, b) =>
+    b.submitted.localeCompare(a.submitted),
+  );
 }
 
 // Section 44: the PM with "Review applications" for a property, resolved
 // from the real PropertyAssignment -- displayed as "Current reviewer"
 // distinct from the original handledBy/assistedBy attribution, without
 // storing a redundant field on the application itself.
-export function getCurrentReviewerFor(propertyId: string): { name: string; roleLabel: string } | null {
-  const assignment = getActiveAssignmentsForProperty(propertyId).find((a) => a.role === "property_manager" && a.responsibilities.includes("Review applications"));
+export function getCurrentReviewerFor(
+  propertyId: string,
+): { name: string; roleLabel: string } | null {
+  const assignment = getActiveAssignmentsForProperty(propertyId).find(
+    (a) =>
+      a.role === "property_manager" &&
+      a.responsibilities.includes("Review applications"),
+  );
   if (!assignment) return null;
   const professional = getProfessional(assignment.professionalId);
   if (!professional) return null;
@@ -453,8 +498,14 @@ export function getCurrentReviewerFor(propertyId: string): { name: string; roleL
 // the Owner Rental Setup route to decide whether the Owner or an assigned
 // PM owns the tenancy-setup task for a property, so the two never show
 // competing controls.
-export function getRentalSetupManagerFor(propertyId: string): { name: string; roleLabel: string } | null {
-  const assignment = getActiveAssignmentsForProperty(propertyId).find((a) => a.role === "property_manager" && a.responsibilities.includes("Manage rental setup"));
+export function getRentalSetupManagerFor(
+  propertyId: string,
+): { name: string; roleLabel: string } | null {
+  const assignment = getActiveAssignmentsForProperty(propertyId).find(
+    (a) =>
+      a.role === "property_manager" &&
+      a.responsibilities.includes("Manage rental setup"),
+  );
   if (!assignment) return null;
   const professional = getProfessional(assignment.professionalId);
   if (!professional) return null;
@@ -468,16 +519,27 @@ export function getRentalSetupManagerFor(propertyId: string): { name: string; ro
 // Same logic as before: an Owner decides when either the Owner's own
 // approval was explicitly required, or nobody with "Review applications"
 // currently holds that responsibility for the property.
-export function ownerDecidesApplication(application: Pick<OwnerApplication, "requiresOwnerApproval" | "propertyId">): boolean {
+export function ownerDecidesApplication(
+  application: Pick<OwnerApplication, "requiresOwnerApproval" | "propertyId">,
+): boolean {
   if (application.requiresOwnerApproval) return true;
   return getCurrentReviewerFor(application.propertyId) === null;
 }
 
-export function getApplication(applicationId: string): (OwnerApplication | IndependentApplication) & { source: "TEAM_ASSIGNMENT" | "INDEPENDENT_AUTHORIZATION" } | null {
+export function getApplication(
+  applicationId: string,
+):
+  | ((OwnerApplication | IndependentApplication) & {
+      source: "TEAM_ASSIGNMENT" | "INDEPENDENT_AUTHORIZATION";
+    })
+  | null {
   const owned = getOwnerApplication(applicationId);
   if (owned) return { ...owned, source: "TEAM_ASSIGNMENT" };
-  const independent = getIndependentApplications().find((a) => a.id === applicationId);
-  if (independent) return { ...independent, source: "INDEPENDENT_AUTHORIZATION" };
+  const independent = getIndependentApplications().find(
+    (a) => a.id === applicationId,
+  );
+  if (independent)
+    return { ...independent, source: "INDEPENDENT_AUTHORIZATION" };
   return null;
 }
 
@@ -499,9 +561,20 @@ export function getApplication(applicationId: string): (OwnerApplication | Indep
 // directly and no longer goes through this adapter at all.
 // ---------------------------------------------------------------------------
 
-export type MessageContext = "Property Enquiry" | "Viewing" | "Application" | "Team" | "Rental" | "Payment" | "Maintenance";
+export type MessageContext =
+  | "Property Enquiry"
+  | "Viewing"
+  | "Application"
+  | "Team"
+  | "Rental"
+  | "Payment"
+  | "Maintenance";
 
-export type ConversationMessage = { sender: "renter" | "professional"; text: string; time: string };
+export type ConversationMessage = {
+  sender: "renter" | "professional";
+  text: string;
+  time: string;
+};
 
 export type Conversation = {
   id: string;
@@ -545,7 +618,10 @@ export function getConversationsFor(professionalId: string): Conversation[] {
       personRole: other?.role ?? "",
       context: toLegacyContext(c.context?.type),
       messages: c.messages.map((m) => ({
-        sender: m.senderId === professionalId ? ("professional" as const) : ("renter" as const),
+        sender:
+          m.senderId === professionalId
+            ? ("professional" as const)
+            : ("renter" as const),
         text: m.text,
         time: new Date(m.ts).toLocaleDateString(),
       })),
@@ -573,28 +649,49 @@ function nextId(prefix: string) {
 // to Replied -- the reply just doesn't produce a Messages thread. This is a
 // deliberate, reported limitation (Section 56/60), not a fabricated
 // participant identity.
-export function replyToEnquiry(enquiryId: string, message: string): string | null {
+export function replyToEnquiry(
+  enquiryId: string,
+  message: string,
+): string | null {
   const enquiry = getEnquiry(enquiryId);
   if (!enquiry) return null;
 
   let conversationId: string | undefined = enquiry.conversationId;
   if (enquiry.renterName === RENTER_DEMO_NAME) {
-    const conversation = getOrCreateConversation(enquiry.professionalId, RENTER_PARTICIPANT_ID, {
-      type: "property",
-      propertyId: enquiry.propertyId,
-      label: "Property Enquiry",
-    });
+    const conversation = getOrCreateConversation(
+      enquiry.professionalId,
+      RENTER_PARTICIPANT_ID,
+      {
+        type: "property",
+        propertyId: enquiry.propertyId,
+        label: "Property Enquiry",
+      },
+    );
     if (conversation) {
       sendMessageAs(conversation.id, enquiry.professionalId, message);
       conversationId = conversation.id;
     }
   }
 
-  writeEnquiries(getEnquiries().map((e) => (e.id === enquiryId ? { ...e, status: e.status === "New" ? "Replied" : e.status, conversationId } : e)));
+  writeEnquiries(
+    getEnquiries().map((e) =>
+      e.id === enquiryId
+        ? {
+            ...e,
+            status: e.status === "New" ? "Replied" : e.status,
+            conversationId,
+          }
+        : e,
+    ),
+  );
   return conversationId ?? null;
 }
 
-export function scheduleViewingFromEnquiry(enquiryId: string, date: string, time: string): string | null {
+export function scheduleViewingFromEnquiry(
+  enquiryId: string,
+  date: string,
+  time: string,
+): string | null {
   const enquiry = getEnquiry(enquiryId);
   if (!enquiry) return null;
   const viewingId = enquiry.viewingId ?? nextId("view");
@@ -610,17 +707,31 @@ export function scheduleViewingFromEnquiry(enquiryId: string, date: string, time
     time,
     status: "Confirmed",
   };
-  writeViewings(existingIndex >= 0 ? viewings.map((v, i) => (i === existingIndex ? viewing : v)) : [...viewings, viewing]);
-  writeEnquiries(getEnquiries().map((e) => (e.id === enquiryId ? { ...e, status: "Viewing Scheduled", viewingId } : e)));
+  writeViewings(
+    existingIndex >= 0
+      ? viewings.map((v, i) => (i === existingIndex ? viewing : v))
+      : [...viewings, viewing],
+  );
+  writeEnquiries(
+    getEnquiries().map((e) =>
+      e.id === enquiryId ? { ...e, status: "Viewing Scheduled", viewingId } : e,
+    ),
+  );
   return viewingId;
 }
 
 export function updateViewingStatus(viewingId: string, status: ViewingStatus) {
-  writeViewings(getViewings().map((v) => (v.id === viewingId ? { ...v, status } : v)));
+  writeViewings(
+    getViewings().map((v) => (v.id === viewingId ? { ...v, status } : v)),
+  );
 }
 
 export function closeEnquiry(enquiryId: string) {
-  writeEnquiries(getEnquiries().map((e) => (e.id === enquiryId ? { ...e, status: "Closed" } : e)));
+  writeEnquiries(
+    getEnquiries().map((e) =>
+      e.id === enquiryId ? { ...e, status: "Closed" } : e,
+    ),
+  );
 }
 
 // Agent recommendation, never a final decision (Section 34-36). Team-
@@ -640,12 +751,32 @@ export function recommendApplicationDecision(
   recommendedBy: string,
   recommenderRole: ProfessionalRole = "agent",
 ) {
-  const assistedPatch = recommenderRole === "agent" ? { assistedBy: recommendedBy, assistedByRole: "Agent" } : {};
+  const assistedPatch =
+    recommenderRole === "agent"
+      ? { assistedBy: recommendedBy, assistedByRole: "Agent" }
+      : {};
   if (source === "TEAM_ASSIGNMENT") {
-    updateOwnerApplication(applicationId, { recommendation, recommendedBy, status: "Decision Pending", ...assistedPatch });
+    updateOwnerApplication(applicationId, {
+      recommendation,
+      recommendedBy,
+      status: "Decision Pending",
+      ...assistedPatch,
+    });
     return;
   }
-  writeIndependentApplications(getIndependentApplications().map((a) => (a.id === applicationId ? { ...a, recommendation, recommendedBy, status: "Decision Pending", ...assistedPatch } : a)));
+  writeIndependentApplications(
+    getIndependentApplications().map((a) =>
+      a.id === applicationId
+        ? {
+            ...a,
+            recommendation,
+            recommendedBy,
+            status: "Decision Pending",
+            ...assistedPatch,
+          }
+        : a,
+    ),
+  );
 }
 
 // Property Manager Dashboard phase -- a FINAL decision, not a
@@ -655,16 +786,38 @@ export function recommendApplicationDecision(
 // false, an existing owner-data.ts field -- never a new permission system).
 // Agent's UI never calls this; recommendApplicationDecision above remains
 // the only path Agent ever takes.
-export function decideApplication(applicationId: string, source: "TEAM_ASSIGNMENT" | "INDEPENDENT_AUTHORIZATION", decision: "Approved" | "Not Selected", decidedBy: string) {
+export function decideApplication(
+  applicationId: string,
+  source: "TEAM_ASSIGNMENT" | "INDEPENDENT_AUTHORIZATION",
+  decision: "Approved" | "Not Selected",
+  decidedBy: string,
+) {
   if (source === "TEAM_ASSIGNMENT") {
-    updateOwnerApplication(applicationId, { status: decision, recommendedBy: decidedBy });
+    updateOwnerApplication(applicationId, {
+      status: decision,
+      recommendedBy: decidedBy,
+    });
     return;
   }
-  writeIndependentApplications(getIndependentApplications().map((a) => (a.id === applicationId ? { ...a, status: decision, recommendedBy: decidedBy } : a)));
+  writeIndependentApplications(
+    getIndependentApplications().map((a) =>
+      a.id === applicationId
+        ? { ...a, status: decision, recommendedBy: decidedBy }
+        : a,
+    ),
+  );
 }
 
-export function updateIndependentApplicationStatus(applicationId: string, status: ApplicationStatus, note?: string) {
-  writeIndependentApplications(getIndependentApplications().map((a) => (a.id === applicationId ? { ...a, status, note: note ?? a.note } : a)));
+export function updateIndependentApplicationStatus(
+  applicationId: string,
+  status: ApplicationStatus,
+  note?: string,
+) {
+  writeIndependentApplications(
+    getIndependentApplications().map((a) =>
+      a.id === applicationId ? { ...a, status, note: note ?? a.note } : a,
+    ),
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -674,7 +827,17 @@ export function updateIndependentApplicationStatus(applicationId: string, status
 
 // Property Manager Dashboard phase adds rental/payment/maintenance as
 // genuinely new categories -- purely additive, Agent never produces one.
-export type ProfessionalNotificationCategory = "enquiry" | "viewing" | "application" | "team" | "property" | "authorization" | "message" | "rental" | "payment" | "maintenance";
+export type ProfessionalNotificationCategory =
+  | "enquiry"
+  | "viewing"
+  | "application"
+  | "team"
+  | "property"
+  | "authorization"
+  | "message"
+  | "rental"
+  | "payment"
+  | "maintenance";
 
 export type ProfessionalNotification = {
   id: string;
@@ -812,7 +975,8 @@ const SEED_NOTIFICATIONS: ProfessionalNotification[] = [
     timestamp: Date.now() - 9 * 86_400_000,
     read: true,
     actionLabel: "View Property",
-    actionHref: "/partner-dashboard/properties/kibagabaga-residence-independent",
+    actionHref:
+      "/partner-dashboard/properties/kibagabaga-residence-independent",
   },
   {
     id: "notif-patrick-application",
@@ -840,6 +1004,8 @@ const SEED_NOTIFICATIONS: ProfessionalNotification[] = [
 
 const NOTIFICATION_READ_KEY = "hauxhunt-professional-notification-read-ids";
 const NOTIFICATION_SESSION_KEY = "hauxhunt-professional-session-notifications";
+const NOTIFICATION_CLEARED_KEY =
+  "hauxhunt-professional-notification-cleared-ids";
 
 function getNotificationReadIds(): Set<string> {
   if (typeof window === "undefined") return new Set();
@@ -855,7 +1021,10 @@ function getNotificationReadIds(): Set<string> {
 function saveNotificationReadIds(ids: Set<string>) {
   if (typeof window === "undefined") return;
   try {
-    window.sessionStorage.setItem(NOTIFICATION_READ_KEY, JSON.stringify(Array.from(ids)));
+    window.sessionStorage.setItem(
+      NOTIFICATION_READ_KEY,
+      JSON.stringify(Array.from(ids)),
+    );
   } catch {
     // ignore
   }
@@ -872,7 +1041,10 @@ function getSessionNotifications(): ProfessionalNotification[] {
 // used to build a fresh array on every call; cached here (one slot,
 // keyed by professionalId, matching notifications.ts's renter-side
 // pattern) and invalidated only by the three mutators below.
-let notificationsCache: { professionalId: string; result: ProfessionalNotification[] } | null = null;
+let notificationsCache: {
+  professionalId: string;
+  result: ProfessionalNotification[];
+} | null = null;
 let unreadCountCache: { professionalId: string; result: number } | null = null;
 
 function invalidateNotificationsCache() {
@@ -880,28 +1052,49 @@ function invalidateNotificationsCache() {
   unreadCountCache = null;
 }
 
-export function pushProfessionalNotification(notification: Omit<ProfessionalNotification, "id" | "timestamp" | "read">) {
+export function pushProfessionalNotification(
+  notification: Omit<ProfessionalNotification, "id" | "timestamp" | "read">,
+) {
   const list = getSessionNotifications();
-  list.unshift({ ...notification, id: nextId("session-notif"), timestamp: Date.now(), read: false });
+  list.unshift({
+    ...notification,
+    id: nextId("session-notif"),
+    timestamp: Date.now(),
+    read: false,
+  });
   invalidateNotificationsCache();
   writeList(NOTIFICATION_SESSION_KEY, list);
 }
 
-export function getProfessionalNotifications(professionalId: string): ProfessionalNotification[] {
-  if (notificationsCache && notificationsCache.professionalId === professionalId) return notificationsCache.result;
+export function getProfessionalNotifications(
+  professionalId: string,
+): ProfessionalNotification[] {
+  if (
+    notificationsCache &&
+    notificationsCache.professionalId === professionalId
+  )
+    return notificationsCache.result;
   const readIds = getNotificationReadIds();
-  const seeded = SEED_NOTIFICATIONS.filter((n) => n.professionalId === professionalId).map((n) => ({ ...n, read: n.read || readIds.has(n.id) }));
+  const seeded = SEED_NOTIFICATIONS.filter(
+    (n) => n.professionalId === professionalId,
+  ).map((n) => ({ ...n, read: n.read || readIds.has(n.id) }));
   const live = getSessionNotifications()
     .filter((n) => n.professionalId === professionalId)
     .map((n) => ({ ...n, read: n.read || readIds.has(n.id) }));
-  const result = [...live, ...seeded].sort((a, b) => b.timestamp - a.timestamp);
+  const clearedIds = new Set(readList<string>(NOTIFICATION_CLEARED_KEY, []));
+  const result = [...live, ...seeded]
+    .filter((item) => !clearedIds.has(item.id))
+    .sort((a, b) => b.timestamp - a.timestamp);
   notificationsCache = { professionalId, result };
   return result;
 }
 
 export function getProfessionalUnreadCount(professionalId: string): number {
-  if (unreadCountCache && unreadCountCache.professionalId === professionalId) return unreadCountCache.result;
-  const result = getProfessionalNotifications(professionalId).filter((n) => !n.read).length;
+  if (unreadCountCache && unreadCountCache.professionalId === professionalId)
+    return unreadCountCache.result;
+  const result = getProfessionalNotifications(professionalId).filter(
+    (n) => !n.read,
+  ).length;
   unreadCountCache = { professionalId, result };
   return result;
 }
@@ -921,6 +1114,21 @@ export function markAllProfessionalNotificationsRead(professionalId: string) {
   saveNotificationReadIds(ids);
   invalidateNotificationsCache();
   window.dispatchEvent(new Event(WORK_EVENT));
+}
+
+export function clearProfessionalNotification(id: string) {
+  const ids = new Set(readList<string>(NOTIFICATION_CLEARED_KEY, []));
+  ids.add(id);
+  invalidateNotificationsCache();
+  writeList(NOTIFICATION_CLEARED_KEY, [...ids]);
+}
+
+export function clearAllProfessionalNotifications(professionalId: string) {
+  const ids = new Set(readList<string>(NOTIFICATION_CLEARED_KEY, []));
+  for (const item of getProfessionalNotifications(professionalId))
+    ids.add(item.id);
+  invalidateNotificationsCache();
+  writeList(NOTIFICATION_CLEARED_KEY, [...ids]);
 }
 
 // Small formatting helpers reused by Overview/Enquiries/Applications so

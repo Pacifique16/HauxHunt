@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { setOwnerEmptyMode } from "@/components/owner/use-owner-demo-mode";
+import { setSessionProfessional } from "@/components/partner/use-demo-professional";
 import { setPartnerRole } from "@/components/partner/use-partner-role";
 import { saveProperty } from "@/hooks/use-saved-properties";
 import {
@@ -62,9 +64,10 @@ export function AuthenticationForm({
   const [complete, setComplete] = useState(false);
   const isRegister = mode === "register";
   const isDark = variant === "dark";
-  const returnTo = typeof window !== "undefined"
-    ? new URLSearchParams(window.location.search).get("returnTo")
-    : null;
+  const returnTo =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("returnTo")
+      : null;
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -119,11 +122,25 @@ export function AuthenticationForm({
         return;
       }
 
-      if (email === "partner@gmail.com") {
+      if (email === "manager@gmail.com") {
         window.sessionStorage.setItem(
           "hauxhunt-authenticated-role",
           "property_manager",
         );
+        setSessionProfessional("jean-mugisha");
+        setPartnerRole("property_manager");
+        router.replace(
+          returnTo?.startsWith("/") ? returnTo : "/partner-dashboard",
+        );
+        return;
+      }
+
+      if (email === "manager-empty@gmail.com") {
+        window.sessionStorage.setItem(
+          "hauxhunt-authenticated-role",
+          "property_manager",
+        );
+        setSessionProfessional("immaculee-mukamana");
         setPartnerRole("property_manager");
         router.replace(
           returnTo?.startsWith("/") ? returnTo : "/partner-dashboard",
@@ -133,6 +150,17 @@ export function AuthenticationForm({
 
       if (email === "agent@gmail.com") {
         window.sessionStorage.setItem("hauxhunt-authenticated-role", "agent");
+        setSessionProfessional("kevin-nshuti");
+        setPartnerRole("agent");
+        router.replace(
+          returnTo?.startsWith("/") ? returnTo : "/partner-dashboard",
+        );
+        return;
+      }
+
+      if (email === "agent-empty@gmail.com") {
+        window.sessionStorage.setItem("hauxhunt-authenticated-role", "agent");
+        setSessionProfessional("eric-rugamba");
         setPartnerRole("agent");
         router.replace(
           returnTo?.startsWith("/") ? returnTo : "/partner-dashboard",
@@ -142,7 +170,19 @@ export function AuthenticationForm({
 
       if (email === "owner@gmail.com") {
         window.sessionStorage.setItem("hauxhunt-authenticated-role", "owner");
-        router.replace(returnTo?.startsWith("/") ? returnTo : "/owner-dashboard");
+        setOwnerEmptyMode(false);
+        router.replace(
+          returnTo?.startsWith("/") ? returnTo : "/owner-dashboard",
+        );
+        return;
+      }
+
+      if (email === "owner-empty@gmail.com") {
+        window.sessionStorage.setItem("hauxhunt-authenticated-role", "owner");
+        setOwnerEmptyMode(true);
+        router.replace(
+          returnTo?.startsWith("/") ? returnTo : "/owner-dashboard",
+        );
         return;
       }
 
@@ -158,14 +198,17 @@ export function AuthenticationForm({
       }
     } else if (accountType === "owner") {
       window.sessionStorage.setItem("hauxhunt-authenticated-role", "owner");
+      setOwnerEmptyMode(true);
     } else if (accountType === "property_manager") {
       window.sessionStorage.setItem(
         "hauxhunt-authenticated-role",
         "property_manager",
       );
+      setSessionProfessional("jean-mugisha");
       setPartnerRole("property_manager");
     } else if (accountType === "agent") {
       window.sessionStorage.setItem("hauxhunt-authenticated-role", "agent");
+      setSessionProfessional("kevin-nshuti");
       setPartnerRole("agent");
     }
 

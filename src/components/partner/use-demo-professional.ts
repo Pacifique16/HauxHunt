@@ -1,7 +1,23 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { DEMO_AGENT_ID, DEMO_PM_ID, getProfessional, resolveDemoProfessional, type ProfessionalRole, type RegisteredProfessional } from "@/lib/team-data";
+import {
+  DEMO_AGENT_ID,
+  DEMO_PM_ID,
+  getProfessional,
+  type ProfessionalRole,
+  type RegisteredProfessional,
+} from "@/lib/team-data";
+
+export const PROFESSIONAL_SESSION_KEY = "hauxhunt-professional-id";
+
+export function setSessionProfessional(professionalId: string) {
+  window.sessionStorage.setItem(PROFESSIONAL_SESSION_KEY, professionalId);
+}
+
+export function clearSessionProfessional() {
+  window.sessionStorage.removeItem(PROFESSIONAL_SESSION_KEY);
+}
 
 // Cross-Role Lifecycle Synchronization phase (hydration fix) -- deliberately
 // its own client-only file, not part of team-data.ts. team-data.ts is
@@ -9,13 +25,9 @@ import { DEMO_AGENT_ID, DEMO_PM_ID, getProfessional, resolveDemoProfessional, ty
 // owner-dashboard/account); pulling useSyncExternalStore into it would
 // break every Server Component that imports it, even indirectly.
 //
-// resolveDemoProfessional() is impure with respect to SSR -- it reads
-// localStorage (Preview As) and sessionStorage-backed team data (the "any
-// pending invitation for this role" fallback), neither of which the server
-// can see. The server always evaluates it against pure seed data; a client
-// whose session has since diverged (e.g. a seeded pending invitation was
-// accepted, or a Preview As selection is active) resolves someone else
-// entirely -- a hydration mismatch in whatever text renders that name.
+// resolveDemoProfessional() reads sessionStorage-backed team data through
+// the pending-invitation fallback. The server cannot see that state, so the
+// client must initially use the same seeded identity as the server.
 //
 // useDemoProfessional is the hook every Agent/PM page should call instead
 // of the plain function during render: before mount it returns exactly
@@ -31,8 +43,13 @@ export function useMounted(): boolean {
   );
 }
 
-export function useDemoProfessional(role: ProfessionalRole): RegisteredProfessional | undefined {
+export function useDemoProfessional(
+  role: ProfessionalRole,
+): RegisteredProfessional | undefined {
   const mounted = useMounted();
-  if (!mounted) return getProfessional(role === "agent" ? DEMO_AGENT_ID : DEMO_PM_ID);
-  return resolveDemoProfessional(role);
+  const defaultId = role === "agent" ? DEMO_AGENT_ID : DEMO_PM_ID;
+  if (!mounted) return getProfessional(defaultId);
+  const selectedId = window.sessionStorage.getItem(PROFESSIONAL_SESSION_KEY);
+  const selected = selectedId ? getProfessional(selectedId) : undefined;
+  return selected?.role === role ? selected : getProfessional(defaultId);
 }

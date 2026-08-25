@@ -31,7 +31,14 @@ import { VoiceInputButton } from "@/components/listings/voice-input-button";
 import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
 import { Wordmark } from "@/components/layout/wordmark";
 
-const CATEGORIES: { slug: string; icon: LucideIcon; title: string; description: string; articles: number; image?: string }[] = [
+const CATEGORIES: {
+  slug: string;
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  articles: number;
+  image?: string;
+}[] = [
   {
     slug: "getting-started",
     icon: Home,
@@ -99,10 +106,11 @@ const CATEGORIES: { slug: string; icon: LucideIcon; title: string; description: 
     slug: "support",
     icon: LifeBuoy,
     title: "Customer Support",
-    description: "Can't find what you're looking for? Our team is here to help.",
+    description:
+      "Can't find what you're looking for? Our team is here to help.",
     articles: 4,
   },
-] ;
+];
 
 // Owner Account Polish phase -- Section 24/27: this hub page is the one
 // shared Help Center (reused as-is, not duplicated, per the audit -- its
@@ -116,7 +124,8 @@ const CATEGORIES: { slug: string; icon: LucideIcon; title: string; description: 
 // completely unchanged for every viewer.
 function roleDashboardHome(role: string | null): string {
   if (role === "owner") return "/owner-dashboard";
-  if (role === "agent" || role === "property_manager") return "/partner-dashboard";
+  if (role === "agent" || role === "property_manager")
+    return "/partner-dashboard";
   return "/renter-dashboard";
 }
 
@@ -126,7 +135,10 @@ function MinimalHelpTopBar({ backHref }: { backHref: string }) {
       <Link href={backHref} aria-label="HauxHunt home">
         <Wordmark height={28} />
       </Link>
-      <Link href={backHref} className="text-carbon-600 inline-flex items-center gap-1 text-sm font-medium hover:text-black">
+      <Link
+        href={backHref}
+        className="text-carbon-600 inline-flex items-center gap-1 text-sm font-medium hover:text-black"
+      >
         <ChevronLeft aria-hidden="true" className="size-4" />
         Back to Dashboard
       </Link>
@@ -145,10 +157,24 @@ function useMounted(): boolean {
   );
 }
 
+export function HelpTopBar() {
+  const mounted = useMounted();
+  const role = mounted
+    ? window.sessionStorage.getItem("hauxhunt-authenticated-role")
+    : null;
+  return role === "renter" || role === null ? (
+    <RenterCatalogueTopBar />
+  ) : (
+    <MinimalHelpTopBar backHref={roleDashboardHome(role)} />
+  );
+}
+
 export default function HelpCenterPage() {
   const [query, setQuery] = useState("");
   const mounted = useMounted();
-  const role = mounted ? window.sessionStorage.getItem("hauxhunt-authenticated-role") : null;
+  const role = mounted
+    ? window.sessionStorage.getItem("hauxhunt-authenticated-role")
+    : null;
 
   const filtered = query.trim()
     ? CATEGORIES.filter(
@@ -158,11 +184,18 @@ export default function HelpCenterPage() {
       )
     : CATEGORIES;
 
-  const audienceLabel = role === "owner" ? "For Property Owners" : role === "agent" ? "For Agents" : role === "property_manager" ? "For Property Managers" : "For Renters";
+  const audienceLabel =
+    role === "owner"
+      ? "For Property Owners"
+      : role === "agent"
+        ? "For Agents"
+        : role === "property_manager"
+          ? "For Property Managers"
+          : "For Renters";
 
   return (
     <>
-      {role === "renter" || role === null ? <RenterCatalogueTopBar /> : <MinimalHelpTopBar backHref={roleDashboardHome(role)} />}
+      <HelpTopBar />
       <main className="min-h-svh bg-[#f5f5f5] pt-16 text-black">
         {/* Search hero */}
         <section className="px-5 pt-14 pb-16 text-center sm:pt-16 sm:pb-20">
@@ -173,7 +206,10 @@ export default function HelpCenterPage() {
             onSubmit={(e) => e.preventDefault()}
             className="mx-auto mt-8 flex max-w-2xl items-center gap-3"
           >
-            <span className="catalogue-location-filter flex min-w-0 flex-1 items-center gap-2 px-4" style={{ height: "3.25rem" }}>
+            <span
+              className="catalogue-location-filter flex min-w-0 flex-1 items-center gap-2 px-4"
+              style={{ height: "3.25rem" }}
+            >
               <button
                 type="submit"
                 aria-label="Search help topics"
@@ -207,85 +243,94 @@ export default function HelpCenterPage() {
 
           {filtered.length ? (
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {filtered.map(({ slug, icon: Icon, title, description, articles }) => (
-                <Link
-                  key={slug}
-                  href={`/renter-dashboard/help/${slug}`}
-                  className="flex flex-col rounded-2xl bg-white p-8 shadow-[0_8px_24px_rgba(0,0,0,0.035)] transition-shadow hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)]"
-                >
-                  {/* Large icon */}
-                  {slug === "maintenance" ? (
-                    <Image
-                      src={maintenanceImage}
-                      alt=""
-                      className="mb-6 h-20 w-20 self-center object-contain"
-                    />
-                  ) : slug === "getting-started" ? (
-                    <Image
-                      src={getstartedImage}
-                      alt=""
-                      className="mb-6 h-20 w-20 self-center object-contain"
-                    />
-                  ) : slug === "payments" ? (
-                    <Image
-                      src={cardImage}
-                      alt=""
-                      className="mb-6 h-20 w-20 self-center object-contain"
-                    />
-                  ) : slug === "trust-and-safety" ? (
-                    <Image
-                      src={agreedImage}
-                      alt=""
-                      className="mb-6 h-20 w-20 self-center object-contain"
-                    />
-                  ) : slug === "flatmates" ? (
-                    <Image
-                      src={matchImage}
-                      alt=""
-                      className="mb-6 h-20 w-20 self-center object-contain"
-                    />
-                  ) : slug === "account" ? (
-                    <Image
-                      src={settingsImage}
-                      alt=""
-                      className="mb-6 h-20 w-20 self-center object-contain"
-                    />
-                  ) : slug === "search-and-listings" ? (
-                    <Image
-                      src={listImage}
-                      alt=""
-                      className="mb-6 h-20 w-20 self-center object-contain"
-                    />
-                  ) : slug === "applications" ? (
-                    <Image
-                      src={applicationImage}
-                      alt=""
-                      className="mb-6 h-20 w-20 self-center object-contain"
-                    />
-                  ) : slug === "messages" ? (
-                    <Image
-                      src={messageImage}
-                      alt=""
-                      className="mb-6 h-20 w-20 self-center object-contain"
-                    />
-                  ) : slug === "support" ? (
-                    <Image
-                      src={supportImage}
-                      alt=""
-                      className="mb-6 h-20 w-20 self-center object-contain"
-                    />
-                  ) : (
-                    <span className="mb-6 flex h-20 w-20 items-center justify-center self-center rounded-full bg-black/[0.06]">
-                      <Icon className="size-10 text-black" strokeWidth={1.5} />
-                    </span>
-                  )}
-                  <h3 className="font-bricolage text-lg font-bold">{title}</h3>
-                  <p className="mt-2 flex-1 text-sm leading-6 text-black/55">{description}</p>
-                  <p className="mt-5 text-sm font-medium text-black/40">
-                    {articles} articles
-                  </p>
-                </Link>
-              ))}
+              {filtered.map(
+                ({ slug, icon: Icon, title, description, articles }) => (
+                  <Link
+                    key={slug}
+                    href={`/help/${slug}`}
+                    className="flex flex-col rounded-2xl bg-white p-8 shadow-[0_8px_24px_rgba(0,0,0,0.035)] transition-shadow hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)]"
+                  >
+                    {/* Large icon */}
+                    {slug === "maintenance" ? (
+                      <Image
+                        src={maintenanceImage}
+                        alt=""
+                        className="mb-6 h-20 w-20 self-center object-contain"
+                      />
+                    ) : slug === "getting-started" ? (
+                      <Image
+                        src={getstartedImage}
+                        alt=""
+                        className="mb-6 h-20 w-20 self-center object-contain"
+                      />
+                    ) : slug === "payments" ? (
+                      <Image
+                        src={cardImage}
+                        alt=""
+                        className="mb-6 h-20 w-20 self-center object-contain"
+                      />
+                    ) : slug === "trust-and-safety" ? (
+                      <Image
+                        src={agreedImage}
+                        alt=""
+                        className="mb-6 h-20 w-20 self-center object-contain"
+                      />
+                    ) : slug === "flatmates" ? (
+                      <Image
+                        src={matchImage}
+                        alt=""
+                        className="mb-6 h-20 w-20 self-center object-contain"
+                      />
+                    ) : slug === "account" ? (
+                      <Image
+                        src={settingsImage}
+                        alt=""
+                        className="mb-6 h-20 w-20 self-center object-contain"
+                      />
+                    ) : slug === "search-and-listings" ? (
+                      <Image
+                        src={listImage}
+                        alt=""
+                        className="mb-6 h-20 w-20 self-center object-contain"
+                      />
+                    ) : slug === "applications" ? (
+                      <Image
+                        src={applicationImage}
+                        alt=""
+                        className="mb-6 h-20 w-20 self-center object-contain"
+                      />
+                    ) : slug === "messages" ? (
+                      <Image
+                        src={messageImage}
+                        alt=""
+                        className="mb-6 h-20 w-20 self-center object-contain"
+                      />
+                    ) : slug === "support" ? (
+                      <Image
+                        src={supportImage}
+                        alt=""
+                        className="mb-6 h-20 w-20 self-center object-contain"
+                      />
+                    ) : (
+                      <span className="mb-6 flex h-20 w-20 items-center justify-center self-center rounded-full bg-black/[0.06]">
+                        <Icon
+                          className="size-10 text-black"
+                          strokeWidth={1.5}
+                        />
+                      </span>
+                    )}
+                    <h3 className="font-bricolage text-lg font-bold">
+                      {title}
+                    </h3>
+                    <p className="mt-2 flex-1 text-sm leading-6 text-black/55">
+                      {description}
+                    </p>
+                    <p className="mt-5 text-sm font-medium text-black/40">
+                      {articles} articles
+                    </p>
+                  </Link>
+                ),
+              )}
             </div>
           ) : (
             <p className="text-center text-sm text-black/45">

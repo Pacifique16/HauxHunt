@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import { OwnerDashboardShell } from "@/components/owner/owner-dashboard-shell";
+import { useOwnerEmptyMode } from "@/components/owner/use-owner-demo-mode";
 import { StatusPill } from "@/components/owner/status-pill";
 import {
   OWNER,
@@ -32,7 +33,10 @@ import {
   subscribeToOwnerRentals,
   type OwnerApplication,
 } from "@/lib/owner-data";
-import { getMaintenanceRequests, subscribeToMaintenance } from "@/lib/maintenance-data";
+import {
+  getMaintenanceRequests,
+  subscribeToMaintenance,
+} from "@/lib/maintenance-data";
 import { subscribeToTeam } from "@/lib/team-data";
 import {
   getRentalSetupManagerFor,
@@ -63,6 +67,7 @@ export default function OwnerOverviewPage() {
   useEffect(() => subscribeToOwnerPayments(forceUpdate), []);
   useEffect(() => subscribeToMaintenance(forceUpdate), []);
   useEffect(() => subscribeToRentalSetup(forceUpdate), []);
+  const emptyMode = useOwnerEmptyMode();
 
   if (!hydrated) {
     return (
@@ -84,7 +89,7 @@ export default function OwnerOverviewPage() {
     );
   }
 
-  const properties = getOwnerProperties();
+  const properties = emptyMode ? [] : getOwnerProperties();
 
   // Section 51: zero properties gets its own focused view -- Add Property
   // first, not an empty KPI strip and empty sections underneath it.
@@ -94,16 +99,30 @@ export default function OwnerOverviewPage() {
         <section className="px-5 pt-10 pb-24 sm:px-6 lg:px-10 xl:px-12">
           <div className="mx-auto max-w-[1360px]">
             <header className="border-b border-black/10 pb-10">
-              <h1 className="dashboard-page-title text-carbon-900">Welcome, {OWNER.name.split(" ")[0]}</h1>
-              <p className="text-carbon-600 mt-7 max-w-3xl text-lg leading-7">Add your first property to get started.</p>
+              <h1 className="dashboard-page-title text-carbon-900">
+                Welcome, {OWNER.name.split(" ")[0]}
+              </h1>
+              <p className="text-carbon-600 mt-7 max-w-3xl text-lg leading-7">
+                Add your first property to get started.
+              </p>
             </header>
             <section className="mt-8 flex min-h-[420px] flex-col items-center justify-center rounded-[1.75rem] bg-white px-6 py-14 text-center shadow-[0_16px_45px_rgba(0,0,0,0.055)]">
-              <Image src={noDataIllustration} alt="" className="h-40 w-auto object-contain" />
-              <h3 className="font-bricolage text-carbon-900 mt-5 text-2xl font-medium">No properties yet</h3>
+              <Image
+                src={noDataIllustration}
+                alt=""
+                className="h-40 w-auto object-contain"
+              />
+              <h3 className="font-bricolage text-carbon-900 mt-5 text-2xl font-medium">
+                No properties yet
+              </h3>
               <p className="text-carbon-500 mt-2 max-w-md text-sm leading-6">
-                Add your first property to create a listing, manage applications, and start renting through HauxHunt.
+                Add your first property to create a listing, manage
+                applications, and start renting through HauxHunt.
               </p>
-              <Link href="/owner-dashboard/properties/new" className="font-bricolage mt-6 inline-flex h-11 items-center gap-2 rounded-full bg-black px-5 text-sm font-medium text-white">
+              <Link
+                href="/owner-dashboard/properties/new"
+                className="font-bricolage mt-6 inline-flex h-11 items-center gap-2 rounded-full bg-black px-5 text-sm font-medium text-white"
+              >
                 <Plus aria-hidden="true" className="size-4" />
                 Add Property
               </Link>
@@ -118,14 +137,22 @@ export default function OwnerOverviewPage() {
   const vacant = properties.filter((p) => p.occupancy === "Vacant").length;
 
   const rentalsAll = getOwnerRentals();
-  const activeRentals = rentalsAll.filter((r) => r.status === "Active" || r.status === "Ending Soon").length;
-  const upcomingRentals = rentalsAll.filter((r) => r.status === "Upcoming").length;
+  const activeRentals = rentalsAll.filter(
+    (r) => r.status === "Active" || r.status === "Ending Soon",
+  ).length;
+  const upcomingRentals = rentalsAll.filter(
+    (r) => r.status === "Upcoming",
+  ).length;
 
   const financial = getOwnerFinancialSummary();
 
   const maintenanceAll = getMaintenanceRequests();
-  const maintenanceOpen = maintenanceAll.filter((m) => m.status !== "Resolved" && m.status !== "Cancelled");
-  const urgentMaintenance = maintenanceOpen.filter((m) => m.urgency === "Urgent");
+  const maintenanceOpen = maintenanceAll.filter(
+    (m) => m.status !== "Resolved" && m.status !== "Cancelled",
+  );
+  const urgentMaintenance = maintenanceOpen.filter(
+    (m) => m.urgency === "Urgent",
+  );
 
   // Section 12: decision authority alone isn't enough -- an application
   // still gathering information (Action Required means the applicant, not
@@ -134,26 +161,46 @@ export default function OwnerOverviewPage() {
   // this only adds "and the current stage actually needs me right now".
   const applicationsAll = getOwnerApplications();
   const decisionRequired = applicationsAll.filter(
-    (a) => a.status !== "Approved" && a.status !== "Not Selected" && a.status !== "Action Required" && ownerDecidesApplication(a),
+    (a) =>
+      a.status !== "Approved" &&
+      a.status !== "Not Selected" &&
+      a.status !== "Action Required" &&
+      ownerDecidesApplication(a),
   );
 
-  const overduePayments = getOwnerPayments().filter((p) => p.status === "Overdue");
+  const overduePayments = getOwnerPayments().filter(
+    (p) => p.status === "Overdue",
+  );
 
   // Section 14: an Approved application with no PM responsible for setup,
   // and either no draft yet or a draft still sitting unset. Reuses Phase
   // 2.5's exact draft/manager resolution -- never a second setup-tracking
   // concept.
   const rentalSetupAttention = applicationsAll
-    .filter((a) => a.status === "Approved" && getRentalSetupManagerFor(a.propertyId) === null)
+    .filter(
+      (a) =>
+        a.status === "Approved" &&
+        getRentalSetupManagerFor(a.propertyId) === null,
+    )
     .map((a) => ({ application: a, draft: getRentalSetupDraft(a.id) }))
     .filter(({ draft }) => !draft || draft.status === "Draft");
 
-  const attentionCount = decisionRequired.length + overduePayments.length + urgentMaintenance.length + rentalSetupAttention.length;
+  const attentionCount =
+    decisionRequired.length +
+    overduePayments.length +
+    urgentMaintenance.length +
+    rentalSetupAttention.length;
 
-  const remeraApplication = applicationsAll.find((application) => application.id === "HH-APP-0250");
-  const kacyiruApplication = applicationsAll.find((application) => application.id === "HH-APP-0241");
+  const remeraApplication = applicationsAll.find(
+    (application) => application.id === "HH-APP-0250",
+  );
+  const kacyiruApplication = applicationsAll.find(
+    (application) => application.id === "HH-APP-0241",
+  );
   const kacyiru = properties.find((property) => property.id === "kacyiru-2br");
-  const modernFamilyHome = properties.find((property) => property.id === "kibagabaga-modern-family-home");
+  const modernFamilyHome = properties.find(
+    (property) => property.id === "kibagabaga-modern-family-home",
+  );
   const teamActivity = [
     remeraApplication?.recommendedBy
       ? {
@@ -187,16 +234,21 @@ export default function OwnerOverviewPage() {
           href: `/owner-dashboard/properties/${kacyiru.id}?tab=management`,
         }
       : null,
-  ].filter((activity): activity is NonNullable<typeof activity> => activity !== null);
+  ].filter(
+    (activity): activity is NonNullable<typeof activity> => activity !== null,
+  );
   return (
     <OwnerDashboardShell>
       <section className="px-5 pt-10 pb-24 sm:px-6 lg:px-10 xl:px-12">
         <div className="mx-auto max-w-[1360px]">
           <header className="flex flex-col gap-8 border-b border-black/10 pb-10 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <h1 className="dashboard-page-title text-carbon-900">Welcome back, {OWNER.name.split(" ")[0]}</h1>
+              <h1 className="dashboard-page-title text-carbon-900">
+                Welcome back, {OWNER.name.split(" ")[0]}
+              </h1>
               <p className="text-carbon-600 mt-7 max-w-3xl text-lg leading-7">
-                What you own, who manages it, and what needs your attention right now.
+                What you own, who manages it, and what needs your attention
+                right now.
               </p>
             </div>
             <Link
@@ -210,9 +262,28 @@ export default function OwnerOverviewPage() {
 
           {/* KPI strip -- four cards, none redundant with another (Section 6) */}
           <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <StatCard icon={Building2} label="Properties" value={String(properties.length)} change={`${occupied} occupied · ${vacant} vacant`} />
-            <StatCard icon={Key} label="Active rentals" value={String(activeRentals)} change={`${upcomingRentals} upcoming`} />
-            <StatCard icon={CreditCard} label="Rent received" value={formatRwf(financial.received)} change={financial.overdueCount > 0 ? `${financial.overdueCount} overdue` : "None overdue"} />
+            <StatCard
+              icon={Building2}
+              label="Properties"
+              value={String(properties.length)}
+              change={`${occupied} occupied · ${vacant} vacant`}
+            />
+            <StatCard
+              icon={Key}
+              label="Active rentals"
+              value={String(activeRentals)}
+              change={`${upcomingRentals} upcoming`}
+            />
+            <StatCard
+              icon={CreditCard}
+              label="Rent received"
+              value={formatRwf(financial.received)}
+              change={
+                financial.overdueCount > 0
+                  ? `${financial.overdueCount} overdue`
+                  : "None overdue"
+              }
+            />
             <StatCard
               icon={ClipboardCheck}
               label="Needs your attention"
@@ -227,9 +298,13 @@ export default function OwnerOverviewPage() {
               <section className="relative rounded-[1.75rem] bg-white shadow-[0_16px_45px_rgba(0,0,0,0.055)]">
                 <div className="flex items-start justify-between gap-5 border-b border-black/10 p-5 sm:p-6">
                   <div>
-                    <h2 className="font-bricolage text-carbon-900 text-xl font-medium tracking-[-0.025em]">Needs Your Attention</h2>
+                    <h2 className="font-bricolage text-carbon-900 text-xl font-medium tracking-[-0.025em]">
+                      Needs Your Attention
+                    </h2>
                     <p className="text-carbon-500 mt-1 text-sm">
-                      {attentionCount > 0 ? `${attentionCount} item${attentionCount === 1 ? "" : "s"} need your attention.` : "There's nothing requiring your attention right now."}
+                      {attentionCount > 0
+                        ? `${attentionCount} item${attentionCount === 1 ? "" : "s"} need your attention.`
+                        : "There's nothing requiring your attention right now."}
                     </p>
                   </div>
                 </div>
@@ -265,21 +340,39 @@ export default function OwnerOverviewPage() {
                         href={`/owner-dashboard/maintenance?open=${m.id}`}
                       />
                     ))}
-                    {rentalSetupAttention.map(({ application, draft }: { application: OwnerApplication; draft: ReturnType<typeof getRentalSetupDraft> }) => (
-                      <AttentionRow
-                        key={`setup-${application.id}`}
-                        icon={KeyRound}
-                        headline={draft ? "Rental setup in progress" : "Rental setup needed"}
-                        context={`${propertyTitle(application.propertyId)} · ${application.applicant}`}
-                        cta={draft ? "Continue Rental Setup" : "Start Rental Setup"}
-                        href={`/owner-dashboard/applications/${application.id}/rental-setup`}
-                      />
-                    ))}
+                    {rentalSetupAttention.map(
+                      ({
+                        application,
+                        draft,
+                      }: {
+                        application: OwnerApplication;
+                        draft: ReturnType<typeof getRentalSetupDraft>;
+                      }) => (
+                        <AttentionRow
+                          key={`setup-${application.id}`}
+                          icon={KeyRound}
+                          headline={
+                            draft
+                              ? "Rental setup in progress"
+                              : "Rental setup needed"
+                          }
+                          context={`${propertyTitle(application.propertyId)} · ${application.applicant}`}
+                          cta={
+                            draft
+                              ? "Continue Rental Setup"
+                              : "Start Rental Setup"
+                          }
+                          href={`/owner-dashboard/applications/${application.id}/rental-setup`}
+                        />
+                      ),
+                    )}
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center gap-3 px-6 py-14 text-center">
                     <CheckCircle2 className="size-8 text-black/25" />
-                    <p className="text-carbon-500 text-sm">You&apos;re all caught up.</p>
+                    <p className="text-carbon-500 text-sm">
+                      You&apos;re all caught up.
+                    </p>
                   </div>
                 )}
               </section>
@@ -288,16 +381,27 @@ export default function OwnerOverviewPage() {
               <section className="overflow-hidden rounded-[1.75rem] bg-white shadow-[0_16px_45px_rgba(0,0,0,0.055)]">
                 <div className="flex items-start justify-between gap-5 border-b border-black/10 p-5 sm:p-6">
                   <div>
-                    <h2 className="font-bricolage text-carbon-900 text-xl font-medium tracking-[-0.025em]">Property Portfolio</h2>
-                    <p className="text-carbon-500 mt-1 text-sm">Who&apos;s managing, marketing, and renting each property.</p>
+                    <h2 className="font-bricolage text-carbon-900 text-xl font-medium tracking-[-0.025em]">
+                      Property Portfolio
+                    </h2>
+                    <p className="text-carbon-500 mt-1 text-sm">
+                      Who&apos;s managing, marketing, and renting each property.
+                    </p>
                   </div>
-                  <Link href="/owner-dashboard/properties" className="font-bricolage shrink-0 text-sm font-medium underline underline-offset-4">
+                  <Link
+                    href="/owner-dashboard/properties"
+                    className="font-bricolage shrink-0 text-sm font-medium underline underline-offset-4"
+                  >
                     View all properties
                   </Link>
                 </div>
                 <div className="divide-y divide-black/10">
                   {properties.slice(0, 4).map((property) => {
-                    const rental = rentalsAll.find((r) => r.propertyId === property.id && (r.status === "Active" || r.status === "Ending Soon"));
+                    const rental = rentalsAll.find(
+                      (r) =>
+                        r.propertyId === property.id &&
+                        (r.status === "Active" || r.status === "Ending Soon"),
+                    );
                     return (
                       <Link
                         key={property.id}
@@ -305,10 +409,18 @@ export default function OwnerOverviewPage() {
                         className="grid gap-4 p-5 transition-colors hover:bg-black/2 sm:p-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center"
                       >
                         <div className="flex min-w-0 items-center gap-4">
-                          <Image src={property.image} alt="" className="size-14 shrink-0 rounded-xl object-cover" />
+                          <Image
+                            src={property.image}
+                            alt=""
+                            className="size-14 shrink-0 rounded-xl object-cover"
+                          />
                           <div className="min-w-0">
-                            <h3 className="font-bricolage text-carbon-900 truncate font-medium">{property.title}</h3>
-                            <p className="text-carbon-500 mt-1 text-sm">{property.location}</p>
+                            <h3 className="font-bricolage text-carbon-900 truncate font-medium">
+                              {property.title}
+                            </h3>
+                            <p className="text-carbon-500 mt-1 text-sm">
+                              {property.location}
+                            </p>
                             <p className="text-carbon-400 mt-1 text-xs">
                               {managementSummaryFor(property)}
                               {rental ? ` · Renter: ${rental.renter}` : ""}
@@ -317,7 +429,9 @@ export default function OwnerOverviewPage() {
                         </div>
                         <div className="flex flex-wrap items-center gap-2 lg:justify-end">
                           <StatusPill status={property.occupancy} />
-                          {rental ? <StatusPill status={rental.paymentStatus} /> : null}
+                          {rental ? (
+                            <StatusPill status={rental.paymentStatus} />
+                          ) : null}
                         </div>
                       </Link>
                     );
@@ -329,12 +443,20 @@ export default function OwnerOverviewPage() {
             <aside className="space-y-8">
               <section className="rounded-[1.75rem] bg-white p-6 shadow-[0_16px_45px_rgba(0,0,0,0.055)]">
                 <div className="flex items-start justify-between gap-5">
-                  <h2 className="font-bricolage text-carbon-900 text-xl font-medium tracking-[-0.025em]">Delegation</h2>
-                  <Link href="/owner-dashboard/team" aria-label="View Team" className="text-black/60 hover:text-black">
+                  <h2 className="font-bricolage text-carbon-900 text-xl font-medium tracking-[-0.025em]">
+                    Delegation
+                  </h2>
+                  <Link
+                    href="/owner-dashboard/team"
+                    aria-label="View Team"
+                    className="text-black/60 hover:text-black"
+                  >
                     <ArrowUpRight aria-hidden="true" className="size-5" />
                   </Link>
                 </div>
-                <p className="text-carbon-500 mt-1 text-sm">How your portfolio is managed today.</p>
+                <p className="text-carbon-500 mt-1 text-sm">
+                  How your portfolio is managed today.
+                </p>
                 <div className="mt-5 divide-y divide-black/8 border-y border-black/8">
                   {properties.map((property) => (
                     <Link
@@ -355,20 +477,34 @@ export default function OwnerOverviewPage() {
               <section className="rounded-[1.75rem] bg-white p-6 shadow-[0_16px_45px_rgba(0,0,0,0.055)]">
                 <div className="flex items-start justify-between gap-5">
                   <div>
-                    <h2 className="font-bricolage text-carbon-900 text-xl font-medium tracking-[-0.025em]">Team Activity</h2>
-                    <p className="text-carbon-500 mt-1 text-sm">Recent work by you and your team.</p>
+                    <h2 className="font-bricolage text-carbon-900 text-xl font-medium tracking-[-0.025em]">
+                      Team Activity
+                    </h2>
+                    <p className="text-carbon-500 mt-1 text-sm">
+                      Recent work by you and your team.
+                    </p>
                   </div>
-                  <Link href="/owner-dashboard/notifications" aria-label="View all activity" className="text-black/60 hover:text-black">
+                  <Link
+                    href="/owner-dashboard/notifications"
+                    aria-label="View all activity"
+                    className="text-black/60 hover:text-black"
+                  >
                     <ArrowUpRight aria-hidden="true" className="size-5" />
                   </Link>
                 </div>
                 <div className="mt-5 divide-y divide-black/8 border-y border-black/8">
                   {teamActivity.map((activity) => (
-                    <Link key={`${activity.actor}-${activity.action}`} href={activity.href} className="block py-3.5 transition-colors hover:bg-black/[0.025]">
+                    <Link
+                      key={`${activity.actor}-${activity.action}`}
+                      href={activity.href}
+                      className="block py-3.5 transition-colors hover:bg-black/[0.025]"
+                    >
                       <p className="text-carbon-800 text-sm leading-5">
                         <strong>{activity.actor}</strong> {activity.action}
                       </p>
-                      <p className="text-carbon-500 mt-1 text-xs leading-5">{activity.context}</p>
+                      <p className="text-carbon-500 mt-1 text-xs leading-5">
+                        {activity.context}
+                      </p>
                     </Link>
                   ))}
                 </div>
@@ -382,10 +518,7 @@ export default function OwnerOverviewPage() {
 }
 
 type TrafficMetric =
-  | "Views"
-  | "Saved to favourites"
-  | "Viewing requests"
-  | "Signed rentals";
+  "Views" | "Saved to favourites" | "Viewing requests" | "Signed rentals";
 
 export function OwnerTrafficTrend() {
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
@@ -443,17 +576,27 @@ export function OwnerTrafficTrend() {
     "Saturday 22, Aug 2026",
     "Monday 24, Aug 2026",
   ];
-  const hoveredRatio = hoveredPoint === null ? 0 : hoveredPoint / (series.length - 1);
+  const hoveredRatio =
+    hoveredPoint === null ? 0 : hoveredPoint / (series.length - 1);
   const hoveredLeft = `calc(${hoveredRatio * 100}% + ${(1 - hoveredRatio) * 3}rem)`;
 
   return (
     <div className="p-5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-5">
         <div>
-          <h2 className="font-bricolage text-carbon-900 text-xl font-medium tracking-[-0.025em]">Property Traffic</h2>
-          <p className="text-carbon-500 mt-1 text-sm">Performance trend across all published properties this month.</p>
+          <h2 className="font-bricolage text-carbon-900 text-xl font-medium tracking-[-0.025em]">
+            Property Traffic
+          </h2>
+          <p className="text-carbon-500 mt-1 text-sm">
+            Performance trend across all published properties this month.
+          </p>
         </div>
-        <Link href="/owner-dashboard/performance" className="text-xs font-medium underline underline-offset-4">View Performance</Link>
+        <Link
+          href="/owner-dashboard/performance"
+          className="text-xs font-medium underline underline-offset-4"
+        >
+          View Performance
+        </Link>
       </div>
       <div
         className="relative mt-7 h-64 overflow-hidden"
@@ -467,28 +610,44 @@ export function OwnerTrafficTrend() {
           }
           setHoveredPoint(
             Math.round(
-              (Math.min(position, plotWidth) / plotWidth) *
-                (series.length - 1),
+              (Math.min(position, plotWidth) / plotWidth) * (series.length - 1),
             ),
           );
         }}
         onMouseLeave={() => setHoveredPoint(null)}
       >
         <div className="absolute inset-y-0 left-0 z-10 flex w-10 flex-col justify-between bg-white/75 text-right text-[0.62rem] text-black/35">
-          {yAxisValues.map((value, index) => <span key={`${value}-${index}`}>{value.toLocaleString()}</span>)}
+          {yAxisValues.map((value, index) => (
+            <span key={`${value}-${index}`}>{value.toLocaleString()}</span>
+          ))}
         </div>
         <div className="absolute inset-y-0 right-0 left-12 flex flex-col justify-between">
-          {Array.from({ length: 5 }).map((_, index) => <span key={index} className="block border-t border-black/[0.055]" />)}
+          {Array.from({ length: 5 }).map((_, index) => (
+            <span key={index} className="block border-t border-black/[0.055]" />
+          ))}
         </div>
-        <svg viewBox="0 0 800 240" preserveAspectRatio="none" className="relative z-10 ml-12 h-full w-[calc(100%-3rem)] overflow-visible">
+        <svg
+          viewBox="0 0 800 240"
+          preserveAspectRatio="none"
+          className="relative z-10 ml-12 h-full w-[calc(100%-3rem)] overflow-visible"
+        >
           <defs>
             <linearGradient id="ownerTrafficArea" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="black" stopOpacity="0.14" />
               <stop offset="100%" stopColor="black" stopOpacity="0" />
             </linearGradient>
           </defs>
-          <path d={`${linePath} L800 240 L0 240 Z`} fill="url(#ownerTrafficArea)" />
-          <path d={linePath} fill="none" stroke="black" strokeWidth="3" vectorEffect="non-scaling-stroke" />
+          <path
+            d={`${linePath} L800 240 L0 240 Z`}
+            fill="url(#ownerTrafficArea)"
+          />
+          <path
+            d={linePath}
+            fill="none"
+            stroke="black"
+            strokeWidth="3"
+            vectorEffect="non-scaling-stroke"
+          />
         </svg>
         {hoveredPoint !== null ? (
           <>
@@ -509,12 +668,21 @@ export function OwnerTrafficTrend() {
               className={`pointer-events-none absolute top-3 z-40 w-64 border border-black/10 bg-white p-5 shadow-[0_16px_40px_rgba(0,0,0,0.16)] ${hoveredPoint < 3 ? "translate-x-0" : hoveredPoint > 8 ? "-translate-x-full" : "-translate-x-1/2"}`}
               style={{ left: hoveredLeft }}
             >
-              <p className="text-carbon-500 text-sm font-medium">{pointDates[hoveredPoint]}</p>
+              <p className="text-carbon-500 text-sm font-medium">
+                {pointDates[hoveredPoint]}
+              </p>
               <div className="mt-4 space-y-3">
                 {(Object.keys(totals) as TrafficMetric[]).map((item) => (
-                  <p key={item} className="flex items-center justify-between gap-4 text-sm">
-                    <span className="text-carbon-500">{item === "Saved to favourites" ? "Saves" : item}</span>
-                    <strong className="font-medium tabular-nums">{seriesByMetric[item][hoveredPoint].toLocaleString()}</strong>
+                  <p
+                    key={item}
+                    className="flex items-center justify-between gap-4 text-sm"
+                  >
+                    <span className="text-carbon-500">
+                      {item === "Saved to favourites" ? "Saves" : item}
+                    </span>
+                    <strong className="font-medium tabular-nums">
+                      {seriesByMetric[item][hoveredPoint].toLocaleString()}
+                    </strong>
                   </p>
                 ))}
               </div>
@@ -523,7 +691,9 @@ export function OwnerTrafficTrend() {
         ) : null}
       </div>
       <div className="ml-12 flex justify-between text-[0.62rem] text-black/35">
-        {axisLabels.map((label) => <span key={label}>{label}</span>)}
+        {axisLabels.map((label) => (
+          <span key={label}>{label}</span>
+        ))}
       </div>
       <div className="mt-6 grid grid-cols-2 gap-3 border-t border-black/8 pt-5">
         <div>
@@ -556,7 +726,9 @@ function StatCard({
         <p className="text-carbon-500 truncate text-xs">{label}</p>
         <Icon aria-hidden="true" className="size-4 shrink-0" />
       </div>
-      <p className="font-bricolage text-carbon-900 mt-3 truncate text-2xl font-medium tracking-tight">{value}</p>
+      <p className="font-bricolage text-carbon-900 mt-3 truncate text-2xl font-medium tracking-tight">
+        {value}
+      </p>
       <p className="text-carbon-500 mt-1 truncate text-xs">{change}</p>
     </article>
   );
@@ -582,7 +754,9 @@ function AttentionRow({
           <Icon aria-hidden="true" className="size-5" />
         </span>
         <div>
-          <p className="font-bricolage text-carbon-900 font-medium">{headline}</p>
+          <p className="font-bricolage text-carbon-900 font-medium">
+            {headline}
+          </p>
           <p className="text-carbon-500 mt-0.5 text-sm">{context}</p>
         </div>
       </div>

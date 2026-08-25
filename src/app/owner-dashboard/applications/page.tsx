@@ -1,11 +1,23 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useReducer, useState } from "react";
-import { Check, CheckCircle2, CircleAlert, ClipboardList, Clock3, KeyRound, MessageSquare, X } from "lucide-react";
+import {
+  Check,
+  CheckCircle2,
+  CircleAlert,
+  ClipboardList,
+  Clock3,
+  KeyRound,
+  MessageSquare,
+  X,
+} from "lucide-react";
 
 import { OwnerDashboardShell } from "@/components/owner/owner-dashboard-shell";
+import emptyIllustration from "@/assets/images/empty.png";
+import { useOwnerEmptyMode } from "@/components/owner/use-owner-demo-mode";
 import { StatusPill } from "@/components/owner/status-pill";
 import {
   OWNER,
@@ -17,10 +29,17 @@ import {
   type ApplicationStatus,
   type OwnerApplication,
 } from "@/lib/owner-data";
-import { getCurrentReviewerFor, getRentalSetupManagerFor, ownerDecidesApplication as ownerDecides } from "@/lib/professional-work";
+import {
+  getCurrentReviewerFor,
+  getRentalSetupManagerFor,
+  ownerDecidesApplication as ownerDecides,
+} from "@/lib/professional-work";
 import { getRentalSetupDraft, subscribeToRentalSetup } from "@/lib/pm-work";
 import { getProfessionalByName } from "@/lib/team-data";
-import { OWNER_PARTICIPANT_ID, getOrCreateConversation } from "@/lib/messages-data";
+import {
+  OWNER_PARTICIPANT_ID,
+  getOrCreateConversation,
+} from "@/lib/messages-data";
 
 // Owner Applications phase. Reuses the exact architecture already built for
 // Agent/PM/Renter -- owner-data.ts's OWNER_APPLICATIONS + override store is
@@ -38,8 +57,19 @@ import { OWNER_PARTICIPANT_ID, getOrCreateConversation } from "@/lib/messages-da
 // clause; PM-managed-with-approval falls to Owner by the first; PM-managed
 // with delegated authority falls to neither, so Owner sees oversight only.
 
-type Filter = "All" | "Needs My Decision" | "Under Review" | "Action Required" | "Completed";
-const FILTERS: Filter[] = ["All", "Needs My Decision", "Under Review", "Action Required", "Completed"];
+type Filter =
+  | "All"
+  | "Needs My Decision"
+  | "Under Review"
+  | "Action Required"
+  | "Completed";
+const FILTERS: Filter[] = [
+  "All",
+  "Needs My Decision",
+  "Under Review",
+  "Action Required",
+  "Completed",
+];
 
 function isTerminal(status: ApplicationStatus): boolean {
   return status === "Approved" || status === "Not Selected";
@@ -53,11 +83,19 @@ type Participant = { name: string; role: string; note: string };
 function participantsFor(application: OwnerApplication): Participant[] {
   const list: Participant[] = [];
   if (application.assistedBy) {
-    list.push({ name: application.assistedBy, role: application.assistedByRole ?? "Agent", note: "Assisted with application" });
+    list.push({
+      name: application.assistedBy,
+      role: application.assistedByRole ?? "Agent",
+      note: "Assisted with application",
+    });
   }
   const reviewer = getCurrentReviewerFor(application.propertyId);
   if (reviewer && !list.some((p) => p.name === reviewer.name)) {
-    list.push({ name: reviewer.name, role: reviewer.roleLabel, note: "Reviewed application" });
+    list.push({
+      name: reviewer.name,
+      role: reviewer.roleLabel,
+      note: "Reviewed application",
+    });
   }
   // Neither resolved above -- an Agent-only property with no recorded
   // assistedBy, or a PM whose live assignment didn't resolve. Fall back to
@@ -68,7 +106,10 @@ function participantsFor(application: OwnerApplication): Participant[] {
     list.push({
       name: application.handledBy,
       role: application.handledByRole,
-      note: application.handledByRole === "Property Manager" ? "Reviewed application" : "Assisted with application",
+      note:
+        application.handledByRole === "Property Manager"
+          ? "Reviewed application"
+          : "Assisted with application",
     });
   }
   return list;
@@ -81,12 +122,16 @@ function timelineFor(application: OwnerApplication): string[] {
 
   if (application.status !== "Submitted") {
     for (const p of participantsFor(application)) {
-      events.push(`${p.name} (${p.role}) ${p.note === "Reviewed application" ? "reviewed this application" : "assisted with this application"}`);
+      events.push(
+        `${p.name} (${p.role}) ${p.note === "Reviewed application" ? "reviewed this application" : "assisted with this application"}`,
+      );
     }
   }
 
   if (application.recommendation) {
-    events.push(`${application.recommendedBy ?? application.handledBy} recommended ${application.recommendation === "Approve" ? "approval" : "not selecting this applicant"}`);
+    events.push(
+      `${application.recommendedBy ?? application.handledBy} recommended ${application.recommendation === "Approve" ? "approval" : "not selecting this applicant"}`,
+    );
   }
 
   if (application.status === "Decision Pending" && ownerDecides(application)) {
@@ -95,10 +140,18 @@ function timelineFor(application: OwnerApplication): string[] {
 
   const reviewer = getCurrentReviewerFor(application.propertyId);
   if (application.status === "Approved") {
-    events.push(ownerDecides(application) ? "You approved this application" : `${reviewer?.name ?? "Your Property Manager"} approved this application`);
+    events.push(
+      ownerDecides(application)
+        ? "You approved this application"
+        : `${reviewer?.name ?? "Your Property Manager"} approved this application`,
+    );
   }
   if (application.status === "Not Selected") {
-    events.push(ownerDecides(application) ? "You marked this application as Not Selected" : `${reviewer?.name ?? "Your Property Manager"} marked this application as Not Selected`);
+    events.push(
+      ownerDecides(application)
+        ? "You marked this application as Not Selected"
+        : `${reviewer?.name ?? "Your Property Manager"} marked this application as Not Selected`,
+    );
   }
 
   return events;
@@ -124,8 +177,11 @@ function OwnerApplicationsPageInner() {
 
   const [filter, setFilter] = useState<Filter>("All");
 
-  const allApplications = getOwnerApplications();
-  const applications = propertyIdParam ? allApplications.filter((a) => a.propertyId === propertyIdParam) : allApplications;
+  const emptyMode = useOwnerEmptyMode();
+  const allApplications = emptyMode ? [] : getOwnerApplications();
+  const applications = propertyIdParam
+    ? allApplications.filter((a) => a.propertyId === propertyIdParam)
+    : allApplications;
 
   const visible =
     filter === "All"
@@ -135,16 +191,31 @@ function OwnerApplicationsPageInner() {
         : filter === "Completed"
           ? applications.filter((a) => isTerminal(a.status))
           : filter === "Under Review"
-            ? applications.filter((a) => a.status === "Under Review" || a.status === "Decision Pending")
-          : applications.filter((a) => a.status === filter);
+            ? applications.filter(
+                (a) =>
+                  a.status === "Under Review" ||
+                  a.status === "Decision Pending",
+              )
+            : applications.filter((a) => a.status === filter);
 
-  const [selectedId, setSelectedId] = useState<string | null>(openParam ?? applications[0]?.id ?? null);
-  const selected = visible.find((a) => a.id === selectedId) ?? visible[0] ?? null;
+  const [selectedId, setSelectedId] = useState<string | null>(
+    openParam ?? applications[0]?.id ?? null,
+  );
+  const selected =
+    visible.find((a) => a.id === selectedId) ?? visible[0] ?? null;
 
-  const needsDecisionCount = applications.filter((a) => !isTerminal(a.status) && ownerDecides(a)).length;
-  const underReviewCount = applications.filter((a) => a.status === "Under Review" || a.status === "Decision Pending").length;
-  const actionRequiredCount = applications.filter((a) => a.status === "Action Required").length;
-  const completedCount = applications.filter((a) => isTerminal(a.status)).length;
+  const needsDecisionCount = applications.filter(
+    (a) => !isTerminal(a.status) && ownerDecides(a),
+  ).length;
+  const underReviewCount = applications.filter(
+    (a) => a.status === "Under Review" || a.status === "Decision Pending",
+  ).length;
+  const actionRequiredCount = applications.filter(
+    (a) => a.status === "Action Required",
+  ).length;
+  const completedCount = applications.filter((a) =>
+    isTerminal(a.status),
+  ).length;
   const filterCounts: Record<Filter, number> = {
     All: applications.length,
     "Needs My Decision": needsDecisionCount,
@@ -165,18 +236,47 @@ function OwnerApplicationsPageInner() {
       <section className="px-5 pt-8 pb-24 sm:px-6 lg:px-10 lg:pt-10 xl:px-12">
         <div className="mx-auto max-w-[1360px]">
           <header className="border-b border-black/10 pb-8">
-            <h1 className="dashboard-page-title text-carbon-900">Applications</h1>
+            <h1 className="dashboard-page-title text-carbon-900">
+              Applications
+            </h1>
             <p className="text-carbon-600 mt-5 max-w-2xl text-base leading-7 sm:text-lg">
-              Review applications across your portfolio, see who is handling each one, and act only when a final owner decision is required.
+              Review applications across your portfolio, see who is handling
+              each one, and act only when a final owner decision is required.
             </p>
-            {propertyIdParam ? <PropertyFilterChip propertyId={propertyIdParam} onClear={clearPropertyFilter} /> : null}
+            {propertyIdParam ? (
+              <PropertyFilterChip
+                propertyId={propertyIdParam}
+                onClear={clearPropertyFilter}
+              />
+            ) : null}
           </header>
 
           <div className="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <ApplicationSummaryCard icon={ClipboardList} label="Total applications" value={applications.length} note="Across your portfolio" />
-            <ApplicationSummaryCard icon={CircleAlert} label="Needs my decision" value={needsDecisionCount} note={needsDecisionCount ? "Action required" : "Nothing waiting"} emphasized={needsDecisionCount > 0} />
-            <ApplicationSummaryCard icon={Clock3} label="In review" value={underReviewCount} note="With you or your team" />
-            <ApplicationSummaryCard icon={CheckCircle2} label="Completed" value={completedCount} note="Approved or not selected" />
+            <ApplicationSummaryCard
+              icon={ClipboardList}
+              label="Total applications"
+              value={applications.length}
+              note="Across your portfolio"
+            />
+            <ApplicationSummaryCard
+              icon={CircleAlert}
+              label="Needs my decision"
+              value={needsDecisionCount}
+              note={needsDecisionCount ? "Action required" : "Nothing waiting"}
+              emphasized={needsDecisionCount > 0}
+            />
+            <ApplicationSummaryCard
+              icon={Clock3}
+              label="In review"
+              value={underReviewCount}
+              note="With you or your team"
+            />
+            <ApplicationSummaryCard
+              icon={CheckCircle2}
+              label="Completed"
+              value={completedCount}
+              note="Approved or not selected"
+            />
           </div>
 
           <div className="mt-7 flex flex-wrap gap-2 border-b border-black/10">
@@ -188,22 +288,40 @@ function OwnerApplicationsPageInner() {
                 aria-pressed={filter === f}
                 className={`relative h-11 px-1 text-sm font-medium transition-colors ${filter === f ? "text-black" : "text-black/45 hover:text-black"}`}
               >
-                {f} <span className="ml-1 text-xs opacity-55">{filterCounts[f]}</span>
-                {filter === f ? <span className="absolute inset-x-0 bottom-0 h-0.5 bg-black" /> : null}
+                {f}{" "}
+                <span className="ml-1 text-xs opacity-55">
+                  {filterCounts[f]}
+                </span>
+                {filter === f ? (
+                  <span className="absolute inset-x-0 bottom-0 h-0.5 bg-black" />
+                ) : null}
               </button>
             ))}
           </div>
 
           {applications.length === 0 ? (
             <div className="mt-6 flex flex-col items-center justify-center rounded-[1.5rem] border border-dashed border-black/15 bg-white px-6 py-16 text-center">
-              <h3 className="font-bricolage text-xl font-medium">{propertyIdParam ? "No applications for this property yet" : "No applications yet"}</h3>
+              <Image
+                src={emptyIllustration}
+                alt=""
+                className="h-32 w-auto object-contain"
+              />
+              <h3 className="font-bricolage mt-5 text-xl font-medium">
+                {propertyIdParam
+                  ? "No applications for this property yet"
+                  : "No applications yet"}
+              </h3>
               <p className="text-carbon-500 mt-2 max-w-sm text-sm leading-6">
-                {propertyIdParam ? "Applications for this property will appear here." : "Applications for your properties will appear here."}
+                {propertyIdParam
+                  ? "Applications for this property will appear here."
+                  : "Applications for your properties will appear here."}
               </p>
             </div>
           ) : visible.length === 0 ? (
             <div className="mt-6 flex flex-col items-center justify-center rounded-[1.5rem] border border-dashed border-black/15 bg-white px-6 py-16 text-center">
-              <h3 className="font-bricolage text-xl font-medium">No applications match this filter</h3>
+              <h3 className="font-bricolage text-xl font-medium">
+                No applications match this filter
+              </h3>
             </div>
           ) : (
             <div className="mt-6 grid items-start gap-5 lg:grid-cols-[minmax(300px,0.72fr)_minmax(0,1.28fr)]">
@@ -219,7 +337,13 @@ function OwnerApplicationsPageInner() {
               </div>
 
               <div className="min-w-0 rounded-[1.5rem] bg-white p-6 shadow-[0_12px_35px_rgba(0,0,0,0.055)] sm:p-8 lg:sticky lg:top-24">
-                {selected ? <ApplicationDetail key={selected.id} application={selected} /> : <p className="text-carbon-500 text-sm">Select an application to view details.</p>}
+                {selected ? (
+                  <ApplicationDetail key={selected.id} application={selected} />
+                ) : (
+                  <p className="text-carbon-500 text-sm">
+                    Select an application to view details.
+                  </p>
+                )}
               </div>
             </div>
           )}
@@ -229,19 +353,39 @@ function OwnerApplicationsPageInner() {
   );
 }
 
-function PropertyFilterChip({ propertyId, onClear }: { propertyId: string; onClear: () => void }) {
+function PropertyFilterChip({
+  propertyId,
+  onClear,
+}: {
+  propertyId: string;
+  onClear: () => void;
+}) {
   return (
     <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-black/4.5 py-1.5 pr-1.5 pl-4 text-sm font-medium">
       <span>{propertyTitle(propertyId)}</span>
-      <button type="button" onClick={onClear} aria-label="Clear property filter" className="flex size-6 items-center justify-center rounded-full bg-black/10 hover:bg-black/20">
+      <button
+        type="button"
+        onClick={onClear}
+        aria-label="Clear property filter"
+        className="flex size-6 items-center justify-center rounded-full bg-black/10 hover:bg-black/20"
+      >
         <X aria-hidden="true" className="size-3.5" />
       </button>
     </div>
   );
 }
 
-function ApplicationRow({ application, active, onSelect }: { application: OwnerApplication; active: boolean; onSelect: () => void }) {
-  const needsDecision = !isTerminal(application.status) && ownerDecides(application);
+function ApplicationRow({
+  application,
+  active,
+  onSelect,
+}: {
+  application: OwnerApplication;
+  active: boolean;
+  onSelect: () => void;
+}) {
+  const needsDecision =
+    !isTerminal(application.status) && ownerDecides(application);
   const participants = participantsFor(application);
   const contextLabel =
     participants.length === 0
@@ -251,13 +395,23 @@ function ApplicationRow({ application, active, onSelect }: { application: OwnerA
         : participants.map((p) => p.name.split(" ")[0]).join(" + ");
 
   return (
-    <button type="button" onClick={onSelect} className={`block w-full rounded-2xl border p-5 text-left shadow-[0_8px_24px_rgba(0,0,0,0.035)] transition-all ${active ? "border-black bg-white ring-1 ring-black" : "border-black/8 bg-white hover:border-black/20"}`}>
+    <button
+      type="button"
+      onClick={onSelect}
+      className={`block w-full rounded-2xl border p-5 text-left shadow-[0_8px_24px_rgba(0,0,0,0.035)] transition-all ${active ? "border-black bg-white ring-1 ring-black" : "border-black/8 bg-white hover:border-black/20"}`}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate font-medium">{application.applicant}</p>
-          <p className="text-carbon-500 mt-1 truncate text-sm">{propertyTitle(application.propertyId)}</p>
+          <p className="text-carbon-500 mt-1 truncate text-sm">
+            {propertyTitle(application.propertyId)}
+          </p>
         </div>
-        {needsDecision ? <span className="shrink-0 rounded-full bg-black px-2.5 py-1 text-[10px] font-medium text-white">Your decision</span> : null}
+        {needsDecision ? (
+          <span className="shrink-0 rounded-full bg-black px-2.5 py-1 text-[10px] font-medium text-white">
+            Your decision
+          </span>
+        ) : null}
       </div>
       <p className="text-carbon-400 mt-2 truncate text-xs">{contextLabel}</p>
       <div className="mt-3 flex items-center justify-between gap-2">
@@ -282,13 +436,31 @@ function ApplicationSummaryCard({
   emphasized?: boolean;
 }) {
   return (
-    <article className={`rounded-2xl p-5 shadow-[0_10px_30px_rgba(0,0,0,0.045)] ${emphasized ? "bg-black text-white" : "bg-white text-black"}`}>
+    <article
+      className={`rounded-2xl p-5 shadow-[0_10px_30px_rgba(0,0,0,0.045)] ${emphasized ? "bg-black text-white" : "bg-white text-black"}`}
+    >
       <div className="flex items-center justify-between gap-3">
-        <p className={emphasized ? "text-xs text-white/60" : "text-carbon-500 text-xs"}>{label}</p>
+        <p
+          className={
+            emphasized ? "text-xs text-white/60" : "text-carbon-500 text-xs"
+          }
+        >
+          {label}
+        </p>
         <Icon aria-hidden="true" className="size-4" />
       </div>
-      <p className="font-bricolage mt-4 text-3xl font-medium tabular-nums">{value}</p>
-      <p className={emphasized ? "mt-1 text-xs text-white/55" : "text-carbon-500 mt-1 text-xs"}>{note}</p>
+      <p className="font-bricolage mt-4 text-3xl font-medium tabular-nums">
+        {value}
+      </p>
+      <p
+        className={
+          emphasized
+            ? "mt-1 text-xs text-white/55"
+            : "text-carbon-500 mt-1 text-xs"
+        }
+      >
+        {note}
+      </p>
     </article>
   );
 }
@@ -307,9 +479,12 @@ function ApplicationDetail({ application }: { application: OwnerApplication }) {
     <div>
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-black/10 pb-5">
         <div>
-          <h2 className="font-bricolage text-xl font-medium">{application.applicant}</h2>
+          <h2 className="font-bricolage text-xl font-medium">
+            {application.applicant}
+          </h2>
           <p className="text-carbon-500 mt-1 text-sm">
-            {propertyTitle(application.propertyId)} · {propertyLocation(application.propertyId)}
+            {propertyTitle(application.propertyId)} ·{" "}
+            {propertyLocation(application.propertyId)}
           </p>
         </div>
         <StatusPill status={application.status} />
@@ -317,15 +492,21 @@ function ApplicationDetail({ application }: { application: OwnerApplication }) {
 
       {/* Application Handling -- who's been involved, before anything else. */}
       <div className="mt-6">
-        <p className="text-carbon-400 text-xs font-medium tracking-wider uppercase">Application Handling</p>
+        <p className="text-carbon-400 text-xs font-medium tracking-wider uppercase">
+          Application Handling
+        </p>
         {participants.length === 0 ? (
           <p className="mt-2 text-sm">
-            <span className="font-medium">Managed by</span> <span className="text-carbon-600">You</span>
+            <span className="font-medium">Managed by</span>{" "}
+            <span className="text-carbon-600">You</span>
           </p>
         ) : (
           <div className="mt-3 space-y-2">
             {participants.map((p) => (
-              <div key={`${p.name}-${p.role}`} className="flex items-center justify-between gap-3 rounded-xl bg-black/3 px-4 py-3">
+              <div
+                key={`${p.name}-${p.role}`}
+                className="flex items-center justify-between gap-3 rounded-xl bg-black/3 px-4 py-3"
+              >
                 <div className="min-w-0">
                   <p className="truncate font-medium">{p.name}</p>
                   <p className="text-carbon-500 text-xs">{p.role}</p>
@@ -361,29 +542,51 @@ function ApplicationDetail({ application }: { application: OwnerApplication }) {
         {application.recommendation ? (
           <div className="border-b border-black/10 p-4">
             <p className="text-carbon-400 text-xs font-medium tracking-wider uppercase">
-              {application.recommendedBy && application.recommendedBy === application.assistedBy ? "Agent Recommendation" : "Property Manager Recommendation"}
+              {application.recommendedBy &&
+              application.recommendedBy === application.assistedBy
+                ? "Agent Recommendation"
+                : "Property Manager Recommendation"}
             </p>
             <p className="mt-1 text-sm font-medium">
               Recommend {application.recommendation}
-              <span className="text-carbon-600 font-normal"> — by {application.recommendedBy ?? application.handledBy}</span>
+              <span className="text-carbon-600 font-normal">
+                {" "}
+                — by {application.recommendedBy ?? application.handledBy}
+              </span>
             </p>
           </div>
         ) : null}
 
         <div className="p-4 sm:p-5">
-          <p className="text-carbon-400 text-xs font-medium tracking-wider uppercase">Your Decision</p>
+          <p className="text-carbon-400 text-xs font-medium tracking-wider uppercase">
+            Your Decision
+          </p>
           {terminal ? (
             <p className="mt-1 text-sm font-medium">
               {application.status}
-              <span className="text-carbon-600 font-normal"> · decided by {decides ? "you" : reviewer ? `${reviewer.name} · ${reviewer.roleLabel}` : "your Property Manager"}</span>
+              <span className="text-carbon-600 font-normal">
+                {" "}
+                · decided by{" "}
+                {decides
+                  ? "you"
+                  : reviewer
+                    ? `${reviewer.name} · ${reviewer.roleLabel}`
+                    : "your Property Manager"}
+              </span>
             </p>
           ) : decides ? (
             <>
-              <p className="text-carbon-600 mt-1 text-sm">Needs Your Decision</p>
+              <p className="text-carbon-600 mt-1 text-sm">
+                Needs Your Decision
+              </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={() => updateOwnerApplication(application.id, { status: "Approved" })}
+                  onClick={() =>
+                    updateOwnerApplication(application.id, {
+                      status: "Approved",
+                    })
+                  }
                   className="font-bricolage inline-flex h-11 items-center gap-2 rounded-full bg-black px-5 text-sm font-medium text-white"
                 >
                   <Check aria-hidden="true" className="size-4" />
@@ -403,7 +606,9 @@ function ApplicationDetail({ application }: { application: OwnerApplication }) {
             <p className="mt-1 text-sm font-medium">
               Decision delegated
               <span className="text-carbon-600 mt-1 block text-sm font-normal">
-                {reviewer ? `${reviewer.name} · ${reviewer.roleLabel} will make the final decision.` : "Your Property Manager will make the final decision."}
+                {reviewer
+                  ? `${reviewer.name} · ${reviewer.roleLabel} will make the final decision.`
+                  : "Your Property Manager will make the final decision."}
               </span>
             </p>
           )}
@@ -413,7 +618,9 @@ function ApplicationDetail({ application }: { application: OwnerApplication }) {
       <RentalSetupSection application={application} />
 
       <div className="mt-6">
-        <p className="text-carbon-400 text-xs font-medium tracking-wider uppercase">Timeline</p>
+        <p className="text-carbon-400 text-xs font-medium tracking-wider uppercase">
+          Timeline
+        </p>
         <ul className="mt-3 space-y-2.5">
           {timeline.map((event, i) => (
             <li key={i} className="flex gap-3 text-sm">
@@ -441,12 +648,16 @@ function ApplicationDetail({ application }: { application: OwnerApplication }) {
               // itself is addressed by that id from then on.
               const handler = getProfessionalByName(application.handledBy);
               if (!handler) return null;
-              const conversation = getOrCreateConversation(OWNER_PARTICIPANT_ID, handler.id, {
-                type: "application",
-                propertyId: application.propertyId,
-                applicationId: application.id,
-                label: "Application",
-              });
+              const conversation = getOrCreateConversation(
+                OWNER_PARTICIPANT_ID,
+                handler.id,
+                {
+                  type: "application",
+                  propertyId: application.propertyId,
+                  applicationId: application.id,
+                  label: "Application",
+                },
+              );
               if (!conversation) return null;
               return (
                 <Link
@@ -487,7 +698,11 @@ function ApplicationDetail({ application }: { application: OwnerApplication }) {
 // never create competing drafts. When no PM owns it (self-managed or
 // Agent-only), Owner gets the real Start/Continue Rental Setup entry
 // point that Phase 2 deliberately left as an honest gap.
-function RentalSetupSection({ application }: { application: OwnerApplication }) {
+function RentalSetupSection({
+  application,
+}: {
+  application: OwnerApplication;
+}) {
   if (application.status !== "Approved") return null;
 
   const draft = getRentalSetupDraft(application.id);
@@ -496,12 +711,17 @@ function RentalSetupSection({ application }: { application: OwnerApplication }) 
 
   return (
     <section className="mt-6 rounded-2xl bg-black/3 p-4 sm:p-5">
-      <p className="text-carbon-400 text-xs font-medium tracking-wider uppercase">Rental Setup</p>
+      <p className="text-carbon-400 text-xs font-medium tracking-wider uppercase">
+        Rental Setup
+      </p>
 
       {manager ? (
         // PM responsible -- oversight only, no matter the draft's status.
         !draft ? (
-          <p className="mt-1 text-sm leading-6">Approved. Rental setup can now be prepared by {manager.name} · {manager.roleLabel}.</p>
+          <p className="mt-1 text-sm leading-6">
+            Approved. Rental setup can now be prepared by {manager.name} ·{" "}
+            {manager.roleLabel}.
+          </p>
         ) : draft.status === "Completed" && draft.rentalId ? (
           <>
             <p className="mt-1 text-sm font-medium">Rental Setup Completed</p>
@@ -510,17 +730,28 @@ function RentalSetupSection({ application }: { application: OwnerApplication }) 
         ) : draft.status === "Sent to Renter" ? (
           <>
             <p className="mt-1 text-sm font-medium">Rental Setup Sent</p>
-            <p className="text-carbon-600 mt-1 text-sm">Awaiting {application.applicant} to complete it.</p>
-            {draft.rentalId ? <RentalSetupViewLink rentalId={draft.rentalId} /> : null}
+            <p className="text-carbon-600 mt-1 text-sm">
+              Awaiting {application.applicant} to complete it.
+            </p>
+            {draft.rentalId ? (
+              <RentalSetupViewLink rentalId={draft.rentalId} />
+            ) : null}
           </>
         ) : draft.status === "Cancelled" ? (
-          <p className="mt-1 text-sm font-medium">Rental setup was declined by {application.applicant}.</p>
+          <p className="mt-1 text-sm font-medium">
+            Rental setup was declined by {application.applicant}.
+          </p>
         ) : (
-          <p className="mt-1 text-sm font-medium">Rental setup is being prepared by {manager.name} · {manager.roleLabel}.</p>
+          <p className="mt-1 text-sm font-medium">
+            Rental setup is being prepared by {manager.name} ·{" "}
+            {manager.roleLabel}.
+          </p>
         )
       ) : !draft ? (
         <>
-          <p className="mt-1 text-sm leading-6">Approved. You manage this property directly.</p>
+          <p className="mt-1 text-sm leading-6">
+            Approved. You manage this property directly.
+          </p>
           <Link
             href={setupHref}
             className="font-bricolage mt-4 inline-flex h-10 items-center gap-2 rounded-full bg-black px-4 text-sm font-medium text-white"
@@ -531,7 +762,9 @@ function RentalSetupSection({ application }: { application: OwnerApplication }) 
         </>
       ) : draft.status === "Draft" ? (
         <>
-          <p className="mt-1 text-sm leading-6">Rental setup started but not sent yet.</p>
+          <p className="mt-1 text-sm leading-6">
+            Rental setup started but not sent yet.
+          </p>
           <Link
             href={setupHref}
             className="font-bricolage mt-4 inline-flex h-10 items-center gap-2 rounded-full bg-black px-4 text-sm font-medium text-white"
@@ -542,7 +775,9 @@ function RentalSetupSection({ application }: { application: OwnerApplication }) 
         </>
       ) : draft.status === "Cancelled" ? (
         <>
-          <p className="mt-1 text-sm leading-6">Rental setup was declined by {application.applicant}.</p>
+          <p className="mt-1 text-sm leading-6">
+            Rental setup was declined by {application.applicant}.
+          </p>
           <Link
             href={setupHref}
             className="font-bricolage mt-4 inline-flex h-10 items-center gap-2 rounded-full bg-black px-4 text-sm font-medium text-white"
@@ -554,8 +789,12 @@ function RentalSetupSection({ application }: { application: OwnerApplication }) 
       ) : draft.status === "Sent to Renter" ? (
         <>
           <p className="mt-1 text-sm font-medium">Rental Setup Sent</p>
-          <p className="text-carbon-600 mt-1 text-sm">Awaiting {application.applicant} to complete it.</p>
-          {draft.rentalId ? <RentalSetupViewLink rentalId={draft.rentalId} /> : null}
+          <p className="text-carbon-600 mt-1 text-sm">
+            Awaiting {application.applicant} to complete it.
+          </p>
+          {draft.rentalId ? (
+            <RentalSetupViewLink rentalId={draft.rentalId} />
+          ) : null}
         </>
       ) : draft.status === "Completed" && draft.rentalId ? (
         <>
@@ -579,9 +818,20 @@ function RentalSetupViewLink({ rentalId }: { rentalId: string }) {
   );
 }
 
-function NotSelectDialog({ applicantName, onCancel, onConfirm }: { applicantName: string; onCancel: () => void; onConfirm: () => void }) {
+function NotSelectDialog({
+  applicantName,
+  onCancel,
+  onConfirm,
+}: {
+  applicantName: string;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
   return (
-    <div className="fixed inset-0 z-190 flex items-center justify-center bg-black/40 p-4" onMouseDown={onCancel}>
+    <div
+      className="fixed inset-0 z-190 flex items-center justify-center bg-black/40 p-4"
+      onMouseDown={onCancel}
+    >
       <div
         role="dialog"
         aria-modal="true"
@@ -589,15 +839,28 @@ function NotSelectDialog({ applicantName, onCancel, onConfirm }: { applicantName
         onMouseDown={(e) => e.stopPropagation()}
         className="w-full max-w-md bg-white p-6 shadow-[0_28px_90px_rgba(0,0,0,0.24)] sm:p-8"
       >
-        <h2 id="not-select-title" className="font-bricolage text-xl font-medium">
+        <h2
+          id="not-select-title"
+          className="font-bricolage text-xl font-medium"
+        >
           Not select this application?
         </h2>
-        <p className="text-carbon-600 mt-3 text-sm leading-6">{applicantName} will see that their application was not selected.</p>
+        <p className="text-carbon-600 mt-3 text-sm leading-6">
+          {applicantName} will see that their application was not selected.
+        </p>
         <div className="mt-7 flex justify-end gap-2">
-          <button type="button" onClick={onCancel} className="font-bricolage inline-flex h-11 items-center rounded-full border border-black/15 px-5 text-sm font-medium hover:border-black">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="font-bricolage inline-flex h-11 items-center rounded-full border border-black/15 px-5 text-sm font-medium hover:border-black"
+          >
             Cancel
           </button>
-          <button type="button" onClick={onConfirm} className="font-bricolage inline-flex h-11 items-center rounded-full bg-black px-5 text-sm font-medium text-white">
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="font-bricolage inline-flex h-11 items-center rounded-full bg-black px-5 text-sm font-medium text-white"
+          >
             Not Select
           </button>
         </div>

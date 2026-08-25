@@ -1,12 +1,12 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { CheckCircle2, ChevronDown, Paperclip, Star, X } from "lucide-react";
+import { Paperclip, Star, X } from "lucide-react";
 import chatImage from "@/assets/images/chat.png";
 import thankyouImage from "@/assets/images/thankyou.png";
-import { RenterCatalogueTopBar } from "@/components/renter/renter-catalogue-top-bar";
-import { Navbar } from "@/components/layout/navbar";
+import { HelpTopBar } from "@/app/renter-dashboard/help/page";
 import { OWNER } from "@/lib/owner-data";
 
 const TOPICS = [
@@ -20,18 +20,31 @@ const TOPICS = [
   "Other",
 ];
 
-const USER_TYPES = ["Renter", "Property Manager", "Property Owner", "Agent", "Other"];
+const USER_TYPES = [
+  "Renter",
+  "Property Manager",
+  "Property Owner",
+  "Agent",
+  "Other",
+];
 
 const STAR_LABELS = ["Terrible", "Poor", "Okay", "Good", "Excellent"];
 
 const MAX_FILES = 5;
 const MAX_FILE_SIZE_MB = 100;
-const ALLOWED_TYPES = ["Word", "Excel", "PPT", "PDF", "Image", "Video", "Audio"];
+const ALLOWED_TYPES = [
+  "Word",
+  "Excel",
+  "PPT",
+  "PDF",
+  "Image",
+  "Video",
+  "Audio",
+];
 
 type UploadedFile = { name: string; size: number; url: string };
 
 export default function FeedbackPage() {
-  const [role, setRole] = useState<string | null>(null);
   const [rating, setRating] = useState<number>(0);
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [message, setMessage] = useState("");
@@ -55,21 +68,25 @@ export default function FeedbackPage() {
   // seen the wrong name, email, and "Which best describes you?" selection.
   // Reads the same session role every dashboard shell already sets.
   useEffect(() => {
-    const authRole = window.sessionStorage.getItem("hauxhunt-authenticated-role");
-    setRole(authRole);
-    if (authRole === "owner") {
-      setEmail(OWNER.email);
-      setName(OWNER.name);
-      setUserType("Property Owner");
-    } else if (authRole === "agent") {
-      setUserType("Agent");
-    } else if (authRole === "property_manager") {
-      setUserType("Property Manager");
-    } else if (authRole === "renter") {
-      setEmail("renter@gmail.com");
-      setName("Julien Mugisha");
-      setUserType("Renter");
-    }
+    const authRole = window.sessionStorage.getItem(
+      "hauxhunt-authenticated-role",
+    );
+    const timer = window.setTimeout(() => {
+      if (authRole === "owner") {
+        setEmail(OWNER.email);
+        setName(OWNER.name);
+        setUserType("Property Owner");
+      } else if (authRole === "agent") {
+        setUserType("Agent");
+      } else if (authRole === "property_manager") {
+        setUserType("Property Manager");
+      } else if (authRole === "renter") {
+        setEmail("renter@gmail.com");
+        setName("Julien Mugisha");
+        setUserType("Renter");
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -92,7 +109,11 @@ export default function FeedbackPage() {
         setFileError(`"${file.name}" exceeds the 100 MB limit.`);
         continue;
       }
-      next.push({ name: file.name, size: file.size, url: URL.createObjectURL(file) });
+      next.push({
+        name: file.name,
+        size: file.size,
+        url: URL.createObjectURL(file),
+      });
     }
     setFiles(next);
   }
@@ -123,21 +144,23 @@ export default function FeedbackPage() {
     setSubmitted(true);
   }
 
-  const TopBar = role === "renter" ? RenterCatalogueTopBar : Navbar;
-
   if (submitted) {
     return (
       <>
-        <TopBar />
+        <HelpTopBar />
         <main className="bg-carbon-50 flex min-h-svh flex-col items-center justify-center px-5 pt-16 text-black">
           <div className="flex w-full max-w-md flex-col items-center text-center">
-            <Image src={thankyouImage} alt="" className="h-40 w-auto object-contain" />
+            <Image
+              src={thankyouImage}
+              alt=""
+              className="h-40 w-auto object-contain"
+            />
             <h1 className="font-bricolage mt-6 text-3xl font-medium tracking-[-0.03em]">
               Thanks for your feedback!
             </h1>
             <p className="text-carbon-500 mt-3 text-sm leading-6">
-              We read every submission and use it to make HauxHunt better. We'll
-              reach out to {email} if we need more details.
+              We read every submission and use it to make HauxHunt better.
+              We&apos;ll reach out to {email} if we need more details.
             </p>
             <button
               type="button"
@@ -162,19 +185,24 @@ export default function FeedbackPage() {
 
   return (
     <>
-      <TopBar />
+      <HelpTopBar />
       <main className="bg-carbon-50 min-h-svh pt-16 text-black">
         {/* Hero */}
-        <section className="bg-white px-5 pb-10 pt-10 sm:px-6 lg:px-11 xl:px-[52px]">
+        <section className="bg-white px-5 pt-10 pb-10 sm:px-6 lg:px-11 xl:px-[52px]">
           <div className="mx-auto flex max-w-[1100px] flex-col items-center gap-6 text-center sm:flex-row sm:text-left">
-            <Image src={chatImage} alt="" className="h-28 w-auto shrink-0 object-contain" />
+            <Image
+              src={chatImage}
+              alt=""
+              className="h-28 w-auto shrink-0 object-contain"
+            />
             <div>
               <h1 className="font-bricolage text-3xl font-medium tracking-[-0.03em] sm:text-4xl">
                 Send Feedback
               </h1>
               <p className="text-carbon-500 mt-3 max-w-xl text-sm leading-6">
-                Tell us what's working, what's broken, or what you'd love to see.
-                Every message goes directly to the HauxHunt product team.
+                Tell us what&apos;s working, what&apos;s broken, or what
+                you&apos;d love to see. Every message goes directly to the
+                HauxHunt product team.
               </p>
             </div>
           </div>
@@ -188,7 +216,6 @@ export default function FeedbackPage() {
           >
             {/* Left — main form */}
             <div className="space-y-8 rounded-2xl bg-white p-6 shadow-[0_8px_24px_rgba(0,0,0,0.035)] sm:p-8">
-
               {/* 1. Star rating */}
               <fieldset>
                 <legend className="mb-4 text-sm font-medium">
@@ -224,7 +251,8 @@ export default function FeedbackPage() {
               {/* 2. Experience message */}
               <label className="block">
                 <span className="mb-2 block text-sm font-medium">
-                  Tell us about your experience. What did you like? What can we do better?
+                  Tell us about your experience. What did you like? What can we
+                  do better?
                 </span>
                 <textarea
                   ref={textareaRef}
@@ -232,10 +260,11 @@ export default function FeedbackPage() {
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="Describe your experience, the issue you encountered, or the feature you'd like to see…"
                   rows={5}
-                  className="w-full resize-none overflow-hidden rounded-xl border-0 bg-black/[0.035] px-4 py-3 text-sm leading-6 outline-none focus:ring-1 focus:ring-black/20 placeholder:text-black/35"
+                  className="w-full resize-none overflow-hidden rounded-xl border-0 bg-black/[0.035] px-4 py-3 text-sm leading-6 outline-none placeholder:text-black/35 focus:ring-1 focus:ring-black/20"
                 />
                 <span className="mt-1 block text-right text-xs text-black/35">
-                  {message.trim().length} chars {message.trim().length < 10 && "· 10 min"}
+                  {message.trim().length} chars{" "}
+                  {message.trim().length < 10 && "· 10 min"}
                 </span>
               </label>
 
@@ -259,7 +288,10 @@ export default function FeedbackPage() {
                   ))}
                 </div>
                 <div
-                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDragging(true);
+                  }}
                   onDragLeave={() => setIsDragging(false)}
                   onDrop={(e) => {
                     e.preventDefault();
@@ -271,7 +303,10 @@ export default function FeedbackPage() {
                 >
                   <Paperclip className="size-5 text-black/30" />
                   <p className="text-sm text-black/45">
-                    Drop files or <span className="font-medium text-black underline underline-offset-2">click here to upload</span>
+                    Drop files or{" "}
+                    <span className="font-medium text-black underline underline-offset-2">
+                      click here to upload
+                    </span>
                   </p>
                   <input
                     ref={fileInputRef}
@@ -288,7 +323,10 @@ export default function FeedbackPage() {
                 {files.length > 0 && (
                   <ul className="mt-3 space-y-2">
                     {files.map((file, i) => (
-                      <li key={i} className="flex items-center justify-between gap-3 rounded-xl bg-black/[0.035] px-4 py-2.5 text-sm">
+                      <li
+                        key={i}
+                        className="flex items-center justify-between gap-3 rounded-xl bg-black/[0.035] px-4 py-2.5 text-sm"
+                      >
                         <span className="truncate">{file.name}</span>
                         <span className="shrink-0 text-xs text-black/40">
                           {(file.size / 1024 / 1024).toFixed(1)} MB
@@ -323,10 +361,22 @@ export default function FeedbackPage() {
                         className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-sm font-medium transition-colors ${checked ? "border-black bg-black text-white" : "border-black/12 bg-black/[0.02] hover:border-black/25"}`}
                       >
                         {topic}
-                        <span className={`flex size-5 shrink-0 items-center justify-center rounded border transition-colors ${checked ? "border-white/60 bg-white" : "border-black/25 bg-transparent"}`}>
+                        <span
+                          className={`flex size-5 shrink-0 items-center justify-center rounded border transition-colors ${checked ? "border-white/60 bg-white" : "border-black/25 bg-transparent"}`}
+                        >
                           {checked && (
-                            <svg viewBox="0 0 10 8" className="size-3" fill="none">
-                              <path d="M1 4l3 3 5-6" stroke="black" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                            <svg
+                              viewBox="0 0 10 8"
+                              className="size-3"
+                              fill="none"
+                            >
+                              <path
+                                d="M1 4l3 3 5-6"
+                                stroke="black"
+                                strokeWidth="1.8"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
                             </svg>
                           )}
                         </span>
@@ -361,8 +411,12 @@ export default function FeedbackPage() {
                         className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-sm font-medium transition-colors ${selected ? "border-black bg-black text-white" : "border-black/12 bg-black/[0.02] hover:border-black/25"}`}
                       >
                         {type}
-                        <span className={`flex size-5 items-center justify-center rounded-full border transition-colors ${selected ? "border-white" : "border-black/25"}`}>
-                          {selected && <span className="size-2.5 rounded-full bg-white" />}
+                        <span
+                          className={`flex size-5 items-center justify-center rounded-full border transition-colors ${selected ? "border-white" : "border-black/25"}`}
+                        >
+                          {selected && (
+                            <span className="size-2.5 rounded-full bg-white" />
+                          )}
                         </span>
                       </button>
                     );
@@ -386,7 +440,9 @@ export default function FeedbackPage() {
                 </legend>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <label className="block">
-                    <span className="mb-2 block text-sm text-black/60">Name</span>
+                    <span className="mb-2 block text-sm text-black/60">
+                      Name
+                    </span>
                     <input
                       type="text"
                       value={name}
@@ -396,7 +452,9 @@ export default function FeedbackPage() {
                     />
                   </label>
                   <label className="block">
-                    <span className="mb-2 block text-sm text-black/60">Email</span>
+                    <span className="mb-2 block text-sm text-black/60">
+                      Email
+                    </span>
                     <input
                       type="email"
                       value={email}
@@ -446,12 +504,12 @@ export default function FeedbackPage() {
                   For account issues, billing questions, or urgent support,
                   visit the Help Center.
                 </p>
-                <a
-                  href="/renter-dashboard/help"
+                <Link
+                  href="/help"
                   className="mt-4 inline-flex h-10 items-center rounded-full border border-white/20 px-5 text-sm font-medium transition-colors hover:bg-white/10"
                 >
                   Go to Help Center
-                </a>
+                </Link>
               </div>
             </aside>
           </form>
