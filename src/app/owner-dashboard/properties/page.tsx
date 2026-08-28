@@ -46,6 +46,7 @@ import {
   getPropertyOperationalSummary,
 } from "@/lib/owner-property-summary";
 import noDataIllustration from "@/assets/images/empty.png";
+import hidingIllustration from "@/assets/images/hiding-no-line.png";
 import listingFolder from "@/assets/images/listing-folder.png";
 
 const subscribeToHydration = () => () => {};
@@ -259,10 +260,30 @@ export default function OwnerPropertiesPage() {
                       />
                       {summary.needsAttention ? (
                         <span
-                          className="font-bricolage absolute top-[22%] right-[13%] flex h-7 w-5 rotate-3 items-center justify-center rounded-t-md rounded-b-sm bg-white text-[10px] font-bold text-black shadow-[0_3px_8px_rgba(0,0,0,0.28)]"
+                          className="absolute -top-[3%] right-[14%] z-10 aspect-[1774/887] w-[28%] overflow-hidden"
                           aria-label="Needs attention"
                         >
-                          !
+                          <Image
+                            src={hidingIllustration}
+                            alt=""
+                            fill
+                            sizes="(min-width: 1280px) 7vw, (min-width: 1024px) 9vw, (min-width: 640px) 14vw, 28vw"
+                            className="attention-folder-character-left-hand object-contain drop-shadow-[0_3px_4px_rgba(0,0,0,0.25)]"
+                          />
+                          <Image
+                            src={hidingIllustration}
+                            alt=""
+                            fill
+                            sizes="(min-width: 1280px) 7vw, (min-width: 1024px) 9vw, (min-width: 640px) 14vw, 28vw"
+                            className="attention-folder-character-right-hand object-contain drop-shadow-[0_3px_4px_rgba(0,0,0,0.25)]"
+                          />
+                          <Image
+                            src={hidingIllustration}
+                            alt=""
+                            fill
+                            sizes="(min-width: 1280px) 7vw, (min-width: 1024px) 9vw, (min-width: 640px) 14vw, 28vw"
+                            className="attention-folder-character-head object-contain drop-shadow-[0_3px_4px_rgba(0,0,0,0.25)]"
+                          />
                         </span>
                       ) : null}
                       <div className="absolute bottom-[18%] left-[16%] max-w-[62%] text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.75)]">
