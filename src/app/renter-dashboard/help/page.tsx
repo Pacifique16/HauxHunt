@@ -199,9 +199,7 @@ export default function HelpCenterPage() {
       <main className="min-h-svh bg-[#f5f5f5] pt-16 text-black">
         {/* Search hero */}
         <section className="px-5 pt-14 pb-16 text-center sm:pt-16 sm:pb-20">
-          <h1 className="font-bricolage text-3xl font-bold tracking-[-0.03em] sm:text-4xl">
-            What are you looking for?
-          </h1>
+          <h1 className="dashboard-page-title">What are you looking for?</h1>
           <form
             onSubmit={(e) => e.preventDefault()}
             className="mx-auto mt-8 flex max-w-2xl items-center gap-3"

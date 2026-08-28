@@ -31,7 +31,11 @@ import house2 from "@/assets/images/house2.jpg";
 import house3 from "@/assets/images/house3.jpg";
 import house4 from "@/assets/images/house4.jpg";
 import house5 from "@/assets/images/house5.jpg";
-import { getAgentAssignmentFor, getPropertyManagerAssignmentFor, subscribeToTeam } from "@/lib/team-data";
+import {
+  getAgentAssignmentFor,
+  getPropertyManagerAssignmentFor,
+  subscribeToTeam,
+} from "@/lib/team-data";
 
 // ---------------------------------------------------------------------------
 // Identity
@@ -59,7 +63,7 @@ export const RENTER_DEMO_NAME = "Julien Mugisha";
 // so nothing on the owner side invents a second name for the same state.
 // ---------------------------------------------------------------------------
 
-export type ListingStatus = "Draft" | "In Review" | "Live" | "Paused" | "Archived";
+export type ListingStatus = "Draft" | "In Review" | "Live" | "Archived";
 export type ApplicationStatus =
   | "Submitted"
   | "Under Review"
@@ -69,7 +73,8 @@ export type ApplicationStatus =
   | "Not Selected";
 export type RentalStatus = "Upcoming" | "Active" | "Ending Soon" | "Ended";
 export type PaymentStatus = "Due" | "Pending" | "Paid" | "Failed" | "Overdue";
-export type MaintenanceStatus = "Open" | "Scheduled" | "In Progress" | "Resolved";
+export type MaintenanceStatus =
+  "Open" | "Scheduled" | "In Progress" | "Resolved";
 
 export type ManagementStatus =
   | "Self-managed"
@@ -128,7 +133,7 @@ export type OwnerPropertyFacts = {
   amenities: string[];
   image: StaticImageData;
   rent: string | null;
-  listingStatus: ListingStatus | "Not Listed";
+  listingStatus: ListingStatus;
 };
 
 // propertyManager/agent/occupancy are all derived at read time (see
@@ -157,7 +162,7 @@ export const BASE_OWNER_PROPERTIES: OwnerPropertyFacts[] = [
     amenities: ["Furnished", "Parking", "Backup generator", "Quiet street"],
     image: house1,
     rent: "RWF 850,000 / month",
-    listingStatus: "Not Listed",
+    listingStatus: "Draft",
   },
   {
     id: "nyarutarama-2br",
@@ -170,7 +175,7 @@ export const BASE_OWNER_PROPERTIES: OwnerPropertyFacts[] = [
     amenities: ["Pool access", "Gym", "Secure compound"],
     image: house2,
     rent: "RWF 920,000 / month",
-    listingStatus: "Paused",
+    listingStatus: "Live",
   },
   {
     id: "remera-3br",
@@ -183,7 +188,7 @@ export const BASE_OWNER_PROPERTIES: OwnerPropertyFacts[] = [
     amenities: ["Garden", "Quiet compound", "Parking"],
     image: house3,
     rent: "RWF 780,000 / month",
-    listingStatus: "Not Listed",
+    listingStatus: "Draft",
   },
   {
     id: "kibagabaga-modern-family-home",
@@ -213,8 +218,11 @@ export const BASE_OWNER_PROPERTIES: OwnerPropertyFacts[] = [
   },
 ];
 
-export function managementStatusFor(property: Pick<OwnerProperty, "propertyManager" | "agent">): ManagementStatus {
-  if (property.propertyManager && property.agent) return "Managed + Agent represented";
+export function managementStatusFor(
+  property: Pick<OwnerProperty, "propertyManager" | "agent">,
+): ManagementStatus {
+  if (property.propertyManager && property.agent)
+    return "Managed + Agent represented";
   if (property.propertyManager) return "Managed";
   if (property.agent) return "Agent represented";
   return "Self-managed";
@@ -230,7 +238,9 @@ export function managementStatusFor(property: Pick<OwnerProperty, "propertyManag
 // rather than re-deriving it. Deliberately does not render responsibility
 // labels (e.g. "Review applications") -- those stay inside Team/assignment
 // configuration; this only answers "who manages, who leases."
-export function managementSummaryFor(property: Pick<OwnerProperty, "propertyManager" | "agent">): string {
+export function managementSummaryFor(
+  property: Pick<OwnerProperty, "propertyManager" | "agent">,
+): string {
   switch (managementStatusFor(property)) {
     case "Managed + Agent represented":
       return `Managed by ${property.propertyManager!.name} · Leasing by ${property.agent!.name}`;
@@ -252,7 +262,17 @@ export function managementSummaryFor(property: Pick<OwnerProperty, "propertyMana
 const OVERRIDES_KEY = "hauxhunt-owner-property-edits";
 const OVERRIDES_EVENT = "hauxhunt-owner-property-edits-changed";
 
-type EditableDetails = Pick<OwnerPropertyFacts, "title" | "location" | "type" | "bedrooms" | "bathrooms" | "size" | "rent">;
+type EditableDetails = Pick<
+  OwnerPropertyFacts,
+  | "title"
+  | "location"
+  | "type"
+  | "bedrooms"
+  | "bathrooms"
+  | "size"
+  | "amenities"
+  | "rent"
+>;
 
 type Overrides = Record<string, Partial<EditableDetails>>;
 
@@ -288,7 +308,10 @@ export function subscribeToOwnerProperties(callback: () => void) {
   };
 }
 
-export function updateProperty(propertyId: string, details: Partial<EditableDetails>) {
+export function updateProperty(
+  propertyId: string,
+  details: Partial<EditableDetails>,
+) {
   const overrides = readOverrides();
   overrides[propertyId] = { ...overrides[propertyId], ...details };
   writeOverrides(overrides);
@@ -302,7 +325,8 @@ export function updateProperty(propertyId: string, details: Partial<EditableDeta
 // is a hoisted function declaration further down this same file.
 function deriveOccupancy(propertyId: string): OccupancyStatus {
   const relevant = getOwnerRentals().filter((r) => r.propertyId === propertyId);
-  if (relevant.some((r) => r.status === "Active" || r.status === "Ending Soon")) return "Occupied";
+  if (relevant.some((r) => r.status === "Active" || r.status === "Ending Soon"))
+    return "Occupied";
   if (relevant.some((r) => r.status === "Upcoming")) return "Upcoming";
   return "Vacant";
 }
@@ -310,7 +334,9 @@ function deriveOccupancy(propertyId: string): OccupancyStatus {
 export function getOwnerProperties(): OwnerProperty[] {
   const overrides = readOverrides();
   return BASE_OWNER_PROPERTIES.map((property) => {
-    const propertyManagerAssignment = getPropertyManagerAssignmentFor(property.id);
+    const propertyManagerAssignment = getPropertyManagerAssignmentFor(
+      property.id,
+    );
     const agentAssignment = getAgentAssignmentFor(property.id);
     return {
       ...property,
@@ -332,7 +358,7 @@ export function getOwnerProperty(id: string): OwnerProperty | undefined {
 
 export type OwnerListing = {
   propertyId: string;
-  status: ListingStatus | "Not Listed";
+  status: ListingStatus;
   views: number | null;
   saves: number | null;
   enquiries: number | null;
@@ -340,12 +366,64 @@ export type OwnerListing = {
 };
 
 export const OWNER_LISTINGS: OwnerListing[] = [
-  { propertyId: "kacyiru-2br", status: "Not Listed", views: null, saves: null, enquiries: null, applications: 1 },
-  { propertyId: "nyarutarama-2br", status: "Paused", views: 618, saves: 54, enquiries: 12, applications: 1 },
-  { propertyId: "remera-3br", status: "Not Listed", views: null, saves: null, enquiries: null, applications: 1 },
-  { propertyId: "kibagabaga-modern-family-home", status: "Live", views: 742, saves: 67, enquiries: 18, applications: 2 },
-  { propertyId: "kimironko-1br", status: "Draft", views: null, saves: null, enquiries: null, applications: 1 },
+  {
+    propertyId: "kacyiru-2br",
+    status: "Draft",
+    views: null,
+    saves: null,
+    enquiries: null,
+    applications: 1,
+  },
+  {
+    propertyId: "nyarutarama-2br",
+    status: "Live",
+    views: 618,
+    saves: 54,
+    enquiries: 12,
+    applications: 1,
+  },
+  {
+    propertyId: "remera-3br",
+    status: "Draft",
+    views: null,
+    saves: null,
+    enquiries: null,
+    applications: 1,
+  },
+  {
+    propertyId: "kibagabaga-modern-family-home",
+    status: "Live",
+    views: 742,
+    saves: 67,
+    enquiries: 18,
+    applications: 2,
+  },
+  {
+    propertyId: "kimironko-1br",
+    status: "Draft",
+    views: null,
+    saves: null,
+    enquiries: null,
+    applications: 1,
+  },
 ];
+
+const OWNER_LISTINGS_EVENT = "hauxhunt-owner-listings-changed";
+
+export function updateOwnerListingStatus(
+  propertyId: string,
+  status: ListingStatus,
+) {
+  const listing = OWNER_LISTINGS.find((item) => item.propertyId === propertyId);
+  if (!listing) return;
+  listing.status = status;
+  window.dispatchEvent(new Event(OWNER_LISTINGS_EVENT));
+}
+
+export function subscribeToOwnerListings(callback: () => void) {
+  window.addEventListener(OWNER_LISTINGS_EVENT, callback);
+  return () => window.removeEventListener(OWNER_LISTINGS_EVENT, callback);
+}
 
 // ---------------------------------------------------------------------------
 // Applications — visible to the owner, operated by whoever is assigned.
@@ -485,7 +563,17 @@ export const OWNER_APPLICATIONS: OwnerApplication[] = [
 const APPLICATION_OVERRIDES_KEY = "hauxhunt-application-overrides";
 const APPLICATION_EVENT = "hauxhunt-applications-changed";
 
-type ApplicationOverride = Partial<Pick<OwnerApplication, "status" | "note" | "recommendation" | "recommendedBy" | "assistedBy" | "assistedByRole">>;
+type ApplicationOverride = Partial<
+  Pick<
+    OwnerApplication,
+    | "status"
+    | "note"
+    | "recommendation"
+    | "recommendedBy"
+    | "assistedBy"
+    | "assistedByRole"
+  >
+>;
 
 function readApplicationOverrides(): Record<string, ApplicationOverride> {
   if (typeof window === "undefined") return {};
@@ -497,10 +585,15 @@ function readApplicationOverrides(): Record<string, ApplicationOverride> {
   }
 }
 
-function writeApplicationOverrides(overrides: Record<string, ApplicationOverride>) {
+function writeApplicationOverrides(
+  overrides: Record<string, ApplicationOverride>,
+) {
   if (typeof window === "undefined") return;
   try {
-    window.sessionStorage.setItem(APPLICATION_OVERRIDES_KEY, JSON.stringify(overrides));
+    window.sessionStorage.setItem(
+      APPLICATION_OVERRIDES_KEY,
+      JSON.stringify(overrides),
+    );
   } catch {
     // Storage full/unavailable -- change still applies for this render via the dispatched event below.
   }
@@ -518,14 +611,20 @@ export function subscribeToOwnerApplications(callback: () => void) {
 
 export function getOwnerApplications(): OwnerApplication[] {
   const overrides = readApplicationOverrides();
-  return OWNER_APPLICATIONS.map((application) => ({ ...application, ...overrides[application.id] }));
+  return OWNER_APPLICATIONS.map((application) => ({
+    ...application,
+    ...overrides[application.id],
+  }));
 }
 
 export function getOwnerApplication(id: string): OwnerApplication | undefined {
   return getOwnerApplications().find((a) => a.id === id);
 }
 
-export function updateOwnerApplication(applicationId: string, patch: ApplicationOverride) {
+export function updateOwnerApplication(
+  applicationId: string,
+  patch: ApplicationOverride,
+) {
   const overrides = readApplicationOverrides();
   overrides[applicationId] = { ...overrides[applicationId], ...patch };
   writeApplicationOverrides(overrides);
@@ -616,7 +715,12 @@ const RENTAL_OVERRIDES_KEY = "hauxhunt-rental-overrides";
 const RENTAL_ADDITIONS_KEY = "hauxhunt-rental-additions";
 const RENTAL_EVENT = "hauxhunt-rentals-changed";
 
-type RentalOverride = Partial<Pick<OwnerRental, "status" | "agreementStatus" | "depositStatus" | "paymentStatus" | "note">>;
+type RentalOverride = Partial<
+  Pick<
+    OwnerRental,
+    "status" | "agreementStatus" | "depositStatus" | "paymentStatus" | "note"
+  >
+>;
 
 function readRentalOverrides(): Record<string, RentalOverride> {
   if (typeof window === "undefined") return {};
@@ -631,7 +735,10 @@ function readRentalOverrides(): Record<string, RentalOverride> {
 function writeRentalOverrides(overrides: Record<string, RentalOverride>) {
   if (typeof window === "undefined") return;
   try {
-    window.sessionStorage.setItem(RENTAL_OVERRIDES_KEY, JSON.stringify(overrides));
+    window.sessionStorage.setItem(
+      RENTAL_OVERRIDES_KEY,
+      JSON.stringify(overrides),
+    );
   } catch {
     // Storage full/unavailable -- change still applies for this render via the dispatched event below.
   }
@@ -651,7 +758,10 @@ function readRentalAdditions(): OwnerRental[] {
 function writeRentalAdditions(rentals: OwnerRental[]) {
   if (typeof window === "undefined") return;
   try {
-    window.sessionStorage.setItem(RENTAL_ADDITIONS_KEY, JSON.stringify(rentals));
+    window.sessionStorage.setItem(
+      RENTAL_ADDITIONS_KEY,
+      JSON.stringify(rentals),
+    );
   } catch {
     // Storage full/unavailable -- change still applies for this render via the dispatched event below.
   }
@@ -669,8 +779,14 @@ export function subscribeToOwnerRentals(callback: () => void) {
 
 export function getOwnerRentals(): OwnerRental[] {
   const overrides = readRentalOverrides();
-  const base = OWNER_RENTALS.map((rental) => ({ ...rental, ...overrides[rental.id] }));
-  const added = readRentalAdditions().map((rental) => ({ ...rental, ...overrides[rental.id] }));
+  const base = OWNER_RENTALS.map((rental) => ({
+    ...rental,
+    ...overrides[rental.id],
+  }));
+  const added = readRentalAdditions().map((rental) => ({
+    ...rental,
+    ...overrides[rental.id],
+  }));
   return [...base, ...added];
 }
 
@@ -794,7 +910,9 @@ const PAYMENT_OVERRIDES_KEY = "hauxhunt-payment-overrides";
 const PAYMENT_ADDITIONS_KEY = "hauxhunt-payment-additions";
 const PAYMENT_EVENT = "hauxhunt-payments-changed";
 
-type PaymentOverride = Partial<Pick<OwnerPayment, "status" | "date" | "method">>;
+type PaymentOverride = Partial<
+  Pick<OwnerPayment, "status" | "date" | "method">
+>;
 
 function readPaymentOverrides(): Record<string, PaymentOverride> {
   if (typeof window === "undefined") return {};
@@ -809,7 +927,10 @@ function readPaymentOverrides(): Record<string, PaymentOverride> {
 function writePaymentOverrides(overrides: Record<string, PaymentOverride>) {
   if (typeof window === "undefined") return;
   try {
-    window.sessionStorage.setItem(PAYMENT_OVERRIDES_KEY, JSON.stringify(overrides));
+    window.sessionStorage.setItem(
+      PAYMENT_OVERRIDES_KEY,
+      JSON.stringify(overrides),
+    );
   } catch {
     // Storage full/unavailable -- change still applies for this render via the dispatched event below.
   }
@@ -829,7 +950,10 @@ function readPaymentAdditions(): OwnerPayment[] {
 function writePaymentAdditions(payments: OwnerPayment[]) {
   if (typeof window === "undefined") return;
   try {
-    window.sessionStorage.setItem(PAYMENT_ADDITIONS_KEY, JSON.stringify(payments));
+    window.sessionStorage.setItem(
+      PAYMENT_ADDITIONS_KEY,
+      JSON.stringify(payments),
+    );
   } catch {
     // Storage full/unavailable -- change still applies for this render via the dispatched event below.
   }
@@ -847,8 +971,14 @@ export function subscribeToOwnerPayments(callback: () => void) {
 
 export function getOwnerPayments(): OwnerPayment[] {
   const overrides = readPaymentOverrides();
-  const base = OWNER_PAYMENTS.map((payment) => ({ ...payment, ...overrides[payment.id] }));
-  const added = readPaymentAdditions().map((payment) => ({ ...payment, ...overrides[payment.id] }));
+  const base = OWNER_PAYMENTS.map((payment) => ({
+    ...payment,
+    ...overrides[payment.id],
+  }));
+  const added = readPaymentAdditions().map((payment) => ({
+    ...payment,
+    ...overrides[payment.id],
+  }));
   return [...base, ...added];
 }
 
@@ -906,7 +1036,8 @@ export const OWNER_MAINTENANCE: OwnerMaintenanceRequest[] = [
     status: "In Progress",
     priority: "Normal",
     submitted: "14 August 2026",
-    description: "The kitchen tap has been leaking continuously. Water is collecting under the sink.",
+    description:
+      "The kitchen tap has been leaking continuously. Water is collecting under the sink.",
     scheduledVisit: { date: "17 August 2026", time: "10:00 AM – 11:00 AM" },
   },
   {
@@ -945,7 +1076,8 @@ export const OWNER_MAINTENANCE: OwnerMaintenanceRequest[] = [
     status: "Resolved",
     priority: "Normal",
     submitted: "2 August 2026",
-    description: "The ceiling light stopped turning on. The faulty fitting was replaced and tested.",
+    description:
+      "The ceiling light stopped turning on. The faulty fitting was replaced and tested.",
     scheduledVisit: null,
   },
 ];
@@ -967,11 +1099,17 @@ export const OWNER_MAINTENANCE: OwnerMaintenanceRequest[] = [
 // ---------------------------------------------------------------------------
 
 export function propertyTitle(propertyId: string): string {
-  return BASE_OWNER_PROPERTIES.find((property) => property.id === propertyId)?.title ?? propertyId;
+  return (
+    BASE_OWNER_PROPERTIES.find((property) => property.id === propertyId)
+      ?.title ?? propertyId
+  );
 }
 
 export function propertyLocation(propertyId: string): string {
-  return BASE_OWNER_PROPERTIES.find((property) => property.id === propertyId)?.location ?? "";
+  return (
+    BASE_OWNER_PROPERTIES.find((property) => property.id === propertyId)
+      ?.location ?? ""
+  );
 }
 
 // Owner Overview phase (Phase 4) -- replaces rentReceivedThisMonth(), which
@@ -993,8 +1131,17 @@ export type OwnerFinancialSummary = {
 };
 
 export function getOwnerFinancialSummary(): OwnerFinancialSummary {
-  const tracked = getOwnerPayments().filter((p) => p.status === "Paid" || p.status === "Pending" || p.status === "Overdue" || p.status === "Due");
-  const sum = (status: PaymentStatus) => tracked.filter((p) => p.status === status).reduce((total, p) => total + p.amountValue, 0);
+  const tracked = getOwnerPayments().filter(
+    (p) =>
+      p.status === "Paid" ||
+      p.status === "Pending" ||
+      p.status === "Overdue" ||
+      p.status === "Due",
+  );
+  const sum = (status: PaymentStatus) =>
+    tracked
+      .filter((p) => p.status === status)
+      .reduce((total, p) => total + p.amountValue, 0);
   const received = sum("Paid");
   const outstanding = sum("Pending") + sum("Due");
   const overdue = sum("Overdue");

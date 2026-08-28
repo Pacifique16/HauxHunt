@@ -172,7 +172,7 @@ export default function OwnerPerformancePage() {
                 No performance data yet
               </h2>
               <p className="text-carbon-500 mt-2 max-w-md text-sm leading-6">
-                Add and publish your first property. Views, saves, viewing
+                Add and publish your first listing. Views, saves, viewing
                 requests, rental income, and conversion data will appear here.
               </p>
               <Link
@@ -180,7 +180,7 @@ export default function OwnerPerformancePage() {
                 className="font-bricolage mt-6 inline-flex h-11 items-center gap-2 rounded-full bg-black px-5 text-sm font-medium text-white"
               >
                 <Plus aria-hidden="true" className="size-4" />
-                Add Property
+                Add Listing
               </Link>
             </section>
           </div>
@@ -262,35 +262,30 @@ export default function OwnerPerformancePage() {
             />
           </div>
 
-          <div className="mt-7">
+          <div className="mt-7 grid items-stretch gap-7 xl:grid-cols-[minmax(0,1.65fr)_minmax(280px,0.65fr)]">
             <TrafficChart totals={totals} range={range} />
-          </div>
-
-          <div className="mt-7">
-            <RentalIncomeChart range={range} propertyId={propertyId} />
-          </div>
-
-          <div className="mt-7 grid gap-7 md:grid-cols-2 xl:grid-cols-3">
-            <SummaryPanel
-              title="Occupancy"
-              rows={[
-                ["Occupied", "3"],
-                ["Upcoming", "1"],
-                ["Vacant", "1"],
-                ["Occupancy rate", "60%"],
-              ]}
-            />
             <SummaryPanel
               title="Rental outcomes"
+              href="/owner-dashboard/rentals"
               rows={[
                 ["Active rentals", "3"],
                 ["Renewals pending", "1"],
                 ["Ending soon", "1"],
+                ["Vacant properties", "1"],
                 ["Average vacancy", "18 days"],
               ]}
             />
+          </div>
+
+          <div className="mt-7 grid items-stretch gap-7 xl:grid-cols-[minmax(0,1.65fr)_minmax(280px,0.65fr)]">
+            <RentalIncomeChart range={range} propertyId={propertyId} />
             <SummaryPanel
               title="Rent collection"
+              href={
+                propertyId === "all"
+                  ? "/owner-dashboard/payments"
+                  : `/owner-dashboard/payments?property=${encodeURIComponent(propertyId)}`
+              }
               rows={[
                 ["Expected", "RWF 3,130,000"],
                 ["Received", "RWF 2,350,000"],
@@ -538,7 +533,7 @@ function RentalIncomeChart({
   const chartMaximum = maximum * 1.12;
 
   return (
-    <section className="max-w-[760px] rounded-[1.75rem] bg-white p-5 shadow-[0_16px_45px_rgba(0,0,0,0.055)] sm:p-6">
+    <section className="rounded-[1.75rem] bg-white p-5 shadow-[0_16px_45px_rgba(0,0,0,0.055)] sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="font-bricolage text-xl font-medium">
@@ -592,7 +587,15 @@ function RentalIncomeChart({
   );
 }
 
-function SummaryPanel({ title, rows }: { title: string; rows: string[][] }) {
+function SummaryPanel({
+  title,
+  rows,
+  href,
+}: {
+  title: string;
+  rows: string[][];
+  href: string;
+}) {
   return (
     <section className="rounded-[1.75rem] bg-white p-5 shadow-[0_16px_45px_rgba(0,0,0,0.055)]">
       <h2 className="font-bricolage text-lg font-medium">{title}</h2>
@@ -605,7 +608,7 @@ function SummaryPanel({ title, rows }: { title: string; rows: string[][] }) {
         ))}
       </div>
       <Link
-        href="/owner-dashboard/properties"
+        href={href}
         className="mt-4 inline-flex items-center gap-1 text-xs font-medium underline underline-offset-4"
       >
         View details <ArrowUpRight className="size-3" />

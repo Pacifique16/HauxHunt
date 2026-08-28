@@ -3,13 +3,29 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound, useParams, useRouter } from "next/navigation";
-import { useEffect, useReducer, useState } from "react";
-import { BadgeCheck, Check, ChevronLeft, MessageSquare, MoreVertical, Plus, X } from "lucide-react";
+import {
+  useEffect,
+  useReducer,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
+import {
+  BadgeCheck,
+  Check,
+  ChevronLeft,
+  MessageSquare,
+  MoreVertical,
+  Plus,
+  X,
+} from "lucide-react";
 
 import deletingIllustration from "@/assets/images/deleting.png";
 import { OwnerDashboardShell } from "@/components/owner/owner-dashboard-shell";
-import { StatusPill } from "@/components/owner/status-pill";
-import { AssignAgentDialog, type AssignableMember } from "@/components/owner/assign-agent-dialog";
+import {
+  AssignAgentDialog,
+  type AssignableMember,
+} from "@/components/owner/assign-agent-dialog";
 import { AssignPropertyManagerDialog } from "@/components/owner/assign-property-manager-dialog";
 import {
   AGENT_RESPONSIBILITIES,
@@ -25,34 +41,92 @@ import {
   type PropertyAssignment,
 } from "@/lib/team-data";
 import { getOwnerProperty } from "@/lib/owner-data";
-import { OWNER_PARTICIPANT_ID, getOrCreateConversation } from "@/lib/messages-data";
+import {
+  OWNER_PARTICIPANT_ID,
+  getOrCreateConversation,
+} from "@/lib/messages-data";
+
+const subscribeToHydration = () => () => {};
 
 export default function TeamMemberDetailPage() {
   const params = useParams<{ memberId: string }>();
   const router = useRouter();
+  const hydrated = useSyncExternalStore(
+    subscribeToHydration,
+    () => true,
+    () => false,
+  );
   const [, forceUpdate] = useReducer((n: number) => n + 1, 0);
   useEffect(() => subscribeToTeam(forceUpdate), []);
 
   const membership = getTeamMemberships().find((m) => m.id === params.memberId);
-  const professional = membership ? getProfessional(membership.professionalId) : undefined;
+  const professional = membership
+    ? getProfessional(membership.professionalId)
+    : undefined;
 
   const [assignOpen, setAssignOpen] = useState(false);
-  const [manageAssignment, setManageAssignment] = useState<PropertyAssignment | null>(null);
-  const [removeFromPropertyTarget, setRemoveFromPropertyTarget] = useState<PropertyAssignment | null>(null);
+  const [manageAssignment, setManageAssignment] =
+    useState<PropertyAssignment | null>(null);
+  const [removeFromPropertyTarget, setRemoveFromPropertyTarget] =
+    useState<PropertyAssignment | null>(null);
   const [moreOpen, setMoreOpen] = useState(false);
   const [removeFromTeamOpen, setRemoveFromTeamOpen] = useState(false);
+  const moreMenuRef = useRef<HTMLDivElement>(null);
 
-  if (!membership || !professional || membership.status !== "Active") return notFound();
+  useEffect(() => {
+    if (!moreOpen) return;
 
-  const assignments = getActiveAssignmentsFor(membership.professionalId, membership.teamId);
+    function closeOnOutsideClick(event: MouseEvent) {
+      if (!moreMenuRef.current?.contains(event.target as Node)) {
+        setMoreOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    return () => document.removeEventListener("mousedown", closeOnOutsideClick);
+  }, [moreOpen]);
+
+  if (!hydrated) {
+    return (
+      <OwnerDashboardShell>
+        <section className="min-h-svh px-5 pt-8 pb-24 sm:px-6 lg:px-10 xl:px-12">
+          <div className="mx-auto max-w-[1180px] animate-pulse">
+            <div className="h-5 w-20 rounded bg-black/6" />
+            <div className="mt-6 h-24 rounded-2xl bg-white" />
+            <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <div key={index} className="h-20 rounded-2xl bg-white" />
+              ))}
+            </div>
+          </div>
+        </section>
+      </OwnerDashboardShell>
+    );
+  }
+
+  if (!membership || !professional || membership.status !== "Active")
+    return notFound();
+
+  const assignments = getActiveAssignmentsFor(
+    membership.professionalId,
+    membership.teamId,
+  );
   const roleLabel = membership.role === "agent" ? "Agent" : "Property Manager";
-  const assignableMember: AssignableMember = { professionalId: professional.id, name: professional.name, verified: professional.verified, avatar: professional.avatar };
+  const assignableMember: AssignableMember = {
+    professionalId: professional.id,
+    name: professional.name,
+    verified: professional.verified,
+    avatar: professional.avatar,
+  };
 
   return (
     <OwnerDashboardShell>
       <section className="px-5 pt-8 pb-24 sm:px-6 lg:px-10 lg:pt-10 xl:px-12">
         <div className="mx-auto max-w-[900px]">
-          <Link href="/owner-dashboard/team" className="text-carbon-500 inline-flex items-center gap-1 text-sm font-medium hover:text-black">
+          <Link
+            href="/owner-dashboard/team"
+            className="text-carbon-500 inline-flex items-center gap-1 text-sm font-medium hover:text-black"
+          >
             <ChevronLeft className="size-4" />
             Team
           </Link>
@@ -61,25 +135,37 @@ export default function TeamMemberDetailPage() {
             <div className="flex items-center gap-4">
               {professional.avatar ? (
                 <span className="relative size-16 shrink-0 overflow-hidden rounded-full">
-                  <Image src={professional.avatar} alt="" fill className="object-cover" />
+                  <Image
+                    src={professional.avatar}
+                    alt=""
+                    fill
+                    className="object-cover"
+                  />
                 </span>
               ) : (
-                <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-black text-lg font-medium text-white">{professional.name.slice(0, 1)}</span>
+                <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-black text-lg font-medium text-white">
+                  {professional.name.slice(0, 1)}
+                </span>
               )}
               <div>
                 <h1 className="font-bricolage flex items-center gap-2 text-2xl font-medium">
                   {professional.name}
-                  {professional.verified ? <BadgeCheck aria-label="Verified" className="size-5 fill-black text-white" /> : null}
+                  {professional.verified ? (
+                    <BadgeCheck
+                      aria-label="Verified"
+                      className="size-5 fill-black text-white"
+                    />
+                  ) : null}
                 </h1>
-                <p className="text-carbon-500 mt-1 text-sm">{professional.verified ? "Verified " : ""}{roleLabel}</p>
-                <div className="mt-2 flex items-center gap-2">
-                  <StatusPill status="Active" />
-                  <span className="text-carbon-400 text-xs">Team Member</span>
-                </div>
+                <p className="text-carbon-500 mt-1 text-sm">{roleLabel}</p>
               </div>
             </div>
             <div className="flex shrink-0 flex-wrap gap-2">
-              <button type="button" onClick={() => setAssignOpen(true)} className="font-bricolage inline-flex h-11 items-center gap-2 rounded-full bg-black px-5 text-sm font-medium text-white">
+              <button
+                type="button"
+                onClick={() => setAssignOpen(true)}
+                className="font-bricolage inline-flex h-11 items-center gap-2 rounded-full bg-black px-5 text-sm font-medium text-white"
+              >
                 <Plus aria-hidden="true" className="size-4" />
                 Assign Property
               </button>
@@ -88,7 +174,11 @@ export default function TeamMemberDetailPage() {
                 // the same Owner <-> professional conversation as any other
                 // "Message" action for this same person elsewhere (Rentals,
                 // Property Detail), using their stable professionalId.
-                const conversation = getOrCreateConversation(OWNER_PARTICIPANT_ID, professional.id, { type: "team", label: "Team" });
+                const conversation = getOrCreateConversation(
+                  OWNER_PARTICIPANT_ID,
+                  professional.id,
+                  { type: "team", label: "Team" },
+                );
                 if (!conversation) return null;
                 return (
                   <Link
@@ -100,7 +190,7 @@ export default function TeamMemberDetailPage() {
                   </Link>
                 );
               })()}
-              <div className="relative">
+              <div ref={moreMenuRef} className="relative">
                 <button
                   type="button"
                   aria-label="More options"
@@ -131,37 +221,55 @@ export default function TeamMemberDetailPage() {
             <Fact label="Role" value={roleLabel} />
             <Fact label="Status" value="Active" />
             <Fact label="Joined" value={membership.joinedAt} />
-            <Fact label="Properties Assigned" value={String(assignments.length)} />
+            <Fact
+              label="Properties Assigned"
+              value={String(assignments.length)}
+            />
           </section>
 
           {membership.role === "property_manager" ? (
             <section className="mt-8 rounded-2xl bg-black/2 p-6 shadow-[0_8px_24px_rgba(0,0,0,0.06)]">
-              <p className="text-xs font-medium tracking-wider text-black/40 uppercase">Team Management</p>
+              <p className="text-xs font-medium tracking-wider text-black/40 uppercase">
+                Team Management
+              </p>
               <p className="mt-2 font-medium">Manage Agents</p>
               <p className="text-carbon-500 mt-1 max-w-lg text-sm leading-6">
-                Allows {professional.name.split(" ")[0]} to invite and manage Agents for properties assigned to them. This is a separate, higher-level permission — not a per-property responsibility.
+                Allows {professional.name.split(" ")[0]} to invite and manage
+                Agents for properties assigned to them. This is a separate,
+                higher-level permission — not a per-property responsibility.
               </p>
               <label className="mt-4 flex w-fit cursor-pointer items-center gap-3">
                 <input
                   type="checkbox"
                   checked={membership.canManageAgents ?? false}
-                  onChange={(e) => setCanManageAgents(membership.id, e.target.checked)}
+                  onChange={(e) =>
+                    setCanManageAgents(membership.id, e.target.checked)
+                  }
                   className="size-4 accent-black"
                 />
-                <span className="text-sm font-medium">Allow {professional.name.split(" ")[0]} to manage Agents</span>
+                <span className="text-sm font-medium">
+                  Allow {professional.name.split(" ")[0]} to manage Agents
+                </span>
               </label>
             </section>
           ) : null}
 
           <section className="mt-8">
-            <h2 className="font-bricolage text-lg font-medium">Assigned Properties</h2>
+            <h2 className="font-bricolage text-lg font-medium">
+              Assigned Properties
+            </h2>
             {assignments.length === 0 ? (
               <div className="mt-4 flex flex-col items-center justify-center rounded-2xl border border-dashed border-black/15 bg-white px-6 py-14 text-center">
                 <p className="font-medium">No properties assigned yet.</p>
                 <p className="text-carbon-500 mt-2 max-w-sm text-sm leading-6">
-                  {professional.name.split(" ")[0]} is part of your team, but doesn&apos;t currently have access to any of your properties.
+                  {professional.name.split(" ")[0]} is part of your team, but
+                  doesn&apos;t currently have access to any of your properties.
                 </p>
-                <button type="button" onClick={() => setAssignOpen(true)} className="font-bricolage mt-5 inline-flex h-11 items-center gap-2 rounded-full bg-black px-5 text-sm font-medium text-white">
+                <button
+                  type="button"
+                  onClick={() => setAssignOpen(true)}
+                  className="font-bricolage mt-5 inline-flex h-11 items-center gap-2 rounded-full bg-black px-5 text-sm font-medium text-white"
+                >
                   <Plus aria-hidden="true" className="size-4" />
                   Assign Property
                 </button>
@@ -172,29 +280,46 @@ export default function TeamMemberDetailPage() {
                   const property = getOwnerProperty(assignment.propertyId);
                   if (!property) return null;
                   return (
-                    <article key={assignment.id} className="rounded-2xl bg-white p-5 shadow-[0_8px_24px_rgba(0,0,0,0.06)]">
+                    <article
+                      key={assignment.id}
+                      className="rounded-2xl bg-white p-5 shadow-[0_8px_24px_rgba(0,0,0,0.06)]"
+                    >
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
                           <p className="font-medium">{property.title}</p>
-                          <p className="text-carbon-500 text-sm">{property.location}</p>
+                          <p className="text-carbon-500 text-sm">
+                            {property.location}
+                          </p>
                         </div>
                         <p className="text-carbon-500 text-xs">
-                          Role: <span className="text-carbon-900 font-medium">{roleLabel}</span>
+                          Role:{" "}
+                          <span className="text-carbon-900 font-medium">
+                            {roleLabel}
+                          </span>
                         </p>
                       </div>
-                      <div className="mt-3 flex flex-wrap gap-1.5">
+                      <ul className="text-carbon-600 mt-3 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-3">
                         {assignment.responsibilities.map((r) => (
-                          <span key={r} className="bg-black/4.5 rounded-full px-2.5 py-1 text-xs">
-                            {r}
-                          </span>
+                          <li key={r} className="flex items-start gap-2">
+                            <span
+                              aria-hidden="true"
+                              className="mt-[0.55em] size-1.5 shrink-0 rounded-full bg-black"
+                            />
+                            <span>{r}</span>
+                          </li>
                         ))}
-                      </div>
+                      </ul>
                       <p className="text-carbon-400 mt-3 text-xs">
                         Assigned by {assignment.assignedBy}
-                        {assignment.assignedByProfessionalId ? " · Property Manager" : ""}
+                        {assignment.assignedByProfessionalId
+                          ? " · Property Manager"
+                          : ""}
                       </p>
                       <div className="mt-4 flex flex-wrap gap-2 border-t border-black/8 pt-4">
-                        <Link href={`/owner-dashboard/properties/${property.id}`} className="font-bricolage inline-flex h-9 items-center rounded-full border border-black/15 px-4 text-xs font-medium hover:border-black">
+                        <Link
+                          href={`/owner-dashboard/properties/${property.id}`}
+                          className="font-bricolage inline-flex h-9 items-center rounded-full border border-black/15 px-4 text-xs font-medium hover:border-black"
+                        >
                           View Property
                         </Link>
                         <button
@@ -214,8 +339,18 @@ export default function TeamMemberDetailPage() {
         </div>
       </section>
 
-      <AssignAgentDialog open={assignOpen && membership.role === "agent"} onClose={() => setAssignOpen(false)} member={membership.role === "agent" ? assignableMember : null} />
-      <AssignPropertyManagerDialog open={assignOpen && membership.role === "property_manager"} onClose={() => setAssignOpen(false)} member={membership.role === "property_manager" ? assignableMember : null} />
+      <AssignAgentDialog
+        open={assignOpen && membership.role === "agent"}
+        onClose={() => setAssignOpen(false)}
+        member={membership.role === "agent" ? assignableMember : null}
+      />
+      <AssignPropertyManagerDialog
+        open={assignOpen && membership.role === "property_manager"}
+        onClose={() => setAssignOpen(false)}
+        member={
+          membership.role === "property_manager" ? assignableMember : null
+        }
+      />
 
       {manageAssignment ? (
         <ManageAssignmentDialog
@@ -279,8 +414,11 @@ export function ManageAssignmentDialog({
   onClose: () => void;
   onRemove: () => void;
 }) {
-  const [responsibilities, setResponsibilities] = useState<string[]>(assignment.responsibilities);
-  const options = role === "agent" ? AGENT_RESPONSIBILITIES : PM_RESPONSIBILITIES;
+  const [responsibilities, setResponsibilities] = useState<string[]>(
+    assignment.responsibilities,
+  );
+  const options =
+    role === "agent" ? AGENT_RESPONSIBILITIES : PM_RESPONSIBILITIES;
   const property = getOwnerProperty(assignment.propertyId);
 
   function save() {
@@ -289,11 +427,26 @@ export function ManageAssignmentDialog({
   }
 
   return (
-    <div className="fixed inset-0 z-200 flex items-center justify-center bg-black/40 p-4" onMouseDown={onClose}>
-      <div role="dialog" aria-modal="true" onMouseDown={(e) => e.stopPropagation()} className="relative w-full max-w-md bg-white text-black shadow-[0_28px_90px_rgba(0,0,0,0.24)]">
+    <div
+      className="fixed inset-0 z-200 flex items-center justify-center bg-black/40 p-4"
+      onMouseDown={onClose}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        onMouseDown={(e) => e.stopPropagation()}
+        className="relative w-full max-w-md bg-white text-black shadow-[0_28px_90px_rgba(0,0,0,0.24)]"
+      >
         <div className="flex items-center justify-between border-b border-black/10 px-6 py-5">
-          <h2 className="font-bricolage text-lg font-medium">Manage Assignment</h2>
-          <button type="button" onClick={onClose} aria-label="Close" className="flex size-8 items-center justify-center rounded-full hover:bg-black/5">
+          <h2 className="font-bricolage text-lg font-medium">
+            Manage Assignment
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="flex size-8 items-center justify-center rounded-full hover:bg-black/5"
+          >
             <X className="size-4" />
           </button>
         </div>
@@ -304,11 +457,20 @@ export function ManageAssignmentDialog({
             {options.map((item) => {
               const checked = responsibilities.includes(item);
               return (
-                <label key={item} className="flex cursor-pointer items-center gap-3 rounded-xl border border-black/10 p-3.5 hover:bg-black/2">
+                <label
+                  key={item}
+                  className="flex cursor-pointer items-center gap-3 rounded-xl border border-black/10 p-3.5 hover:bg-black/2"
+                >
                   <input
                     type="checkbox"
                     checked={checked}
-                    onChange={() => setResponsibilities((current) => (checked ? current.filter((r) => r !== item) : [...current, item]))}
+                    onChange={() =>
+                      setResponsibilities((current) =>
+                        checked
+                          ? current.filter((r) => r !== item)
+                          : [...current, item],
+                      )
+                    }
                     className="size-4 accent-black"
                   />
                   <span className="text-sm">{item}</span>
@@ -317,10 +479,18 @@ export function ManageAssignmentDialog({
             })}
           </div>
           <div className="mt-6 flex items-center justify-between gap-2">
-            <button type="button" onClick={onRemove} className="font-bricolage text-sm font-medium text-black/60 hover:text-black">
+            <button
+              type="button"
+              onClick={onRemove}
+              className="font-bricolage text-sm font-medium text-black/60 hover:text-black"
+            >
               Remove from Property
             </button>
-            <button type="button" onClick={save} className="font-bricolage inline-flex h-11 items-center gap-2 rounded-full bg-black px-5 text-sm font-medium text-white transition-colors hover:bg-black/80">
+            <button
+              type="button"
+              onClick={save}
+              className="font-bricolage inline-flex h-11 items-center gap-2 rounded-full bg-black px-5 text-sm font-medium text-white transition-colors hover:bg-black/80"
+            >
               <Check aria-hidden="true" className="size-4" />
               Save Changes
             </button>
@@ -346,23 +516,55 @@ export function RemoveFromPropertyDialog({
   const firstName = memberName.split(" ")[0];
 
   return (
-    <div className="fixed inset-0 z-200 flex items-center justify-center bg-black/40 p-4" onMouseDown={onClose}>
-      <div role="dialog" aria-modal="true" aria-labelledby="remove-property-title" onMouseDown={(e) => e.stopPropagation()} className="relative w-full max-w-md overflow-hidden bg-white text-black shadow-[0_28px_90px_rgba(0,0,0,0.24)]">
+    <div
+      className="fixed inset-0 z-200 flex items-center justify-center bg-black/40 p-4"
+      onMouseDown={onClose}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="remove-property-title"
+        onMouseDown={(e) => e.stopPropagation()}
+        className="relative w-full max-w-md overflow-hidden bg-white text-black shadow-[0_28px_90px_rgba(0,0,0,0.24)]"
+      >
         <div className="relative flex min-h-48 items-center justify-center bg-black/6 p-6">
-          <button type="button" onClick={onClose} aria-label="Close" className="absolute top-4 right-4 flex size-9 items-center justify-center rounded-full border border-black/20 text-black/55 hover:border-black/40 hover:text-black">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="absolute top-4 right-4 flex size-9 items-center justify-center rounded-full border border-black/20 text-black/55 hover:border-black/40 hover:text-black"
+          >
             <X aria-hidden="true" className="size-5" />
           </button>
-          <Image src={deletingIllustration} alt="" className="h-40 w-auto object-contain" />
+          <Image
+            src={deletingIllustration}
+            alt=""
+            className="h-40 w-auto object-contain"
+          />
         </div>
         <div className="p-6 sm:p-8">
-          <h2 id="remove-property-title" className="font-bricolage text-2xl leading-tight font-medium">
+          <h2
+            id="remove-property-title"
+            className="font-bricolage text-2xl leading-tight font-medium"
+          >
             Remove {firstName} from {property?.title}?
           </h2>
-          <p className="text-carbon-600 mt-4 text-sm leading-6">{firstName} will lose access to this property.</p>
-          <p className="text-carbon-600 mt-2 text-sm leading-6">{firstName} will remain a member of your property team and can be assigned to another property later.</p>
-          <p className="text-carbon-600 mt-2 text-sm leading-6">Previous activity will remain in the property&apos;s history.</p>
+          <p className="text-carbon-600 mt-4 text-sm leading-6">
+            {firstName} will lose access to this property.
+          </p>
+          <p className="text-carbon-600 mt-2 text-sm leading-6">
+            {firstName} will remain a member of your property team and can be
+            assigned to another property later.
+          </p>
+          <p className="text-carbon-600 mt-2 text-sm leading-6">
+            Previous activity will remain in the property&apos;s history.
+          </p>
           <div className="mt-7 flex justify-end gap-2">
-            <button type="button" onClick={onClose} className="font-bricolage inline-flex h-12 items-center rounded-full border border-black/15 px-5 font-medium hover:border-black">
+            <button
+              type="button"
+              onClick={onClose}
+              className="font-bricolage inline-flex h-12 items-center rounded-full border border-black/15 px-5 font-medium hover:border-black"
+            >
               Cancel
             </button>
             <button
@@ -383,29 +585,74 @@ export function RemoveFromPropertyDialog({
   );
 }
 
-function RemoveFromTeamDialog({ memberName, onClose, onConfirm }: { memberName: string; onClose: () => void; onConfirm: () => void }) {
+function RemoveFromTeamDialog({
+  memberName,
+  onClose,
+  onConfirm,
+}: {
+  memberName: string;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
   const firstName = memberName.split(" ")[0];
   return (
-    <div className="fixed inset-0 z-200 flex items-center justify-center bg-black/40 p-4" onMouseDown={onClose}>
-      <div role="dialog" aria-modal="true" aria-labelledby="remove-team-title" onMouseDown={(e) => e.stopPropagation()} className="relative w-full max-w-md overflow-hidden bg-white text-black shadow-[0_28px_90px_rgba(0,0,0,0.24)]">
+    <div
+      className="fixed inset-0 z-200 flex items-center justify-center bg-black/40 p-4"
+      onMouseDown={onClose}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="remove-team-title"
+        onMouseDown={(e) => e.stopPropagation()}
+        className="relative w-full max-w-md overflow-hidden bg-white text-black shadow-[0_28px_90px_rgba(0,0,0,0.24)]"
+      >
         <div className="relative flex min-h-48 items-center justify-center bg-black/6 p-6">
-          <button type="button" onClick={onClose} aria-label="Close" className="absolute top-4 right-4 flex size-9 items-center justify-center rounded-full border border-black/20 text-black/55 hover:border-black/40 hover:text-black">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="absolute top-4 right-4 flex size-9 items-center justify-center rounded-full border border-black/20 text-black/55 hover:border-black/40 hover:text-black"
+          >
             <X aria-hidden="true" className="size-5" />
           </button>
-          <Image src={deletingIllustration} alt="" className="h-40 w-auto object-contain" />
+          <Image
+            src={deletingIllustration}
+            alt=""
+            className="h-40 w-auto object-contain"
+          />
         </div>
         <div className="p-6 sm:p-8">
-          <h2 id="remove-team-title" className="font-bricolage text-2xl leading-tight font-medium">
+          <h2
+            id="remove-team-title"
+            className="font-bricolage text-2xl leading-tight font-medium"
+          >
             Remove {firstName} from your team?
           </h2>
-          <p className="text-carbon-600 mt-4 text-sm leading-6">{firstName} will lose access to all properties assigned to them through your team.</p>
-          <p className="text-carbon-600 mt-2 text-sm leading-6">Previous property, listing, viewing and application activity will remain available.</p>
-          <p className="text-carbon-600 mt-2 text-sm leading-6">{firstName}&apos;s personal HauxHunt account will not be deleted.</p>
+          <p className="text-carbon-600 mt-4 text-sm leading-6">
+            {firstName} will lose access to all properties assigned to them
+            through your team.
+          </p>
+          <p className="text-carbon-600 mt-2 text-sm leading-6">
+            Previous property, listing, viewing and application activity will
+            remain available.
+          </p>
+          <p className="text-carbon-600 mt-2 text-sm leading-6">
+            {firstName}&apos;s personal HauxHunt account will not be deleted.
+          </p>
           <div className="mt-7 flex justify-end gap-2">
-            <button type="button" onClick={onClose} className="font-bricolage inline-flex h-12 items-center rounded-full border border-black/15 px-5 font-medium hover:border-black">
+            <button
+              type="button"
+              onClick={onClose}
+              className="font-bricolage inline-flex h-12 items-center rounded-full border border-black/15 px-5 font-medium hover:border-black"
+            >
               Cancel
             </button>
-            <button type="button" onClick={onConfirm} className="font-bricolage inline-flex h-12 items-center rounded-full bg-black px-5 font-medium text-white transition-colors hover:bg-black/80">
+            <button
+              type="button"
+              onClick={onConfirm}
+              className="font-bricolage inline-flex h-12 items-center rounded-full bg-black px-5 font-medium text-white transition-colors hover:bg-black/80"
+            >
               Remove from Team
             </button>
           </div>

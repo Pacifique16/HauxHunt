@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -10,10 +11,13 @@ import {
   ChevronLeft,
   ChevronDown,
   FileCheck2,
+  GripVertical,
   ImagePlus,
   KeyRound,
   UserRound,
 } from "lucide-react";
+
+import applicationReceivedIllustration from "@/assets/images/application-received.png";
 
 // Foundation Cleanup phase: this form is shared by the Owner's own "Add a
 // property" flow (owner-dashboard/properties/new -- untouched, still calls
@@ -32,6 +36,12 @@ type ListingFieldValues = {
   rent: string;
   availableFrom: string;
   amenities: string[];
+};
+
+type ListingPhoto = {
+  id: string;
+  name: string;
+  previewUrl: string;
 };
 
 const STEPS = [
@@ -135,6 +145,7 @@ export function ListPropertyForm({
   initialValues,
   onSaved,
   onDone,
+  returnPath = "/partner-dashboard/listings",
 }: {
   authenticatedPartner?: boolean;
   // Rendered above the stepper so the professional always knows which
@@ -165,13 +176,21 @@ export function ListPropertyForm({
   // second, unrelated one makes no sense; the caller decides where "done"
   // goes instead (Property Detail).
   onDone?: () => void;
+  returnPath?: string;
 }) {
   const router = useRouter();
   const firstStep = authenticatedPartner ? 1 : 0;
+  const verificationKind = propertyContext
+    ? "none"
+    : authenticatedPartner
+      ? "ownership"
+      : "authorization";
   const visibleSteps = STEPS.slice(firstStep);
   const today = new Date().toISOString().slice(0, 10);
   const [step, setStep] = useState(firstStep);
-  const [photoNames, setPhotoNames] = useState<string[]>([]);
+  const [photos, setPhotos] = useState<ListingPhoto[]>([]);
+  const [draggedPhoto, setDraggedPhoto] = useState<number | null>(null);
+  const photoUrls = useRef<string[]>([]);
   const [documentNames, setDocumentNames] = useState<string[]>([]);
   const [documentError, setDocumentError] = useState("");
   const [amenities, setAmenities] = useState<string[]>(
@@ -180,6 +199,39 @@ export function ListPropertyForm({
   const [submitted, setSubmitted] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(
+    () => () => {
+      photoUrls.current.forEach((url) => URL.revokeObjectURL(url));
+    },
+    [],
+  );
+
+  function addPhotos(files: FileList | null) {
+    const availableSlots = Math.max(0, 10 - photos.length);
+    const additions = Array.from(files ?? [])
+      .slice(0, availableSlots)
+      .map((file) => {
+        const previewUrl = URL.createObjectURL(file);
+        photoUrls.current.push(previewUrl);
+        return {
+          id: `${file.name}-${file.size}-${file.lastModified}-${previewUrl}`,
+          name: file.name,
+          previewUrl,
+        };
+      });
+    setPhotos((current) => [...current, ...additions]);
+  }
+
+  function movePhoto(from: number, to: number) {
+    if (from === to || to < 0 || to >= photos.length) return;
+    setPhotos((current) => {
+      const next = [...current];
+      const [photo] = next.splice(from, 1);
+      next.splice(to, 0, photo);
+      return next;
+    });
+  }
 
   function nextStep() {
     const panel = formRef.current?.querySelector<HTMLElement>(
@@ -236,29 +288,31 @@ export function ListPropertyForm({
     if (onSaved) {
       onSaved(collectListingValues(), "Draft");
       window.setTimeout(
-        () => (onDone ? onDone() : router.push("/partner-dashboard/listings")),
+        () => (onDone ? onDone() : router.push(returnPath)),
         900,
       );
       return;
     }
-    window.setTimeout(() => router.push("/partner-dashboard/listings"), 900);
+    window.setTimeout(() => router.push(returnPath), 900);
   }
 
   if (submitted) {
     return (
       <div className="rounded-[2rem] border border-black/10 bg-white px-6 py-20 text-center shadow-[0_24px_70px_rgba(0,0,0,0.08)] sm:px-12">
-        <span className="mx-auto flex size-16 items-center justify-center rounded-full bg-black text-white">
-          <Check aria-hidden="true" className="size-7" />
-        </span>
+        <Image
+          src={applicationReceivedIllustration}
+          alt="Listing submission received"
+          className="mx-auto h-52 w-auto object-contain"
+        />
         <h2 className="font-bricolage text-carbon-900 mt-7 text-4xl font-medium tracking-[-0.04em]">
-          {propertyContext
-            ? "Your listing is under review"
-            : "Your property is under review"}
+          Your listing is under review
         </h2>
         <p className="text-carbon-600 mx-auto mt-4 max-w-xl leading-7">
-          Your listing and property documents have been submitted to the
-          HauxHunt team. Ownership verification is pending, and we will notify
-          you when it is approved or if any changes are needed.
+          {verificationKind === "ownership"
+            ? "Your property and ownership documents have been submitted to the HauxHunt team. Ownership verification is pending, and we will notify you when it is approved or if any changes are needed."
+            : verificationKind === "authorization"
+              ? "Your listing and owner authorization have been submitted for verification. We will notify you when they are approved or if any changes are needed."
+              : "Your listing has been submitted to the HauxHunt team and is now under review. We will notify you when it is approved or if any changes are needed."}
         </p>
         <button
           type="button"
@@ -269,7 +323,7 @@ export function ListPropertyForm({
             }
             setSubmitted(false);
             setStep(firstStep);
-            setPhotoNames([]);
+            setPhotos([]);
             setDocumentNames([]);
             setDocumentError("");
             setAmenities([]);
@@ -278,7 +332,7 @@ export function ListPropertyForm({
           }}
           className="font-bricolage mt-8 h-12 rounded-full bg-black px-7 font-medium text-white transition-colors hover:bg-black/80"
         >
-          {onDone ? "Back to Property" : "List another property"}
+          {onDone ? "Back to Listing" : "Add another listing"}
         </button>
       </div>
     );
@@ -605,118 +659,200 @@ export function ListPropertyForm({
             Add clear, recent photos of the exterior, living areas, bedrooms,
             bathrooms, and kitchen. You can select multiple images.
           </p>
-          <label className="flex min-h-56 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-black/30 bg-black/[0.025] px-6 text-center transition-colors hover:border-black hover:bg-black/[0.045]">
-            <ImagePlus aria-hidden="true" className="size-8" />
-            <span className="font-bricolage mt-4 text-lg font-medium">
-              Choose property photos
-            </span>
-            <span className="text-carbon-500 mt-1 text-sm">
-              JPG, PNG or WebP · up to 10 images
-            </span>
-            <input
-              type="file"
-              name="photos"
-              accept="image/jpeg,image/png,image/webp"
-              multiple
-              required
-              className="sr-only"
-              onChange={(event) =>
-                setPhotoNames(
-                  Array.from(event.target.files ?? [])
-                    .slice(0, 10)
-                    .map((file) => file.name),
-                )
-              }
-            />
-          </label>
-          {photoNames.length > 0 && (
-            <div className="mt-5 rounded-xl border border-black/10 bg-black/[0.025] p-4">
-              <p className="text-sm font-medium">
-                {photoNames.length} photo{photoNames.length === 1 ? "" : "s"}{" "}
-                selected
-              </p>
-              <ul className="text-carbon-600 mt-2 grid gap-1 text-sm sm:grid-cols-2">
-                {photoNames.map((name) => (
-                  <li key={name} className="truncate">
-                    {name}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          <div className="mt-9 border-t border-black/10 pt-8">
-            <div className="flex items-start gap-3">
-              <FileCheck2
-                aria-hidden="true"
-                className="mt-0.5 size-5 shrink-0"
-              />
-              <div>
-                <h3 className="font-bricolage text-xl font-medium">
-                  Ownership or authorization documents
-                </h3>
-                <p className="text-carbon-600 mt-2 max-w-2xl text-sm leading-6">
-                  Upload proof that you own this property or have permission to
-                  list it. You can provide a title deed, ownership certificate,
-                  recent land record, or a signed authorization letter from the
-                  owner.
-                </p>
-                <p className="text-carbon-500 mt-2 text-xs leading-5">
-                  These files stay private and are used only by HauxHunt for
-                  property verification.
-                </p>
-              </div>
-            </div>
-            <label className="mt-5 flex min-h-40 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-black/30 bg-black/[0.025] px-6 text-center transition-colors hover:border-black hover:bg-black/[0.045]">
-              <FileCheck2 aria-hidden="true" className="size-7" />
-              <span className="font-bricolage mt-3 text-base font-medium">
-                Choose verification documents
+          {photos.length === 0 ? (
+            <label className="flex min-h-56 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-black/30 bg-black/[0.025] px-6 text-center transition-colors hover:border-black hover:bg-black/[0.045]">
+              <ImagePlus aria-hidden="true" className="size-8" />
+              <span className="font-bricolage mt-4 text-lg font-medium">
+                Choose listing photos
               </span>
               <span className="text-carbon-500 mt-1 text-sm">
-                PDF, JPG or PNG · up to 5 files · 10 MB each
+                JPG, PNG or WebP · up to 10 images
               </span>
               <input
                 type="file"
-                name="ownershipDocuments"
-                accept="application/pdf,image/jpeg,image/png"
+                name="photos"
+                accept="image/jpeg,image/png,image/webp"
                 multiple
                 required
                 className="sr-only"
-                onChange={(event) => {
-                  const files = Array.from(event.target.files ?? []);
-                  const error =
-                    files.length > 5
-                      ? "Choose no more than 5 documents."
-                      : files.some((file) => file.size > 10 * 1024 * 1024)
-                        ? "Each document must be 10 MB or smaller."
-                        : "";
-                  event.currentTarget.setCustomValidity(error);
-                  setDocumentError(error);
-                  setDocumentNames(error ? [] : files.map((file) => file.name));
-                }}
+                onChange={(event) => addPhotos(event.target.files)}
               />
             </label>
-            {documentError ? (
-              <p className="mt-2 text-sm font-medium text-red-700" role="alert">
-                {documentError}
-              </p>
-            ) : null}
-            {documentNames.length > 0 ? (
-              <div className="mt-4 rounded-xl border border-black/10 bg-black/[0.025] p-4">
-                <p className="text-sm font-medium">
-                  {documentNames.length} verification document
-                  {documentNames.length === 1 ? "" : "s"} selected
-                </p>
-                <ul className="text-carbon-600 mt-2 grid gap-1 text-sm sm:grid-cols-2">
-                  {documentNames.map((name) => (
-                    <li key={name} className="truncate">
-                      {name}
-                    </li>
-                  ))}
-                </ul>
+          ) : (
+            <div>
+              <div className="grid auto-rows-[150px] gap-3 sm:grid-cols-3">
+                {photos.map((photo, index) => (
+                  <article
+                    key={photo.id}
+                    draggable
+                    onDragStart={() => setDraggedPhoto(index)}
+                    onDragEnd={() => setDraggedPhoto(null)}
+                    onDragOver={(event) => event.preventDefault()}
+                    onDrop={() => {
+                      if (draggedPhoto !== null) movePhoto(draggedPhoto, index);
+                      setDraggedPhoto(null);
+                    }}
+                    className={`group relative overflow-hidden rounded-2xl border border-black/12 bg-black/5 ${index === 0 ? "sm:col-span-2 sm:row-span-2" : ""} ${draggedPhoto === index ? "opacity-45" : ""}`}
+                  >
+                    <Image
+                      src={photo.previewUrl}
+                      alt={photo.name}
+                      fill
+                      unoptimized
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-x-0 top-0 flex items-center justify-between gap-2 bg-gradient-to-b from-black/65 to-transparent p-3 text-white">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-medium">
+                        <GripVertical aria-hidden="true" className="size-4" />
+                        Drag to reorder
+                      </span>
+                      {index === 0 ? (
+                        <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-black">
+                          Cover photo
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="absolute right-3 bottom-3 flex gap-1">
+                      <button
+                        type="button"
+                        disabled={index === 0}
+                        onClick={() => movePhoto(index, index - 1)}
+                        aria-label={`Move ${photo.name} earlier`}
+                        className="flex size-8 items-center justify-center rounded-full bg-white text-sm font-medium shadow-sm disabled:hidden"
+                      >
+                        ←
+                      </button>
+                      <button
+                        type="button"
+                        disabled={index === photos.length - 1}
+                        onClick={() => movePhoto(index, index + 1)}
+                        aria-label={`Move ${photo.name} later`}
+                        className="flex size-8 items-center justify-center rounded-full bg-white text-sm font-medium shadow-sm disabled:hidden"
+                      >
+                        →
+                      </button>
+                    </div>
+                  </article>
+                ))}
+
+                {photos.length < 10 ? (
+                  <label className="flex min-h-[150px] cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-black/30 px-5 text-center transition-colors hover:border-black hover:bg-black/[0.025]">
+                    <ImagePlus aria-hidden="true" className="size-7" />
+                    <span className="font-bricolage mt-3 font-medium">
+                      Add another image
+                    </span>
+                    <span className="text-carbon-500 mt-1 text-xs">
+                      {10 - photos.length} remaining
+                    </span>
+                    <input
+                      type="file"
+                      name="additionalPhotos"
+                      accept="image/jpeg,image/png,image/webp"
+                      multiple
+                      className="sr-only"
+                      onChange={(event) => addPhotos(event.target.files)}
+                    />
+                  </label>
+                ) : null}
               </div>
-            ) : null}
-          </div>
+              <p className="text-carbon-500 mt-4 text-sm">
+                The first image is always the cover. Drag photos or use the
+                arrow buttons to change their order.
+              </p>
+            </div>
+          )}
+
+          {verificationKind !== "none" ? (
+            <div className="mt-9 border-t border-black/10 pt-8">
+              <div className="flex items-start gap-3">
+                <FileCheck2
+                  aria-hidden="true"
+                  className="mt-0.5 size-5 shrink-0"
+                />
+                <div>
+                  <h3 className="font-bricolage text-xl font-medium">
+                    {verificationKind === "ownership"
+                      ? "Proof of property ownership"
+                      : "Property owner authorization"}
+                  </h3>
+                  <p className="text-carbon-600 mt-2 max-w-2xl text-sm leading-6">
+                    {verificationKind === "ownership"
+                      ? "Upload a document confirming that this property belongs to you, such as a title deed, ownership certificate, or recent land record."
+                      : "Upload a signed authorization letter confirming that the property owner has permitted you to list this property on HauxHunt."}
+                  </p>
+                  <p className="text-carbon-500 mt-2 text-xs leading-5">
+                    These files stay private and are used only by HauxHunt for
+                    property verification.
+                  </p>
+                </div>
+              </div>
+              <label className="mt-5 flex min-h-40 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-black/30 bg-black/[0.025] px-6 text-center transition-colors hover:border-black hover:bg-black/[0.045]">
+                <FileCheck2 aria-hidden="true" className="size-7" />
+                {documentNames.length > 0 ? (
+                  <>
+                    <span className="font-bricolage mt-3 text-base font-medium">
+                      {documentNames.length} verification document
+                      {documentNames.length === 1 ? "" : "s"} selected
+                    </span>
+                    <span className="mt-3 flex max-w-full flex-wrap justify-center gap-2">
+                      {documentNames.map((name) => (
+                        <span
+                          key={name}
+                          className="max-w-full truncate rounded-full bg-white px-3 py-1.5 text-xs font-medium shadow-sm"
+                        >
+                          {name}
+                        </span>
+                      ))}
+                    </span>
+                    <span className="text-carbon-500 mt-3 text-xs">
+                      Click to replace the selected documents
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="font-bricolage mt-3 text-base font-medium">
+                      {verificationKind === "ownership"
+                        ? "Choose ownership documents"
+                        : "Choose owner authorization"}
+                    </span>
+                    <span className="text-carbon-500 mt-1 text-sm">
+                      PDF, JPG or PNG · up to 5 files · 10 MB each
+                    </span>
+                  </>
+                )}
+                <input
+                  type="file"
+                  name="ownershipDocuments"
+                  accept="application/pdf,image/jpeg,image/png"
+                  multiple
+                  required
+                  className="sr-only"
+                  onChange={(event) => {
+                    const files = Array.from(event.target.files ?? []);
+                    const error =
+                      files.length > 5
+                        ? "Choose no more than 5 documents."
+                        : files.some((file) => file.size > 10 * 1024 * 1024)
+                          ? "Each document must be 10 MB or smaller."
+                          : "";
+                    event.currentTarget.setCustomValidity(error);
+                    setDocumentError(error);
+                    setDocumentNames(
+                      error ? [] : files.map((file) => file.name),
+                    );
+                  }}
+                />
+              </label>
+              {documentError ? (
+                <p
+                  className="mt-2 text-sm font-medium text-red-700"
+                  role="alert"
+                >
+                  {documentError}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
         </StepPanel>
 
         <StepPanel
@@ -734,11 +870,17 @@ export function ListPropertyForm({
                 "Location & amenities",
                 `Exact coordinates and ${amenities.length} selected ${amenities.length === 1 ? "amenity" : "amenities"} are ready for review.`,
               ],
-              ["Photos", `${photoNames.length} photos are ready for review.`],
-              [
-                "Verification",
-                `${documentNames.length} ownership or authorization ${documentNames.length === 1 ? "document is" : "documents are"} ready for review.`,
-              ],
+              ["Photos", `${photos.length} photos are ready for review.`],
+              ...(verificationKind === "none"
+                ? []
+                : [
+                    [
+                      verificationKind === "ownership"
+                        ? "Ownership proof"
+                        : "Owner authorization",
+                      `${documentNames.length} verification ${documentNames.length === 1 ? "document is" : "documents are"} ready for review.`,
+                    ],
+                  ]),
             ].map(([title, body]) => (
               <div
                 key={title}
@@ -760,8 +902,9 @@ export function ListPropertyForm({
               className="mt-1 size-4 accent-black"
             />
             <span>
-              I confirm that the property information is accurate and that I am
-              authorized to list this property on HauxHunt.
+              {verificationKind === "ownership"
+                ? "I confirm that the property information is accurate and that I own this property."
+                : "I confirm that the property information is accurate and that I am authorized to list this property on HauxHunt."}
             </span>
           </label>
         </StepPanel>
@@ -804,7 +947,7 @@ export function ListPropertyForm({
               type="submit"
               className="font-bricolage inline-flex h-12 items-center gap-2 rounded-full bg-black px-7 font-medium text-white transition-colors hover:bg-black/80"
             >
-              Submit property
+              Submit listing
               <ArrowRight aria-hidden="true" className="size-4" />
             </button>
           )}

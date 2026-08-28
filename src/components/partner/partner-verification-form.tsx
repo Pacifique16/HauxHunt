@@ -119,7 +119,7 @@ export function PartnerVerificationForm() {
               />
             </div>
             <div className="px-6 py-8 sm:px-10 sm:py-10">
-              <h1 className="font-bricolage text-3xl font-medium tracking-[-0.04em] sm:text-4xl">
+              <h1 className="dashboard-page-title">
                 Submission received. Verification under review.
               </h1>
               <p className="text-carbon-600 mt-4 max-w-2xl leading-7">

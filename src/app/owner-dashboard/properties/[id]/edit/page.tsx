@@ -1,104 +1,121 @@
 "use client";
 
-import { useRouter, useParams } from "next/navigation";
-import { notFound } from "next/navigation";
-import { useState } from "react";
-import type { FormEvent } from "react";
+import { notFound, useParams } from "next/navigation";
+import { useSyncExternalStore } from "react";
+import { ChevronLeft } from "lucide-react";
 
+import { HistoryBackButton } from "@/components/navigation/history-back-button";
 import { OwnerDashboardShell } from "@/components/owner/owner-dashboard-shell";
+import {
+  EditListingForm,
+  type EditListingValues,
+} from "@/components/partner/edit-listing-form";
 import { getOwnerProperty, updateProperty } from "@/lib/owner-data";
+
+const subscribeToHydration = () => () => {};
 
 export default function EditOwnerPropertyPage() {
   const params = useParams<{ id: string }>();
-  const router = useRouter();
+  const hydrated = useSyncExternalStore(
+    subscribeToHydration,
+    () => true,
+    () => false,
+  );
   const property = getOwnerProperty(params.id);
-  const [saved, setSaved] = useState(false);
+
+  if (!hydrated) {
+    return (
+      <OwnerDashboardShell>
+        <section className="px-5 pt-5 pb-24 sm:px-6 lg:px-10 xl:px-12">
+          <div className="mx-auto max-w-[980px] animate-pulse">
+            <div className="h-10 w-52 rounded-lg bg-black/6" />
+            <div className="mt-8 h-160 rounded-[2rem] bg-white" />
+          </div>
+        </section>
+      </OwnerDashboardShell>
+    );
+  }
 
   if (!property) return notFound();
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  const [neighbourhood = "", city = "Kigali"] = property.location
+    .split(",")
+    .map((part) => part.trim());
+  const rentMatch = property.rent?.match(/^([A-Z]{3})\s+([\d,]+)/);
+
+  function saveListing(values: EditListingValues) {
     if (!property) return;
-    const data = new FormData(event.currentTarget);
+    const numericPrice = Number(values.price.replace(/,/g, ""));
+    const formattedPrice = Number.isFinite(numericPrice)
+      ? numericPrice.toLocaleString("en-US")
+      : values.price;
+
     updateProperty(property.id, {
-      title: String(data.get("title") ?? property.title),
-      location: String(data.get("location") ?? property.location),
-      type: String(data.get("type") ?? property.type),
-      bedrooms: Number(data.get("bedrooms") ?? property.bedrooms),
-      bathrooms: Number(data.get("bathrooms") ?? property.bathrooms),
-      size: Number(data.get("size") ?? property.size),
-      rent: String(data.get("rent") ?? property.rent ?? ""),
+      title: values.title,
+      location: [values.neighbourhood, values.city].filter(Boolean).join(", "),
+      type: values.propertyType,
+      bedrooms: values.bedrooms,
+      bathrooms: values.bathrooms,
+      size: values.area,
+      amenities: values.amenities,
+      rent: `${values.currency} ${formattedPrice} / ${values.paymentPeriod
+        .replace(/^Per\s+/i, "")
+        .toLowerCase()}`,
     });
-    setSaved(true);
-    window.setTimeout(() => router.push(`/owner-dashboard/properties/${property.id}`), 700);
   }
 
   return (
     <OwnerDashboardShell>
-      <section className="px-5 pt-8 pb-24 sm:px-6 lg:px-10 lg:pt-10 xl:px-12">
-        <div className="mx-auto max-w-[720px]">
-          <header className="border-b border-black/10 pb-8">
-            <h1 className="dashboard-page-title text-carbon-900">Edit Property</h1>
-            <p className="text-carbon-600 mt-5 text-base leading-7">Update the details for {property.title}.</p>
+      <section className="px-5 pt-5 pb-24 sm:px-6 lg:px-10 xl:px-12">
+        <div className="mx-auto max-w-[980px]">
+          <header className="border-b border-black/10 pb-7">
+            <HistoryBackButton
+              fallbackHref={`/owner-dashboard/properties/${property.id}`}
+              className="font-bricolage text-carbon-500 hover:text-carbon-900 inline-flex h-10 items-center gap-0.5 text-sm font-medium transition-colors"
+            >
+              <ChevronLeft aria-hidden="true" className="size-4" />
+              Back
+            </HistoryBackButton>
+            <h1 className="dashboard-page-title text-carbon-900 mt-2">
+              Edit Listing
+            </h1>
+            <p className="text-carbon-600 mt-3 text-base leading-7">
+              Update the full listing for {property.title}. Your previously
+              approved ownership documents remain attached to this listing.
+            </p>
           </header>
 
-          <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-            <Field label="Property name" name="title" defaultValue={property.title} />
-            <Field label="Location" name="location" defaultValue={property.location} />
-            <div className="grid grid-cols-2 gap-4">
-              <label className="block">
-                <span className="text-carbon-900 mb-2 block text-sm font-medium">Property type</span>
-                <select name="type" defaultValue={property.type} className="contact-field-control border-border-default h-12 w-full rounded-xl border bg-white px-4 text-sm outline-none focus:border-black">
-                  <option>Apartment</option>
-                  <option>House</option>
-                  <option>Studio</option>
-                  <option>Townhouse</option>
-                </select>
-              </label>
-              <Field label="Monthly rent" name="rent" defaultValue={property.rent ?? ""} placeholder="RWF 000,000 / month" />
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              <Field label="Bedrooms" name="bedrooms" type="number" defaultValue={String(property.bedrooms)} />
-              <Field label="Bathrooms" name="bathrooms" type="number" defaultValue={String(property.bathrooms)} />
-              <Field label="Size (m²)" name="size" type="number" defaultValue={String(property.size)} />
-            </div>
-
-            <div className="flex items-center gap-3 pt-2">
-              <button type="submit" className="font-bricolage inline-flex h-12 items-center justify-center rounded-full bg-black px-7 text-sm font-medium text-white hover:bg-black/80">
-                Save Changes
-              </button>
-              {saved ? <span className="text-carbon-500 text-sm">Saved — returning to property…</span> : null}
-            </div>
-          </form>
+          <EditListingForm
+            listingTitle={property.title}
+            initialImage={property.image}
+            returnPath={`/owner-dashboard/properties/${property.id}`}
+            onSave={saveListing}
+            initialValues={{
+              title: property.title,
+              propertyType: property.type,
+              furnishing: property.amenities.includes("Furnished")
+                ? "Furnished"
+                : "Unfurnished",
+              bedrooms: property.bedrooms,
+              bathrooms: property.bathrooms,
+              area: property.size,
+              currency: rentMatch?.[1] ?? "RWF",
+              price: rentMatch?.[2]?.replace(/,/g, "") ?? "",
+              paymentPeriod: "Per month",
+              availableFrom: "2026-09-01",
+              minimumStay: "12",
+              country: "Rwanda",
+              city,
+              neighbourhood,
+              streetAddress: "",
+              latitude: "",
+              longitude: "",
+              amenities: property.amenities,
+              description: `A well-presented ${property.type.toLowerCase()} in ${property.location}, with practical living spaces and convenient access to local amenities.`,
+            }}
+          />
         </div>
       </section>
     </OwnerDashboardShell>
-  );
-}
-
-function Field({
-  label,
-  name,
-  defaultValue,
-  type = "text",
-  placeholder,
-}: {
-  label: string;
-  name: string;
-  defaultValue: string;
-  type?: string;
-  placeholder?: string;
-}) {
-  return (
-    <label className="block">
-      <span className="text-carbon-900 mb-2 block text-sm font-medium">{label}</span>
-      <input
-        name={name}
-        type={type}
-        defaultValue={defaultValue}
-        placeholder={placeholder}
-        className="contact-field-control border-border-default h-12 w-full rounded-xl border bg-white px-4 text-sm outline-none focus:border-black"
-      />
-    </label>
   );
 }

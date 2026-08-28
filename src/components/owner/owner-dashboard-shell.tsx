@@ -71,7 +71,7 @@ const ALL_ITEMS: OwnerNavItem[] = [
     href: "/owner-dashboard/performance",
     icon: ChartNoAxesCombined,
   },
-  { label: "Properties", href: "/owner-dashboard/properties", icon: Home },
+  { label: "Listings", href: "/owner-dashboard/properties", icon: Home },
   {
     label: "Applications",
     href: "/owner-dashboard/applications",
@@ -120,6 +120,18 @@ function isActive(pathname: string, href: string) {
 
 function OwnerTopBar() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  useEffect(() => {
+    const openNotifications = () => setNotificationsOpen(true);
+    window.addEventListener(
+      "hauxhunt-open-owner-notifications",
+      openNotifications,
+    );
+    return () =>
+      window.removeEventListener(
+        "hauxhunt-open-owner-notifications",
+        openNotifications,
+      );
+  }, []);
   const notifications = useSyncExternalStore(
     subscribeToOwnerNotifications,
     getOwnerNotifications,
@@ -385,7 +397,7 @@ function OwnerSidebar({
           <Image
             src={appIllustration}
             alt="Person using the HauxHunt mobile app"
-            className="absolute -right-32 -bottom-32 z-10 h-96 w-auto max-w-none object-contain"
+            className="absolute -right-[8.75rem] -bottom-32 z-[5] h-96 w-auto max-w-none object-contain"
           />
         </section>
       ) : null}

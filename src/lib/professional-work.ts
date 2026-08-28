@@ -1034,7 +1034,7 @@ function getSessionNotifications(): ProfessionalNotification[] {
   return readList(NOTIFICATION_SESSION_KEY, []);
 }
 
-// useSyncExternalStore (agent-notifications.tsx) requires its snapshot
+// useSyncExternalStore consumers require the snapshot
 // getter to return the SAME reference when nothing has actually changed --
 // otherwise React sees "new data" on every read and can loop ("The result
 // of getServerSnapshot should be cached"). getProfessionalNotifications

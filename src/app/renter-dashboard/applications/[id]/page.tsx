@@ -194,7 +194,7 @@ function ApplicationDetailPageInner() {
               Back to Applications
             </Link>
             <div className="flex items-center justify-between gap-5">
-              <h1 className="font-bricolage text-3xl font-medium tracking-[-0.04em] sm:text-4xl">
+              <h1 className="dashboard-page-title">
                 Application for {application.title}
               </h1>
               <span className="shrink-0 rounded-full bg-black px-3 py-1.5 text-xs font-medium text-white">

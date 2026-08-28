@@ -125,9 +125,7 @@ export default function RentalDetail() {
               <div>
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h1 className="font-bricolage text-3xl font-medium">
-                      {r.title}
-                    </h1>
+                    <h1 className="dashboard-page-title">{r.title}</h1>
                     <p className="text-carbon-500 mt-1">{r.location}</p>
                   </div>
                   <span className="rounded-full bg-black px-3 py-1.5 text-xs text-white">

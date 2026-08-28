@@ -1328,10 +1328,10 @@ select.catalogue-filter-control {
 .dashboard-page-title {
   font-family: "Bricolage Grotesque", sans-serif;
   font-optical-sizing: auto;
-  font-size: clamp(2.25rem, 4vw, 3.75rem);
-  line-height: 0.95;
+  font-size: clamp(1.875rem, 3vw, 2.25rem);
+  line-height: 1.15;
   font-weight: 500;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.025em;
 }
 
 @property --maintenance-outline-angle {

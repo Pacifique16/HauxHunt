@@ -657,7 +657,7 @@ function DashboardSidebar({
           <Image
             src={appIllustration}
             alt="Person using the HauxHunt mobile app"
-            className="absolute -right-32 -bottom-32 z-10 h-96 w-auto max-w-none object-contain"
+            className="absolute -right-[8.75rem] -bottom-32 z-[5] h-96 w-auto max-w-none object-contain"
           />
         </section>
       ) : null}

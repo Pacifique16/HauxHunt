@@ -5,9 +5,10 @@ import type { FormEvent } from "react";
 import Image from "next/image";
 import type { StaticImageData } from "next/image";
 import { useRouter } from "next/navigation";
-import { Check, ChevronDown, ChevronLeft, Plus, X } from "lucide-react";
+import { Check, ChevronDown, GripVertical, Plus, X } from "lucide-react";
 
 import { PROPERTY_AMENITIES } from "@/components/properties/list-property-form";
+import { showToast } from "@/lib/toast";
 import houseOne from "@/assets/images/house1.jpg";
 import houseTwo from "@/assets/images/house2.jpg";
 import houseThree from "@/assets/images/house3.jpg";
@@ -35,13 +36,53 @@ const CURRENT_PHOTOS = [
   { id: "current-6", src: houseSix, name: "Garden" },
 ];
 
-export function EditListingForm({ listingTitle }: { listingTitle: string }) {
+export type EditListingValues = {
+  title: string;
+  propertyType: string;
+  furnishing: string;
+  bedrooms: number;
+  bathrooms: number;
+  area: number;
+  currency: string;
+  price: string;
+  paymentPeriod: string;
+  availableFrom: string;
+  minimumStay: string;
+  country: string;
+  city: string;
+  neighbourhood: string;
+  streetAddress: string;
+  latitude: string;
+  longitude: string;
+  amenities: string[];
+  description: string;
+};
+
+export function EditListingForm({
+  listingTitle,
+  initialValues,
+  initialImage,
+  returnPath = "/partner-dashboard/listings",
+  onSave,
+}: {
+  listingTitle: string;
+  initialValues?: Partial<EditListingValues>;
+  initialImage?: StaticImageData;
+  returnPath?: string;
+  onSave?: (values: EditListingValues) => void;
+}) {
   const router = useRouter();
-  const [amenities, setAmenities] = useState(SELECTED_AMENITIES);
-  const [photos, setPhotos] =
-    useState<
-      Array<{ id: string; src: StaticImageData | string; name: string }>
-    >(CURRENT_PHOTOS);
+  const [amenities, setAmenities] = useState(
+    initialValues?.amenities ?? SELECTED_AMENITIES,
+  );
+  const [photos, setPhotos] = useState<
+    Array<{ id: string; src: StaticImageData | string; name: string }>
+  >(
+    initialImage
+      ? [{ id: "current-cover", src: initialImage, name: listingTitle }]
+      : CURRENT_PHOTOS,
+  );
+  const [draggedPhoto, setDraggedPhoto] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [photoError, setPhotoError] = useState("");
 
@@ -77,66 +118,91 @@ export function EditListingForm({ listingTitle }: { listingTitle: string }) {
     });
   }
 
+  function movePhoto(from: number, to: number) {
+    if (from === to || to < 0 || to >= photos.length) return;
+    setPhotos((current) => {
+      const next = [...current];
+      const [photo] = next.splice(from, 1);
+      next.splice(to, 0, photo);
+      return next;
+    });
+  }
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    onSave?.({
+      title: String(data.get("title") ?? listingTitle),
+      propertyType: String(data.get("propertyType") ?? "Apartment"),
+      furnishing: String(data.get("furnishing") ?? "Unfurnished"),
+      bedrooms: Number(data.get("bedrooms") ?? 0),
+      bathrooms: Number(data.get("bathrooms") ?? 0),
+      area: Number(data.get("area") ?? 0),
+      currency: String(data.get("currency") ?? "RWF"),
+      price: String(data.get("price") ?? ""),
+      paymentPeriod: String(data.get("paymentPeriod") ?? "Per month"),
+      availableFrom: String(data.get("availableFrom") ?? ""),
+      minimumStay: String(data.get("minimumStay") ?? ""),
+      country: String(data.get("country") ?? "Rwanda"),
+      city: String(data.get("city") ?? "Kigali"),
+      neighbourhood: String(data.get("neighbourhood") ?? ""),
+      streetAddress: String(data.get("streetAddress") ?? ""),
+      latitude: String(data.get("latitude") ?? ""),
+      longitude: String(data.get("longitude") ?? ""),
+      amenities,
+      description: String(data.get("description") ?? ""),
+    });
     setSaving(true);
-    window.setTimeout(() => router.push("/partner-dashboard/listings"), 900);
+    showToast("Listing changes saved successfully");
+    window.setTimeout(() => router.push(returnPath), 900);
   }
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => router.back()}
-        className="font-bricolage text-carbon-600 hover:text-carbon-900 mt-6 inline-flex h-10 items-center gap-1.5 text-sm font-medium"
-      >
-        <ChevronLeft aria-hidden="true" className="size-4" />
-        Back
-      </button>
       <form
         onSubmit={handleSubmit}
-        className="mt-3 rounded-[2rem] bg-white p-6 shadow-[0_24px_70px_rgba(0,0,0,0.08)] sm:p-10 lg:p-12"
+        className="mt-8 rounded-[2rem] bg-white p-6 shadow-[0_24px_70px_rgba(0,0,0,0.08)] sm:p-10 lg:p-12"
       >
         <EditSection title="Property details">
           <div className="grid gap-5 sm:grid-cols-2">
             <EditField
               label="Listing title"
               name="title"
-              defaultValue={listingTitle}
+              defaultValue={initialValues?.title ?? listingTitle}
               className="sm:col-span-2"
               required
             />
             <EditSelect
               label="Property type"
               name="propertyType"
-              defaultValue="House"
+              defaultValue={initialValues?.propertyType ?? "House"}
               options={["House", "Apartment", "Duplex", "Studio", "Villa"]}
             />
             <EditSelect
               label="Furnishing"
               name="furnishing"
-              defaultValue="Furnished"
+              defaultValue={initialValues?.furnishing ?? "Furnished"}
               options={["Furnished", "Partly furnished", "Unfurnished"]}
             />
             <EditField
               label="Bedrooms"
               name="bedrooms"
               type="number"
-              defaultValue="3"
+              defaultValue={String(initialValues?.bedrooms ?? 3)}
               required
             />
             <EditField
               label="Bathrooms"
               name="bathrooms"
               type="number"
-              defaultValue="2"
+              defaultValue={String(initialValues?.bathrooms ?? 2)}
               required
             />
             <EditField
               label="Floor area (m²)"
               name="area"
               type="number"
-              defaultValue="168"
+              defaultValue={String(initialValues?.area ?? 168)}
             />
           </div>
         </EditSection>
@@ -152,34 +218,34 @@ export function EditListingForm({ listingTitle }: { listingTitle: string }) {
             <EditSelect
               label="Currency"
               name="currency"
-              defaultValue="USD"
-              options={["USD"]}
+              defaultValue={initialValues?.currency ?? "RWF"}
+              options={["RWF", "USD", "NGN"]}
             />
             <EditField
               label="Price"
               name="price"
               type="number"
-              defaultValue="830"
+              defaultValue={initialValues?.price ?? "830"}
               required
             />
             <EditSelect
               label="Payment period"
               name="paymentPeriod"
-              defaultValue="Per month"
+              defaultValue={initialValues?.paymentPeriod ?? "Per month"}
               options={["Per month", "Per year"]}
             />
             <EditField
               label="Available from"
               name="availableFrom"
               type="date"
-              defaultValue="2026-08-08"
+              defaultValue={initialValues?.availableFrom ?? "2026-08-08"}
               required
             />
             <EditField
               label="Minimum stay (months)"
               name="minimumStay"
               type="number"
-              defaultValue="12"
+              defaultValue={initialValues?.minimumStay ?? "12"}
             />
           </div>
         </EditSection>
@@ -189,39 +255,39 @@ export function EditListingForm({ listingTitle }: { listingTitle: string }) {
             <EditSelect
               label="Country"
               name="country"
-              defaultValue="Rwanda"
+              defaultValue={initialValues?.country ?? "Rwanda"}
               options={["Rwanda", "Nigeria", "Kenya"]}
             />
             <EditField
               label="City"
               name="city"
-              defaultValue="Kigali"
+              defaultValue={initialValues?.city ?? "Kigali"}
               required
             />
             <EditField
               label="Neighbourhood"
               name="neighbourhood"
-              defaultValue="Kacyiru"
+              defaultValue={initialValues?.neighbourhood ?? "Kacyiru"}
               required
             />
             <EditField
               label="Street address"
               name="streetAddress"
-              defaultValue="KG 5 Avenue"
+              defaultValue={initialValues?.streetAddress ?? "KG 5 Avenue"}
               required
             />
             <EditField
               label="Latitude"
               name="latitude"
               type="number"
-              defaultValue="-1.9441"
+              defaultValue={initialValues?.latitude ?? "-1.9441"}
               required
             />
             <EditField
               label="Longitude"
               name="longitude"
               type="number"
-              defaultValue="30.0619"
+              defaultValue={initialValues?.longitude ?? "30.0619"}
               required
             />
           </div>
@@ -284,7 +350,10 @@ export function EditListingForm({ listingTitle }: { listingTitle: string }) {
             <textarea
               name="description"
               rows={6}
-              defaultValue="A thoughtfully presented home with bright living spaces, practical room proportions, and convenient access to everyday essentials."
+              defaultValue={
+                initialValues?.description ??
+                "A thoughtfully presented home with bright living spaces, practical room proportions, and convenient access to everyday essentials."
+              }
               className="w-full resize-y rounded-xl border-0 bg-black/[0.035] px-4 py-3 outline-none focus:bg-black/[0.055]"
             />
           </label>
@@ -298,7 +367,15 @@ export function EditListingForm({ listingTitle }: { listingTitle: string }) {
             {photos.map((photo, index) => (
               <figure
                 key={photo.id}
-                className="group relative aspect-[4/3] overflow-hidden rounded-2xl bg-black/[0.04]"
+                draggable
+                onDragStart={() => setDraggedPhoto(index)}
+                onDragEnd={() => setDraggedPhoto(null)}
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={() => {
+                  if (draggedPhoto !== null) movePhoto(draggedPhoto, index);
+                  setDraggedPhoto(null);
+                }}
+                className={`group relative aspect-[4/3] cursor-grab overflow-hidden rounded-2xl bg-black/[0.04] active:cursor-grabbing ${draggedPhoto === index ? "opacity-45" : ""}`}
               >
                 <Image
                   src={photo.src}
@@ -307,11 +384,32 @@ export function EditListingForm({ listingTitle }: { listingTitle: string }) {
                   unoptimized={typeof photo.src === "string"}
                   className="object-cover"
                 />
-                {index === 0 ? (
-                  <div className="absolute inset-x-0 bottom-0 flex items-center bg-gradient-to-t from-black/70 to-transparent px-3 pt-8 pb-3 text-white">
-                    <span className="text-xs">Cover photo</span>
-                  </div>
-                ) : null}
+                <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-gradient-to-t from-black/75 to-transparent px-3 pt-9 pb-3 text-white">
+                  <span className="inline-flex items-center gap-1 text-xs">
+                    <GripVertical aria-hidden="true" className="size-3.5" />
+                    {index === 0 ? "Cover photo" : "Drag to reorder"}
+                  </span>
+                  <span className="flex gap-1">
+                    <button
+                      type="button"
+                      disabled={index === 0}
+                      onClick={() => movePhoto(index, index - 1)}
+                      aria-label={`Move ${photo.name} earlier`}
+                      className="flex size-7 items-center justify-center rounded-full bg-white text-xs font-medium text-black disabled:hidden"
+                    >
+                      ←
+                    </button>
+                    <button
+                      type="button"
+                      disabled={index === photos.length - 1}
+                      onClick={() => movePhoto(index, index + 1)}
+                      aria-label={`Move ${photo.name} later`}
+                      className="flex size-7 items-center justify-center rounded-full bg-white text-xs font-medium text-black disabled:hidden"
+                    >
+                      →
+                    </button>
+                  </span>
+                </div>
                 <button
                   type="button"
                   onClick={() => removePhoto(photo.id)}

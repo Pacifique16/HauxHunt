@@ -2094,9 +2094,7 @@ export default function HelpArticlePage({
 
           {/* Article */}
           <article className="mt-8 rounded-2xl bg-white px-7 py-9 shadow-[0_8px_24px_rgba(0,0,0,0.05)] sm:px-10 sm:py-11">
-            <h1 className="font-bricolage text-3xl font-medium tracking-[-0.04em] sm:text-4xl">
-              {data.title}
-            </h1>
+            <h1 className="dashboard-page-title">{data.title}</h1>
             <div className="mt-8 space-y-6 text-sm leading-7">
               {data.body.map(({ heading, text }, i) => (
                 <div key={i}>

@@ -19,7 +19,6 @@ import { OwnerDashboardShell } from "@/components/owner/owner-dashboard-shell";
 import { useOwnerEmptyMode } from "@/components/owner/use-owner-demo-mode";
 import { StatusPill } from "@/components/owner/status-pill";
 import {
-  OWNER,
   formatRwf,
   getOwnerApplications,
   getOwnerFinancialSummary,
@@ -100,10 +99,10 @@ export default function OwnerOverviewPage() {
           <div className="mx-auto max-w-[1360px]">
             <header className="border-b border-black/10 pb-10">
               <h1 className="dashboard-page-title text-carbon-900">
-                Welcome, {OWNER.name.split(" ")[0]}
+                Portfolio overview
               </h1>
               <p className="text-carbon-600 mt-7 max-w-3xl text-lg leading-7">
-                Add your first property to get started.
+                Add your first listing to get started.
               </p>
             </header>
             <section className="mt-8 flex min-h-[420px] flex-col items-center justify-center rounded-[1.75rem] bg-white px-6 py-14 text-center shadow-[0_16px_45px_rgba(0,0,0,0.055)]">
@@ -113,18 +112,18 @@ export default function OwnerOverviewPage() {
                 className="h-40 w-auto object-contain"
               />
               <h3 className="font-bricolage text-carbon-900 mt-5 text-2xl font-medium">
-                No properties yet
+                No listings yet
               </h3>
               <p className="text-carbon-500 mt-2 max-w-md text-sm leading-6">
-                Add your first property to create a listing, manage
-                applications, and start renting through HauxHunt.
+                Add and verify your first home, then publish it to renters when
+                it is ready.
               </p>
               <Link
                 href="/owner-dashboard/properties/new"
                 className="font-bricolage mt-6 inline-flex h-11 items-center gap-2 rounded-full bg-black px-5 text-sm font-medium text-white"
               >
                 <Plus aria-hidden="true" className="size-4" />
-                Add Property
+                Add Listing
               </Link>
             </section>
           </div>
@@ -223,7 +222,7 @@ export default function OwnerOverviewPage() {
           actor: modernFamilyHome.agent.name,
           action: `published the listing for ${modernFamilyHome.title}.`,
           context: "Agent · Manage listing",
-          href: `/owner-dashboard/properties/${modernFamilyHome.id}?tab=listing`,
+          href: `/owner-dashboard/properties/${modernFamilyHome.id}?tab=details`,
         }
       : null,
     kacyiru?.propertyManager
@@ -244,7 +243,7 @@ export default function OwnerOverviewPage() {
           <header className="flex flex-col gap-8 border-b border-black/10 pb-10 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <h1 className="dashboard-page-title text-carbon-900">
-                Welcome back, {OWNER.name.split(" ")[0]}
+                Portfolio overview
               </h1>
               <p className="text-carbon-600 mt-7 max-w-3xl text-lg leading-7">
                 What you own, who manages it, and what needs your attention
@@ -256,7 +255,7 @@ export default function OwnerOverviewPage() {
               className="font-bricolage inline-flex h-12 shrink-0 items-center justify-center gap-2 self-start rounded-full bg-black px-6 font-medium text-white transition-colors hover:bg-black/80 lg:self-auto"
             >
               <Plus aria-hidden="true" className="size-4" />
-              Add Property
+              Add Listing
             </Link>
           </header>
 
@@ -264,7 +263,7 @@ export default function OwnerOverviewPage() {
           <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <StatCard
               icon={Building2}
-              label="Properties"
+              label="Listings"
               value={String(properties.length)}
               change={`${occupied} occupied · ${vacant} vacant`}
             />
@@ -382,17 +381,17 @@ export default function OwnerOverviewPage() {
                 <div className="flex items-start justify-between gap-5 border-b border-black/10 p-5 sm:p-6">
                   <div>
                     <h2 className="font-bricolage text-carbon-900 text-xl font-medium tracking-[-0.025em]">
-                      Property Portfolio
+                      Listing Portfolio
                     </h2>
                     <p className="text-carbon-500 mt-1 text-sm">
-                      Who&apos;s managing, marketing, and renting each property.
+                      Status, management, and rental activity for every home.
                     </p>
                   </div>
                   <Link
                     href="/owner-dashboard/properties"
                     className="font-bricolage shrink-0 text-sm font-medium underline underline-offset-4"
                   >
-                    View all properties
+                    View all listings
                   </Link>
                 </div>
                 <div className="divide-y divide-black/10">
@@ -484,13 +483,18 @@ export default function OwnerOverviewPage() {
                       Recent work by you and your team.
                     </p>
                   </div>
-                  <Link
-                    href="/owner-dashboard/notifications"
+                  <button
+                    type="button"
+                    onClick={() =>
+                      window.dispatchEvent(
+                        new Event("hauxhunt-open-owner-notifications"),
+                      )
+                    }
                     aria-label="View all activity"
                     className="text-black/60 hover:text-black"
                   >
                     <ArrowUpRight aria-hidden="true" className="size-5" />
-                  </Link>
+                  </button>
                 </div>
                 <div className="mt-5 divide-y divide-black/8 border-y border-black/8">
                   {teamActivity.map((activity) => (

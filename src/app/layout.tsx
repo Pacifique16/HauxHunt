@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { MotionConfig } from "framer-motion";
 import { siteConfig } from "@/config/site";
 import { PrototypeReset } from "@/components/prototype-reset";
+import { GlobalToast } from "@/components/ui/global-toast";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             per-component opt-in. */}
         <MotionConfig reducedMotion="user">{children}</MotionConfig>
         <div id="toast-portal" />
+        <GlobalToast />
       </body>
     </html>
   );
