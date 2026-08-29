@@ -240,23 +240,23 @@ export default function OwnerOverviewPage() {
     <OwnerDashboardShell>
       <section className="px-5 pt-10 pb-24 sm:px-6 lg:px-10 xl:px-12">
         <div className="mx-auto max-w-[1360px]">
-          <header className="flex flex-col gap-8 border-b border-black/10 pb-10 lg:flex-row lg:items-end lg:justify-between">
-            <div>
+          <header className="pb-10">
+            <div className="flex items-start justify-between gap-6">
               <h1 className="dashboard-page-title text-carbon-900">
                 Portfolio overview
               </h1>
-              <p className="text-carbon-600 mt-7 max-w-3xl text-lg leading-7">
-                What you own, who manages it, and what needs your attention
-                right now.
-              </p>
+              <Link
+                href="/owner-dashboard/properties/new"
+                className="font-bricolage inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-black px-6 font-medium text-white transition-colors hover:bg-black/80"
+              >
+                <Plus aria-hidden="true" className="size-4" />
+                Add Listing
+              </Link>
             </div>
-            <Link
-              href="/owner-dashboard/properties/new"
-              className="font-bricolage inline-flex h-12 shrink-0 items-center justify-center gap-2 self-start rounded-full bg-black px-6 font-medium text-white transition-colors hover:bg-black/80 lg:self-auto"
-            >
-              <Plus aria-hidden="true" className="size-4" />
-              Add Listing
-            </Link>
+            <p className="text-carbon-600 mt-5 max-w-3xl text-lg leading-7">
+              What you own, who manages it, and what needs your attention right
+              now.
+            </p>
           </header>
 
           {/* KPI strip -- four cards, none redundant with another (Section 6) */}

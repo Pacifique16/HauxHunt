@@ -89,22 +89,47 @@ export default function TeamPage() {
     <OwnerDashboardShell>
       <section className="px-5 pt-8 pb-24 sm:px-6 lg:px-10 lg:pt-10 xl:px-12">
         <div className="mx-auto max-w-[1360px]">
-          <header className="flex flex-col gap-6 border-b border-black/10 pb-9 sm:flex-row sm:items-end sm:justify-between">
-            <div>
+          <header className="pb-9">
+            <div className="flex items-start justify-between gap-6">
               <h1 className="dashboard-page-title text-carbon-900">Team</h1>
-              <p className="text-carbon-600 mt-5 max-w-2xl text-base leading-7 sm:text-lg">
+              <button
+                type="button"
+                onClick={() => setInviteOpen(true)}
+                className="font-bricolage inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-black px-6 font-medium text-white transition-colors hover:bg-black/80"
+              >
+                <Plus aria-hidden="true" className="size-4" />
+                Invite Team Member
+              </button>
+            </div>
+            <div className="mt-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <p className="text-carbon-600 max-w-2xl text-base leading-7 sm:text-lg">
                 Manage the people who help you market and manage your
                 properties.
               </p>
+              <div className="flex flex-wrap gap-1.5">
+                {MAIN_TABS.map((t) => {
+                  const count =
+                    t.key === "all"
+                      ? memberships.length
+                      : t.key === "agents"
+                        ? agents.length
+                        : t.key === "pms"
+                          ? pms.length
+                          : invitations.length;
+                  return (
+                    <button
+                      key={t.key}
+                      type="button"
+                      onClick={() => setTab(t.key)}
+                      aria-pressed={tab === t.key}
+                      className={`h-11 rounded-full px-4 text-sm font-medium transition-colors ${tab === t.key ? "bg-black text-white" : "bg-black/4.5 text-black/60 hover:text-black"}`}
+                    >
+                      {t.label} <span className="ml-1 opacity-60">{count}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setInviteOpen(true)}
-              className="font-bricolage inline-flex h-12 shrink-0 items-center justify-center gap-2 self-start rounded-full bg-black px-6 font-medium text-white transition-colors hover:bg-black/80 sm:self-auto"
-            >
-              <Plus aria-hidden="true" className="size-4" />
-              Invite Team Member
-            </button>
           </header>
 
           <div className="mt-7 grid gap-4 sm:grid-cols-4">
@@ -112,30 +137,6 @@ export default function TeamPage() {
             <SummaryCard label="Agents" value={agents.length} />
             <SummaryCard label="Property Managers" value={pms.length} />
             <SummaryCard label="Pending Invitations" value={pendingCount} />
-          </div>
-
-          <div className="mt-7 flex flex-wrap gap-1.5">
-            {MAIN_TABS.map((t) => {
-              const count =
-                t.key === "all"
-                  ? memberships.length
-                  : t.key === "agents"
-                    ? agents.length
-                    : t.key === "pms"
-                      ? pms.length
-                      : invitations.length;
-              return (
-                <button
-                  key={t.key}
-                  type="button"
-                  onClick={() => setTab(t.key)}
-                  aria-pressed={tab === t.key}
-                  className={`h-9 rounded-full px-3.5 text-xs font-medium transition-colors ${tab === t.key ? "bg-black text-white" : "bg-black/4.5 text-black/60 hover:text-black"}`}
-                >
-                  {t.label} <span className="ml-1 opacity-60">{count}</span>
-                </button>
-              );
-            })}
           </div>
 
           {tab === "all" ? (

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound, useParams } from "next/navigation";
 import { useEffect, useReducer, useState, useSyncExternalStore } from "react";
 import {
+  ArrowRight,
   BadgeCheck,
   Bath,
   BedDouble,
@@ -39,6 +40,7 @@ import {
   subscribeToOwnerRentals,
   RENTER_DEMO_NAME,
   type OwnerPayment,
+  type OwnerApplication,
   type OwnerRental,
   type PropertyManagerAssignment,
 } from "@/lib/owner-data";
@@ -145,9 +147,16 @@ function OwnerPropertyDetailPageInner() {
   // the real records but had no mechanism keeping it that way. Derived live
   // from the same shared Applications the Properties card and the Phase 2
   // Applications screen already use, scoped by propertyId.
-  const applicationsCount = getOwnerApplications().filter(
+  const propertyApplications = getOwnerApplications().filter(
     (a) => a.propertyId === property.id,
-  ).length;
+  );
+  const applicationsCount = propertyApplications.length;
+  const renewalRental = rentals.find((rental) =>
+    rental.note.toLowerCase().includes("renewal application"),
+  );
+  const renewalApplication = propertyApplications.find((application) =>
+    application.note.toLowerCase().includes("renewal"),
+  );
 
   return (
     <OwnerDashboardShell>
@@ -185,6 +194,29 @@ function OwnerPropertyDetailPageInner() {
             </div>
           </header>
 
+          {renewalRental && renewalApplication ? (
+            <section className="mt-6 flex flex-col gap-5 rounded-2xl bg-amber-50 p-5 shadow-[0_10px_30px_rgba(0,0,0,0.045)] sm:flex-row sm:items-center sm:justify-between sm:p-6">
+              <div>
+                <p className="text-xs font-medium tracking-wider text-amber-800 uppercase">
+                  Action required
+                </p>
+                <h2 className="font-bricolage text-carbon-900 mt-1 text-xl font-medium">
+                  Renewal approval needed
+                </h2>
+                <p className="text-carbon-600 mt-1 text-sm leading-6">
+                  {renewalRental.note}
+                </p>
+              </div>
+              <Link
+                href={`/owner-dashboard/applications?propertyId=${property.id}&open=${renewalApplication.id}`}
+                className="font-bricolage inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-medium text-white transition-colors hover:bg-black/80"
+              >
+                Review renewal
+                <ArrowRight aria-hidden="true" className="size-3.5" />
+              </Link>
+            </section>
+          ) : null}
+
           <div className="mt-10 space-y-12">
             <section id="details" className="scroll-mt-24 space-y-6">
               <OverviewTab
@@ -216,6 +248,7 @@ function OwnerPropertyDetailPageInner() {
               <section id="rental" className="scroll-mt-24">
                 <RentalTab
                   rentals={rentals}
+                  applications={propertyApplications}
                   propertyManager={property.propertyManager}
                 />
               </section>
@@ -685,9 +718,11 @@ function Metric({ label, value }: { label: string; value: number }) {
 
 function RentalTab({
   rentals,
+  applications,
   propertyManager,
 }: {
   rentals: OwnerRental[];
+  applications: OwnerApplication[];
   propertyManager: PropertyManagerAssignment | null;
 }) {
   if (rentals.length === 0) {
@@ -703,91 +738,116 @@ function RentalTab({
 
   return (
     <div className="space-y-5">
-      {rentals.map((rental) => (
-        <section
-          key={rental.id}
-          className="rounded-[1.5rem] bg-white p-6 shadow-[0_12px_36px_rgba(0,0,0,0.05)]"
-        >
-          <h2 className="font-bricolage text-carbon-900 text-lg font-medium">
-            Rental information
-          </h2>
-          <div>
-            <div className="mt-5">
-              <h3 className="font-bricolage text-lg font-medium">
-                {rental.renter}
-              </h3>
-              <p className="text-carbon-500 mt-1 text-sm">
-                {rental.start} – {rental.end}
-              </p>
-            </div>
-          </div>
-          <dl className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3">
+      {rentals.map((rental) => {
+        const renewalApplication = applications.find(
+          (application) =>
+            application.applicant === rental.renter &&
+            application.status === "Decision Pending" &&
+            application.requiresOwnerApproval &&
+            application.note.toLowerCase().includes("renewal"),
+        );
+
+        return (
+          <section
+            key={rental.id}
+            className="rounded-[1.5rem] bg-white p-6 shadow-[0_12px_36px_rgba(0,0,0,0.05)]"
+          >
+            <h2 className="font-bricolage text-carbon-900 text-lg font-medium">
+              Rental information
+            </h2>
             <div>
-              <dt className="text-carbon-400 text-xs">Monthly rent</dt>
-              <dd className="mt-1">
-                <span className="font-medium">
-                  {rental.rent.replace(/\s*\/\s*month$/i, "")}
-                </span>{" "}
-                <span className="text-carbon-500 text-xs font-normal">
-                  per month
-                </span>
-              </dd>
+              <div className="mt-5">
+                <h3 className="font-bricolage text-lg font-medium">
+                  {rental.renter}
+                </h3>
+                <p className="text-carbon-500 mt-1 text-sm">
+                  {rental.start} – {rental.end}
+                </p>
+              </div>
             </div>
-            <div>
-              <dt className="text-carbon-400 text-xs">Agreement</dt>
-              <dd className="mt-1">
-                <StatusPill status={rental.agreementStatus} />
-              </dd>
-            </div>
-            <div>
-              <dt className="text-carbon-400 text-xs">Deposit</dt>
-              <dd className="mt-1">
-                <StatusPill status={rental.depositStatus} />
-              </dd>
-            </div>
-          </dl>
-          <p className="text-carbon-500 mt-5 border-t border-black/8 pt-4 text-sm">
-            {rental.note}
-          </p>
-          <div className="mt-5 flex flex-wrap gap-2">
-            {(() => {
-              // Messages Synchronization phase -- Section 37/83: resolves
-              // the SAME participant/conversation as the standalone
-              // Rentals workspace's own Message action, using stable ids
-              // instead of the PM's display name.
-              const target = propertyManager
-                ? {
-                    id: propertyManager.professionalId,
-                    name: propertyManager.name,
-                  }
-                : rental.renter === RENTER_DEMO_NAME
-                  ? { id: RENTER_PARTICIPANT_ID, name: rental.renter }
-                  : null;
-              if (!target) return null;
-              const conversation = getOrCreateConversation(
-                OWNER_PARTICIPANT_ID,
-                target.id,
-                {
-                  type: "rental",
-                  propertyId: rental.propertyId,
-                  rentalId: rental.id,
-                  label: "Rental",
-                },
-              );
-              if (!conversation) return null;
-              return (
+            <dl className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3">
+              <div>
+                <dt className="text-carbon-400 text-xs">Monthly rent</dt>
+                <dd className="mt-1">
+                  <span className="font-medium">
+                    {rental.rent.replace(/\s*\/\s*month$/i, "")}
+                  </span>{" "}
+                  <span className="text-carbon-500 text-xs font-normal">
+                    per month
+                  </span>
+                </dd>
+              </div>
+              <div>
+                <dt className="text-carbon-400 text-xs">Agreement</dt>
+                <dd className="mt-1">
+                  <StatusPill status={rental.agreementStatus} />
+                </dd>
+              </div>
+              <div>
+                <dt className="text-carbon-400 text-xs">Deposit</dt>
+                <dd className="mt-1">
+                  <StatusPill status={rental.depositStatus} />
+                </dd>
+              </div>
+            </dl>
+            {renewalApplication ? (
+              <div className="mt-5 flex flex-col gap-4 border-t border-black/8 bg-amber-50 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-carbon-700 text-sm leading-6">
+                  {rental.note}
+                </p>
                 <Link
-                  href={`/owner-dashboard/messages?open=${conversation.id}`}
-                  className="font-bricolage inline-flex h-10 items-center gap-2 rounded-full border border-black/15 px-4 text-sm font-medium hover:border-black"
+                  href={`/owner-dashboard/applications?propertyId=${rental.propertyId}&open=${renewalApplication.id}`}
+                  className="font-bricolage inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-medium text-white transition-colors hover:bg-black/80"
                 >
-                  <MessageSquare aria-hidden="true" className="size-4" />
-                  Message {target.name}
+                  Review renewal
+                  <ArrowRight aria-hidden="true" className="size-3.5" />
                 </Link>
-              );
-            })()}
-          </div>
-        </section>
-      ))}
+              </div>
+            ) : (
+              <p className="text-carbon-500 mt-5 border-t border-black/8 pt-4 text-sm">
+                {rental.note}
+              </p>
+            )}
+            <div className="mt-5 flex flex-wrap gap-2">
+              {(() => {
+                // Messages Synchronization phase -- Section 37/83: resolves
+                // the SAME participant/conversation as the standalone
+                // Rentals workspace's own Message action, using stable ids
+                // instead of the PM's display name.
+                const target = propertyManager
+                  ? {
+                      id: propertyManager.professionalId,
+                      name: propertyManager.name,
+                    }
+                  : rental.renter === RENTER_DEMO_NAME
+                    ? { id: RENTER_PARTICIPANT_ID, name: rental.renter }
+                    : null;
+                if (!target) return null;
+                const conversation = getOrCreateConversation(
+                  OWNER_PARTICIPANT_ID,
+                  target.id,
+                  {
+                    type: "rental",
+                    propertyId: rental.propertyId,
+                    rentalId: rental.id,
+                    label: "Rental",
+                  },
+                );
+                if (!conversation) return null;
+                return (
+                  <Link
+                    href={`/owner-dashboard/messages?open=${conversation.id}`}
+                    className="font-bricolage inline-flex h-10 items-center gap-2 rounded-full border border-black/15 px-4 text-sm font-medium hover:border-black"
+                  >
+                    <MessageSquare aria-hidden="true" className="size-4" />
+                    Message {target.name}
+                  </Link>
+                );
+              })()}
+            </div>
+          </section>
+        );
+      })}
     </div>
   );
 }

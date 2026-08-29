@@ -975,6 +975,10 @@ select.catalogue-filter-control {
   );
 }
 
+.attention-folder-character-head-viewport {
+  clip-path: inset(0 0 17% 0);
+}
+
 .attention-folder-character-head {
   clip-path: polygon(
     0 0,

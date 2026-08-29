@@ -152,66 +152,67 @@ export default function OwnerPropertiesPage() {
     <OwnerDashboardShell>
       <section className="px-5 pt-8 pb-24 sm:px-6 lg:px-10 lg:pt-10 xl:px-12">
         <div className="mx-auto max-w-[1360px]">
-          <header className="flex flex-col gap-6 border-b border-black/10 pb-9 sm:flex-row sm:items-end sm:justify-between">
-            <div>
+          <header className="pb-9">
+            <div className="flex items-start justify-between gap-6">
               <h1 className="dashboard-page-title text-carbon-900">Listings</h1>
-              <p className="text-carbon-600 mt-5 max-w-2xl text-base leading-7 sm:text-lg">
+              <Link
+                href="/owner-dashboard/properties/new"
+                className="font-bricolage inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-black px-6 font-medium text-white transition-colors hover:bg-black/80"
+              >
+                <Plus aria-hidden="true" className="size-4" />
+                Add Listing
+              </Link>
+            </div>
+            <div className="mt-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <p className="text-carbon-600 max-w-2xl text-base leading-7 sm:text-lg">
                 Add, verify, publish, and manage every home you offer to
                 renters.
               </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-carbon-500 mr-1 text-sm whitespace-nowrap">
+                  Results:
+                  <span className="ml-1 font-medium text-black">
+                    {filtered.length}
+                  </span>
+                </p>
+                <label className="relative block shrink-0">
+                  <span className="sr-only">Filter listings by status</span>
+                  <select
+                    value={filter}
+                    onChange={(event) =>
+                      setFilter(event.target.value as Filter)
+                    }
+                    className="h-11 appearance-none rounded-full border-0 bg-white pr-10 pl-4 text-sm font-medium shadow-[0_8px_24px_rgba(0,0,0,0.06)] outline-none"
+                  >
+                    {FILTERS.map((item) => (
+                      <option key={item}>{item}</option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    aria-hidden="true"
+                    className="pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2"
+                  />
+                </label>
+                <label className="relative block shrink-0">
+                  <span className="sr-only">Sort listings</span>
+                  <select
+                    value={sortOrder}
+                    onChange={(event) =>
+                      setSortOrder(event.target.value as "newest" | "oldest")
+                    }
+                    className="h-11 appearance-none rounded-full border-0 bg-white pr-10 pl-4 text-sm font-medium shadow-[0_8px_24px_rgba(0,0,0,0.06)] outline-none"
+                  >
+                    <option value="newest">Newest first</option>
+                    <option value="oldest">Oldest first</option>
+                  </select>
+                  <ChevronDown
+                    aria-hidden="true"
+                    className="pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2"
+                  />
+                </label>
+              </div>
             </div>
-            <Link
-              href="/owner-dashboard/properties/new"
-              className="font-bricolage inline-flex h-12 shrink-0 items-center justify-center gap-2 self-start rounded-full bg-black px-6 font-medium text-white transition-colors hover:bg-black/80 sm:self-auto"
-            >
-              <Plus aria-hidden="true" className="size-4" />
-              Add Listing
-            </Link>
           </header>
-
-          <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
-            <div className="flex flex-wrap items-center gap-2">
-              <p className="text-carbon-500 mr-1 text-sm whitespace-nowrap">
-                Results:
-                <span className="ml-1 font-medium text-black">
-                  {filtered.length}
-                </span>
-              </p>
-              <label className="relative block shrink-0">
-                <span className="sr-only">Filter listings by status</span>
-                <select
-                  value={filter}
-                  onChange={(event) => setFilter(event.target.value as Filter)}
-                  className="h-11 appearance-none rounded-full border-0 bg-white pr-10 pl-4 text-sm font-medium shadow-[0_8px_24px_rgba(0,0,0,0.06)] outline-none"
-                >
-                  {FILTERS.map((item) => (
-                    <option key={item}>{item}</option>
-                  ))}
-                </select>
-                <ChevronDown
-                  aria-hidden="true"
-                  className="pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2"
-                />
-              </label>
-              <label className="relative block shrink-0">
-                <span className="sr-only">Sort listings</span>
-                <select
-                  value={sortOrder}
-                  onChange={(event) =>
-                    setSortOrder(event.target.value as "newest" | "oldest")
-                  }
-                  className="h-11 appearance-none rounded-full border-0 bg-white pr-10 pl-4 text-sm font-medium shadow-[0_8px_24px_rgba(0,0,0,0.06)] outline-none"
-                >
-                  <option value="newest">Newest first</option>
-                  <option value="oldest">Oldest first</option>
-                </select>
-                <ChevronDown
-                  aria-hidden="true"
-                  className="pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2"
-                />
-              </label>
-            </div>
-          </div>
 
           {filtered.length === 0 ? (
             <section className="mt-6 flex min-h-[420px] flex-col items-center justify-center bg-white px-6 py-14 text-center shadow-[0_18px_55px_rgba(0,0,0,0.055)]">
@@ -258,6 +259,9 @@ export default function OwnerPropertiesPage() {
                         sizes="(min-width: 1280px) 22vw, (min-width: 1024px) 29vw, (min-width: 640px) 46vw, 100vw"
                         className="object-contain"
                       />
+                      <span className="text-carbon-700 pointer-events-none absolute top-[20%] left-[24%] -rotate-[12deg] text-left text-[5px] leading-none font-normal tracking-[0.04em] sm:text-[6px]">
+                        Details
+                      </span>
                       {summary.needsAttention ? (
                         <span
                           className="absolute -top-[3%] right-[14%] z-10 aspect-[1774/887] w-[28%] overflow-hidden"
@@ -277,13 +281,15 @@ export default function OwnerPropertiesPage() {
                             sizes="(min-width: 1280px) 7vw, (min-width: 1024px) 9vw, (min-width: 640px) 14vw, 28vw"
                             className="attention-folder-character-right-hand object-contain drop-shadow-[0_3px_4px_rgba(0,0,0,0.25)]"
                           />
-                          <Image
-                            src={hidingIllustration}
-                            alt=""
-                            fill
-                            sizes="(min-width: 1280px) 7vw, (min-width: 1024px) 9vw, (min-width: 640px) 14vw, 28vw"
-                            className="attention-folder-character-head object-contain drop-shadow-[0_3px_4px_rgba(0,0,0,0.25)]"
-                          />
+                          <span className="attention-folder-character-head-viewport absolute inset-0">
+                            <Image
+                              src={hidingIllustration}
+                              alt=""
+                              fill
+                              sizes="(min-width: 1280px) 7vw, (min-width: 1024px) 9vw, (min-width: 640px) 14vw, 28vw"
+                              className="attention-folder-character-head object-contain drop-shadow-[0_3px_4px_rgba(0,0,0,0.25)]"
+                            />
+                          </span>
                         </span>
                       ) : null}
                       <div className="absolute bottom-[18%] left-[16%] max-w-[62%] text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.75)]">
