@@ -80,7 +80,7 @@ export default function WaitlistPage() {
         <div className="mx-auto grid h-full w-full max-w-[1500px] items-center gap-8 py-4 sm:py-6 lg:grid-cols-[1.2fr_0.8fr] xl:gap-14">
           <div
             aria-label="A selection of HauxHunt homes"
-            className="relative hidden h-[min(40svh,390px)] min-h-[320px] -translate-y-20 lg:block xl:-translate-y-24"
+            className="relative hidden h-[min(40svh,390px)] min-h-[320px] -translate-y-28 lg:block xl:-translate-y-32"
           >
             <PropertyImageCard
               image={houseFive}
