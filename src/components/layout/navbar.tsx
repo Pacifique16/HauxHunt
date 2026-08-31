@@ -115,6 +115,17 @@ export function Navbar() {
           <div className="flex items-center gap-2 justify-self-end lg:gap-4 xl:gap-5">
             <CurrencySelector inverse={!solidNav} openOnHover />
             <Link
+              href="/waitlist"
+              className={[
+                "font-bricolage text-body-m hidden h-10 items-center rounded-sm px-2 font-medium transition-colors duration-150 sm:inline-flex",
+                solidNav
+                  ? "text-fg-tertiary hover:text-fg"
+                  : "text-white/75 hover:text-white",
+              ].join(" ")}
+            >
+              Join waitlist
+            </Link>
+            <Link
               href={authConfig.register.href}
               className={[
                 "font-bricolage text-body-m hidden h-10 items-center rounded-sm px-2 font-medium transition-colors duration-150 sm:inline-flex",
@@ -187,6 +198,15 @@ export function Navbar() {
                 </Link>
               </li>
             ))}
+            <li className="sm:hidden">
+              <Link
+                href="/waitlist"
+                onClick={() => setMenuOpen(false)}
+                className="font-bricolage text-body-l text-fg-secondary hover:text-fg border-border-subtle block border-b py-4 transition-colors duration-150"
+              >
+                Join waitlist
+              </Link>
+            </li>
             <li className="sm:hidden">
               <Link
                 href={authConfig.register.href}
