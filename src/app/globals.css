@@ -1542,3 +1542,95 @@ select.catalogue-filter-control {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.waitlist-cube-scene {
+  width: 16rem;
+  height: 16rem;
+  perspective: 900px;
+}
+
+.waitlist-feature-cube {
+  --waitlist-cube-size: 16rem;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  animation: waitlist-cube-turn 22s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.waitlist-cube-face {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgb(0 0 0 / 0.08);
+  backface-visibility: hidden;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12);
+}
+
+.waitlist-cube-face--front {
+  transform: rotateY(0deg) translateZ(calc(var(--waitlist-cube-size) / 2));
+}
+
+.waitlist-cube-face--right {
+  transform: rotateY(90deg) translateZ(calc(var(--waitlist-cube-size) / 2));
+}
+
+.waitlist-cube-face--back {
+  transform: rotateY(180deg) translateZ(calc(var(--waitlist-cube-size) / 2));
+}
+
+.waitlist-cube-face--left {
+  transform: rotateY(-90deg) translateZ(calc(var(--waitlist-cube-size) / 2));
+}
+
+.waitlist-cube-face--top {
+  transform: rotateX(90deg) translateZ(calc(var(--waitlist-cube-size) / 2));
+}
+
+.waitlist-cube-face--bottom {
+  transform: rotateX(-90deg) translateZ(calc(var(--waitlist-cube-size) / 2));
+}
+
+@keyframes waitlist-cube-turn {
+  0%,
+  12% {
+    transform: rotateX(-12deg) rotateY(0deg);
+  }
+  20%,
+  32% {
+    transform: rotateX(-12deg) rotateY(-90deg);
+  }
+  40%,
+  52% {
+    transform: rotateX(-12deg) rotateY(-180deg);
+  }
+  60%,
+  72% {
+    transform: rotateX(-12deg) rotateY(-270deg);
+  }
+  80%,
+  88% {
+    transform: rotateX(-90deg) rotateY(-360deg);
+  }
+  94%,
+  100% {
+    transform: rotateX(90deg) rotateY(-360deg);
+  }
+}
+
+@media (min-width: 1280px) {
+  .waitlist-cube-scene {
+    width: 19rem;
+    height: 19rem;
+  }
+
+  .waitlist-feature-cube {
+    --waitlist-cube-size: 19rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .waitlist-feature-cube {
+    animation: none;
+    transform: rotateX(-12deg) rotateY(-22deg);
+  }
+}

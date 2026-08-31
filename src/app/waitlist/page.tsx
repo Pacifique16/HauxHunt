@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { ChevronDown, ChevronLeft } from "lucide-react";
 
 import agreedImage from "@/assets/images/agreed.png";
@@ -28,15 +28,6 @@ const EMPTY_DETAILS: WaitlistDetails = {
 export default function WaitlistPage() {
   const [joined, setJoined] = useState(false);
   const [details, setDetails] = useState(EMPTY_DETAILS);
-  const [showAlternateCards, setShowAlternateCards] = useState(false);
-
-  useEffect(() => {
-    const interval = window.setInterval(() => {
-      setShowAlternateCards((current) => !current);
-    }, 4200);
-
-    return () => window.clearInterval(interval);
-  }, []);
 
   function joinWaitlist(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -83,46 +74,49 @@ export default function WaitlistPage() {
       <section className="relative z-10 h-[calc(100svh-86px)] px-5 sm:px-8 lg:px-12">
         <div className="mx-auto grid h-full w-full max-w-[1500px] items-center gap-8 py-4 sm:py-6 lg:grid-cols-[1.2fr_0.8fr] xl:gap-14">
           <div
-            aria-label="A selection of HauxHunt homes"
+            aria-label="HauxHunt feature cards"
             className="relative hidden h-[min(40svh,390px)] min-h-[320px] -translate-y-28 lg:block xl:-translate-y-32"
           >
-            <FeatureCard
-              label={showAlternateCards ? "Explore" : "HauxHunt"}
-              title={showAlternateCards ? "See what fits." : "Find your fit."}
-              tone="lime"
-              className="top-[27%] left-[9%] z-0 h-[58%] w-[21%] -rotate-[21deg]"
-            />
-            <FeatureCard
-              label={showAlternateCards ? "Clear details" : "Discover"}
-              title={
-                showAlternateCards ? "Know before you go." : "Search less."
-              }
-              tone="green"
-              className="top-[14%] left-[22%] z-10 h-[70%] w-[23%] -rotate-[11deg]"
-            />
-            <FeatureCard
-              label={showAlternateCards ? "Saved homes" : "Your shortlist"}
-              title={
-                showAlternateCards ? "Keep favourites close." : "Save. Compare."
-              }
-              tone="white"
-              featured
-              className="top-[2%] left-[37%] z-30 h-[84%] w-[27%]"
-            />
-            <FeatureCard
-              label={showAlternateCards ? "Better choices" : "Trusted listings"}
-              title={showAlternateCards ? "Move with clarity." : "Move sooner."}
-              tone="lime"
-              className="top-[14%] right-[20%] z-20 h-[70%] w-[23%] rotate-[11deg]"
-            />
-            <FeatureCard
-              label={showAlternateCards ? "Your next move" : "24/7 access"}
-              title={
-                showAlternateCards ? "Start somewhere good." : "Welcome home."
-              }
-              tone="dark"
-              className="top-[27%] right-[7%] z-0 h-[58%] w-[21%] rotate-[21deg]"
-            />
+            <div className="waitlist-cube-scene absolute top-[2%] left-[29%]">
+              <div className="waitlist-feature-cube">
+                <FeatureCard
+                  label="HauxHunt"
+                  title="Find your fit."
+                  tone="lime"
+                  face="front"
+                />
+                <FeatureCard
+                  label="Clear details"
+                  title="Know before you go."
+                  tone="green"
+                  face="right"
+                />
+                <FeatureCard
+                  label="Saved homes"
+                  title="Keep favourites close."
+                  tone="white"
+                  face="back"
+                />
+                <FeatureCard
+                  label="Trusted listings"
+                  title="Move with clarity."
+                  tone="lime"
+                  face="left"
+                />
+                <FeatureCard
+                  label="Your next move"
+                  title="Start somewhere good."
+                  tone="dark"
+                  face="top"
+                />
+                <FeatureCard
+                  label="24/7 access"
+                  title="Welcome home."
+                  tone="green"
+                  face="bottom"
+                />
+              </div>
+            </div>
             <Image
               src={peopleImage}
               alt="People joining the HauxHunt community"
@@ -243,14 +237,12 @@ function FeatureCard({
   title,
   label,
   tone,
-  className,
-  featured = false,
+  face,
 }: {
   title: string;
   label: string;
   tone: "dark" | "green" | "lime" | "white";
-  className: string;
-  featured?: boolean;
+  face: "front" | "right" | "back" | "left" | "top" | "bottom";
 }) {
   const toneClass =
     tone === "lime"
@@ -263,15 +255,13 @@ function FeatureCard({
 
   return (
     <article
-      className={`absolute overflow-hidden rounded-[1.75rem] shadow-[0_28px_70px_rgba(0,0,0,0.2)] ${toneClass} ${className}`}
+      className={`waitlist-cube-face waitlist-cube-face--${face} overflow-hidden rounded-[1.75rem] ${toneClass}`}
     >
       <div className="flex h-full flex-col justify-between p-4 xl:p-5">
         <p className="font-bricolage text-[10px] font-medium tracking-[0.12em] uppercase opacity-45 xl:text-xs">
           {label}
         </p>
-        <h2
-          className={`font-bricolage mt-1 leading-[0.95] font-medium tracking-[-0.04em] ${featured ? "text-3xl xl:text-4xl" : "text-xl xl:text-2xl"}`}
-        >
+        <h2 className="font-bricolage mt-1 text-3xl leading-[0.95] font-medium tracking-[-0.04em] xl:text-4xl">
           {title}
         </h2>
       </div>
