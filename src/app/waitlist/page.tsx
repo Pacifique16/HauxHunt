@@ -116,7 +116,7 @@ export default function WaitlistPage() {
             <Image
               src={peopleImage}
               alt="People joining the HauxHunt community"
-              className="absolute top-[110%] left-[14%] h-44 w-auto object-contain xl:h-52"
+              className="absolute top-[110%] left-[14%] h-44 w-auto translate-y-8 object-contain xl:h-52"
             />
           </div>
 
