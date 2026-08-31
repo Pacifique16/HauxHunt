@@ -1544,13 +1544,13 @@ select.catalogue-filter-control {
 }
 
 .waitlist-cube-scene {
-  width: 16rem;
-  height: 16rem;
+  width: 13rem;
+  height: 13rem;
   perspective: 900px;
 }
 
 .waitlist-feature-cube {
-  --waitlist-cube-size: 16rem;
+  --waitlist-cube-size: 13rem;
   position: relative;
   width: 100%;
   height: 100%;
@@ -1614,12 +1614,12 @@ select.catalogue-filter-control {
 
 @media (min-width: 1280px) {
   .waitlist-cube-scene {
-    width: 19rem;
-    height: 19rem;
+    width: 15.5rem;
+    height: 15.5rem;
   }
 
   .waitlist-feature-cube {
-    --waitlist-cube-size: 19rem;
+    --waitlist-cube-size: 15.5rem;
   }
 }
 

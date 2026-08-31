@@ -77,18 +77,18 @@ export default function WaitlistPage() {
             aria-label="HauxHunt feature cards"
             className="relative hidden h-[min(40svh,390px)] min-h-[320px] -translate-y-28 lg:block xl:-translate-y-32"
           >
-            <div className="waitlist-cube-scene absolute top-[2%] left-[29%]">
+            <div className="waitlist-cube-scene absolute top-[2%] left-[32%]">
               <div className="waitlist-feature-cube">
                 <FeatureCard
                   label="HauxHunt"
                   title="Find your fit."
-                  tone="lime"
+                  tone="blue"
                   face="front"
                 />
                 <FeatureCard
                   label="Clear details"
                   title="Know before you go."
-                  tone="green"
+                  tone="orange"
                   face="right"
                 />
                 <FeatureCard
@@ -241,7 +241,7 @@ function FeatureCard({
 }: {
   title: string;
   label: string;
-  tone: "dark" | "green" | "lime" | "white";
+  tone: "blue" | "dark" | "green" | "lime" | "orange" | "white";
   face: "front" | "right" | "back" | "left" | "top" | "bottom";
 }) {
   const toneClass =
@@ -251,7 +251,11 @@ function FeatureCard({
         ? "bg-[#00f58a] text-black"
         : tone === "white"
           ? "bg-white text-black"
-          : "bg-[#151515] text-white";
+          : tone === "blue"
+            ? "bg-[#65b8ff] text-black"
+            : tone === "orange"
+              ? "bg-[#ff9f43] text-black"
+              : "bg-[#151515] text-white";
 
   return (
     <article
@@ -261,7 +265,7 @@ function FeatureCard({
         <p className="font-bricolage text-[10px] font-medium tracking-[0.12em] uppercase opacity-45 xl:text-xs">
           {label}
         </p>
-        <h2 className="font-bricolage mt-1 text-3xl leading-[0.95] font-medium tracking-[-0.04em] xl:text-4xl">
+        <h2 className="font-bricolage mt-1 text-2xl leading-[0.95] font-medium tracking-[-0.04em] xl:text-3xl">
           {title}
         </h2>
       </div>
