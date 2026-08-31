@@ -86,13 +86,13 @@ export default function WaitlistPage() {
               image={houseFive}
               title="Calm retreats"
               location="Kigali"
-              className="top-[19%] left-[9%] z-0 h-[58%] w-[21%] -rotate-[15deg]"
+              className="top-[27%] left-[9%] z-0 h-[58%] w-[21%] -rotate-[21deg]"
             />
             <PropertyImageCard
               image={houseTwo}
               title="City living"
               location="Lagos"
-              className="top-[10%] left-[22%] z-10 h-[70%] w-[23%] -rotate-[8deg]"
+              className="top-[14%] left-[22%] z-10 h-[70%] w-[23%] -rotate-[11deg]"
             />
             <PropertyImageCard
               image={houseOne}
@@ -105,13 +105,13 @@ export default function WaitlistPage() {
               image={houseThree}
               title="Room to grow"
               location="Nairobi"
-              className="top-[10%] right-[20%] z-20 h-[70%] w-[23%] rotate-[8deg]"
+              className="top-[14%] right-[20%] z-20 h-[70%] w-[23%] rotate-[11deg]"
             />
             <PropertyImageCard
               image={houseFour}
               title="A better address"
               location="Kigali"
-              className="top-[19%] right-[7%] z-0 h-[58%] w-[21%] rotate-[15deg]"
+              className="top-[27%] right-[7%] z-0 h-[58%] w-[21%] rotate-[21deg]"
             />
             <Image
               src={peopleImage}
