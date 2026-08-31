@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, type FormEvent } from "react";
+import { useRef, useState, useEffect, type FormEvent } from "react";
 import { ChevronDown, ChevronLeft } from "lucide-react";
 
 import agreedImage from "@/assets/images/agreed.png";
@@ -77,46 +77,7 @@ export default function WaitlistPage() {
             aria-label="HauxHunt feature cards"
             className="relative hidden h-[min(40svh,390px)] min-h-[320px] -translate-y-28 lg:block xl:-translate-y-32"
           >
-            <div className="waitlist-cube-scene absolute top-[2%] left-[32%]">
-              <div className="waitlist-feature-cube">
-                <FeatureCard
-                  label="HauxHunt"
-                  title="Find your fit."
-                  tone="blue"
-                  face="front"
-                />
-                <FeatureCard
-                  label="Clear details"
-                  title="Know before you go."
-                  tone="orange"
-                  face="right"
-                />
-                <FeatureCard
-                  label="Saved homes"
-                  title="Keep favourites close."
-                  tone="white"
-                  face="back"
-                />
-                <FeatureCard
-                  label="Trusted listings"
-                  title="Move with clarity."
-                  tone="lime"
-                  face="left"
-                />
-                <FeatureCard
-                  label="Your next move"
-                  title="Start somewhere good."
-                  tone="dark"
-                  face="top"
-                />
-                <FeatureCard
-                  label="24/7 access"
-                  title="Welcome home."
-                  tone="green"
-                  face="bottom"
-                />
-              </div>
-            </div>
+            <FeatureCube />
             <Image
               src={peopleImage}
               alt="People joining the HauxHunt community"
@@ -230,6 +191,67 @@ export default function WaitlistPage() {
         </div>
       </section>
     </main>
+  );
+}
+
+function FeatureCube() {
+  const sceneRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const stateRef = useRef({ hovered: false, rx: 0, ry: 0, targetRx: 0, targetRy: 0, raf: 0 });
+
+  useEffect(() => {
+    const s = stateRef.current;
+    function tick() {
+      s.rx += (s.targetRx - s.rx) * 0.1;
+      s.ry += (s.targetRy - s.ry) * 0.1;
+      if (wrapperRef.current) {
+        wrapperRef.current.style.transform = `rotateX(${s.rx}deg) rotateY(${s.ry}deg)`;
+      }
+      s.raf = requestAnimationFrame(tick);
+    }
+    s.raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(s.raf);
+  }, []);
+
+  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    const rect = sceneRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const s = stateRef.current;
+    s.targetRx = ((e.clientY - (rect.top + rect.height / 2)) / (rect.height / 2)) * -25;
+    s.targetRy = ((e.clientX - (rect.left + rect.width / 2)) / (rect.width / 2)) * 25;
+  }
+
+  function handleMouseLeave() {
+    const s = stateRef.current;
+    s.hovered = false;
+    s.targetRx = 0;
+    s.targetRy = 0;
+  }
+
+  return (
+    <div
+      ref={sceneRef}
+      className="waitlist-cube-scene absolute top-[2%] left-[32%]"
+      onMouseEnter={() => { stateRef.current.hovered = true; }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      {/* pointer-driven wrapper — rotates toward cursor, no animation */}
+      <div
+        ref={wrapperRef}
+        style={{ width: "100%", height: "100%", transformStyle: "preserve-3d" }}
+      >
+        {/* inner cube — CSS auto-spin animation, unaffected by pointer */}
+        <div className="waitlist-feature-cube">
+          <FeatureCard label="HauxHunt" title="Find your fit." tone="blue" face="front" />
+          <FeatureCard label="Clear details" title="Know before you go." tone="orange" face="right" />
+          <FeatureCard label="Saved homes" title="Keep favourites close." tone="white" face="back" />
+          <FeatureCard label="Trusted listings" title="Move with clarity." tone="lime" face="left" />
+          <FeatureCard label="Your next move" title="Start somewhere good." tone="dark" face="top" />
+          <FeatureCard label="24/7 access" title="Welcome home." tone="green" face="bottom" />
+        </div>
+      </div>
+    </div>
   );
 }
 
