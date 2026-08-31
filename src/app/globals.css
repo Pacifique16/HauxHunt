@@ -1592,28 +1592,23 @@ select.catalogue-filter-control {
 
 @keyframes waitlist-cube-turn {
   0%,
-  12% {
-    transform: rotateX(-12deg) rotateY(0deg);
+  18% {
+    transform: rotateX(-28deg) rotateY(-45deg);
   }
-  20%,
-  32% {
-    transform: rotateX(-12deg) rotateY(-90deg);
+  25%,
+  43% {
+    transform: rotateX(-28deg) rotateY(-135deg);
   }
-  40%,
-  52% {
-    transform: rotateX(-12deg) rotateY(-180deg);
+  50%,
+  68% {
+    transform: rotateX(-28deg) rotateY(-225deg);
   }
-  60%,
-  72% {
-    transform: rotateX(-12deg) rotateY(-270deg);
+  75%,
+  93% {
+    transform: rotateX(-28deg) rotateY(-315deg);
   }
-  80%,
-  88% {
-    transform: rotateX(-90deg) rotateY(-360deg);
-  }
-  94%,
   100% {
-    transform: rotateX(90deg) rotateY(-360deg);
+    transform: rotateX(-28deg) rotateY(-405deg);
   }
 }
 
@@ -1631,6 +1626,6 @@ select.catalogue-filter-control {
 @media (prefers-reduced-motion: reduce) {
   .waitlist-feature-cube {
     animation: none;
-    transform: rotateX(-12deg) rotateY(-22deg);
+    transform: rotateX(-28deg) rotateY(-45deg);
   }
 }
