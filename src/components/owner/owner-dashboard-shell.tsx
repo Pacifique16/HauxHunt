@@ -306,7 +306,7 @@ function OwnerSidebar({
 }) {
   return (
     <aside
-      className={`sticky top-0 z-30 hidden h-full min-h-0 shrink-0 flex-col bg-black py-6 text-white transition-[width,padding] duration-300 lg:flex ${collapsed ? "w-[84px] overflow-visible px-3" : "w-[280px] overflow-y-auto px-5"}`}
+      className={`sticky top-0 z-30 hidden h-full min-h-0 shrink-0 flex-col bg-black py-6 text-white transition-[width,padding] duration-300 lg:flex ${collapsed ? "w-[84px] overflow-visible px-3" : "w-[280px] overflow-hidden px-5"}`}
     >
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
         <div className="absolute inset-0 [background-image:radial-gradient(circle_at_center,white_1px,transparent_1px)] [background-size:20px_20px] opacity-[0.07]" />
