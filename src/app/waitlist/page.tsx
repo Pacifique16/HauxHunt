@@ -46,15 +46,15 @@ export default function WaitlistPage() {
     <main className="relative h-svh overflow-hidden bg-white text-black">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute top-0 right-0 h-[48rem] w-[min(72vw,64rem)] opacity-70"
+        className="pointer-events-none absolute bottom-0 left-0 h-[48rem] w-[min(72vw,64rem)] opacity-70"
         style={{
           backgroundImage:
             "linear-gradient(rgba(0, 0, 0, 0.09) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, 0.09) 1px, transparent 1px)",
           backgroundSize: "42px 42px",
           maskImage:
-            "radial-gradient(ellipse at 100% 0%, black 0%, rgba(0,0,0,.85) 26%, transparent 72%)",
+            "radial-gradient(ellipse at 0% 100%, black 0%, rgba(0,0,0,.85) 26%, transparent 72%)",
           WebkitMaskImage:
-            "radial-gradient(ellipse at 100% 0%, black 0%, rgba(0,0,0,.85) 26%, transparent 72%)",
+            "radial-gradient(ellipse at 0% 100%, black 0%, rgba(0,0,0,.85) 26%, transparent 72%)",
         }}
       />
 
