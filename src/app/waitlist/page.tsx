@@ -6,8 +6,8 @@ import { useRef, useState, useEffect, type FormEvent } from "react";
 import { ChevronDown, ChevronLeft } from "lucide-react";
 
 import agreedImage from "@/assets/images/agreed.png";
-import peopleImage from "@/assets/images/waitlist1.png";
 import waitlistImage from "@/assets/images/waitlist.png";
+import peopleImage from "@/assets/images/waitlist1.png";
 import { Wordmark } from "@/components/layout/wordmark";
 import { HistoryBackButton } from "@/components/navigation/history-back-button";
 
@@ -236,19 +236,14 @@ function FeatureCube() {
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
-      {/* pointer-driven wrapper — rotates toward cursor, no animation */}
-      <div
-        ref={wrapperRef}
-        style={{ width: "100%", height: "100%", transformStyle: "preserve-3d" }}
-      >
-        {/* inner cube — CSS auto-spin animation, unaffected by pointer */}
+      <div ref={wrapperRef} style={{ width: "100%", height: "100%", transformStyle: "preserve-3d" }}>
         <div className="waitlist-feature-cube">
-          <FeatureCard label="HauxHunt" title="Find your fit." tone="blue" face="front" />
-          <FeatureCard label="Clear details" title="Know before you go." tone="orange" face="right" />
+          <FeatureCard label="HauxHunt" title="Find your fit." tone="white" face="front" />
+          <FeatureCard label="Clear details" title="Know before you go." tone="lime" face="right" />
           <FeatureCard label="Saved homes" title="Keep favourites close." tone="white" face="back" />
-          <FeatureCard label="Trusted listings" title="Move with clarity." tone="lime" face="left" />
+          <FeatureCard label="Trusted listings" title="Move with clarity." tone="green" face="left" />
           <FeatureCard label="Your next move" title="Start somewhere good." tone="dark" face="top" />
-          <FeatureCard label="24/7 access" title="Welcome home." tone="green" face="bottom" />
+          <FeatureCard label="24/7 access" title="Welcome home." tone="dark" face="bottom" />
         </div>
       </div>
     </div>
@@ -263,7 +258,7 @@ function FeatureCard({
 }: {
   title: string;
   label: string;
-  tone: "blue" | "dark" | "green" | "lime" | "orange" | "white";
+  tone: "dark" | "green" | "lime" | "white";
   face: "front" | "right" | "back" | "left" | "top" | "bottom";
 }) {
   const toneClass =
@@ -273,11 +268,7 @@ function FeatureCard({
         ? "bg-[#00f58a] text-black"
         : tone === "white"
           ? "bg-white text-black"
-          : tone === "blue"
-            ? "bg-[#65b8ff] text-black"
-            : tone === "orange"
-              ? "bg-[#ff9f43] text-black"
-              : "bg-[#151515] text-white";
+          : "bg-[#151515] text-white";
 
   return (
     <article
