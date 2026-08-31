@@ -255,7 +255,7 @@ function FeatureCard({
 
   return (
     <article
-      className={`waitlist-cube-face waitlist-cube-face--${face} overflow-hidden rounded-[1.75rem] ${toneClass}`}
+      className={`waitlist-cube-face waitlist-cube-face--${face} overflow-hidden ${toneClass}`}
     >
       <div className="flex h-full flex-col justify-between p-4 xl:p-5">
         <p className="font-bricolage text-[10px] font-medium tracking-[0.12em] uppercase opacity-45 xl:text-xs">
