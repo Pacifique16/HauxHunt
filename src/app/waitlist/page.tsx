@@ -2,15 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { ChevronDown, ChevronLeft } from "lucide-react";
 
 import agreedImage from "@/assets/images/agreed.png";
-import houseOne from "@/assets/images/house1.jpg";
-import houseTwo from "@/assets/images/house2.jpg";
-import houseThree from "@/assets/images/house3.jpg";
-import houseFour from "@/assets/images/house4.jpg";
-import houseFive from "@/assets/images/house5.jpg";
 import peopleImage from "@/assets/images/waitlist1.png";
 import waitlistImage from "@/assets/images/waitlist.png";
 import { Wordmark } from "@/components/layout/wordmark";
@@ -33,6 +28,15 @@ const EMPTY_DETAILS: WaitlistDetails = {
 export default function WaitlistPage() {
   const [joined, setJoined] = useState(false);
   const [details, setDetails] = useState(EMPTY_DETAILS);
+  const [showAlternateCards, setShowAlternateCards] = useState(false);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setShowAlternateCards((current) => !current);
+    }, 4200);
+
+    return () => window.clearInterval(interval);
+  }, []);
 
   function joinWaitlist(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -82,35 +86,41 @@ export default function WaitlistPage() {
             aria-label="A selection of HauxHunt homes"
             className="relative hidden h-[min(40svh,390px)] min-h-[320px] -translate-y-28 lg:block xl:-translate-y-32"
           >
-            <PropertyImageCard
-              image={houseFive}
-              title="Calm retreats"
-              location="Kigali"
+            <FeatureCard
+              label={showAlternateCards ? "Explore" : "HauxHunt"}
+              title={showAlternateCards ? "See what fits." : "Find your fit."}
+              tone="lime"
               className="top-[27%] left-[9%] z-0 h-[58%] w-[21%] -rotate-[21deg]"
             />
-            <PropertyImageCard
-              image={houseTwo}
-              title="City living"
-              location="Lagos"
+            <FeatureCard
+              label={showAlternateCards ? "Clear details" : "Discover"}
+              title={
+                showAlternateCards ? "Know before you go." : "Search less."
+              }
+              tone="green"
               className="top-[14%] left-[22%] z-10 h-[70%] w-[23%] -rotate-[11deg]"
             />
-            <PropertyImageCard
-              image={houseOne}
-              title="Homes worth finding"
-              location="Across Africa"
+            <FeatureCard
+              label={showAlternateCards ? "Saved homes" : "Your shortlist"}
+              title={
+                showAlternateCards ? "Keep favourites close." : "Save. Compare."
+              }
+              tone="white"
               featured
               className="top-[2%] left-[37%] z-30 h-[84%] w-[27%]"
             />
-            <PropertyImageCard
-              image={houseThree}
-              title="Room to grow"
-              location="Nairobi"
+            <FeatureCard
+              label={showAlternateCards ? "Better choices" : "Trusted listings"}
+              title={showAlternateCards ? "Move with clarity." : "Move sooner."}
+              tone="lime"
               className="top-[14%] right-[20%] z-20 h-[70%] w-[23%] rotate-[11deg]"
             />
-            <PropertyImageCard
-              image={houseFour}
-              title="A better address"
-              location="Kigali"
+            <FeatureCard
+              label={showAlternateCards ? "Your next move" : "24/7 access"}
+              title={
+                showAlternateCards ? "Start somewhere good." : "Welcome home."
+              }
+              tone="dark"
               className="top-[27%] right-[7%] z-0 h-[58%] w-[21%] rotate-[21deg]"
             />
             <Image
@@ -229,34 +239,35 @@ export default function WaitlistPage() {
   );
 }
 
-function PropertyImageCard({
-  image,
+function FeatureCard({
   title,
-  location,
+  label,
+  tone,
   className,
   featured = false,
 }: {
-  image: typeof houseOne;
   title: string;
-  location: string;
+  label: string;
+  tone: "dark" | "green" | "lime" | "white";
   className: string;
   featured?: boolean;
 }) {
+  const toneClass =
+    tone === "lime"
+      ? "bg-[#d9ff35] text-black"
+      : tone === "green"
+        ? "bg-[#00f58a] text-black"
+        : tone === "white"
+          ? "bg-white text-black"
+          : "bg-[#151515] text-white";
+
   return (
     <article
-      className={`absolute overflow-hidden rounded-[1.75rem] shadow-[0_28px_70px_rgba(0,0,0,0.22)] ${className}`}
+      className={`absolute overflow-hidden rounded-[1.75rem] shadow-[0_28px_70px_rgba(0,0,0,0.2)] ${toneClass} ${className}`}
     >
-      <Image
-        src={image}
-        alt=""
-        fill
-        sizes="(min-width: 1280px) 22vw, 25vw"
-        className="object-cover"
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/5 to-transparent" />
-      <div className="absolute inset-x-0 bottom-0 p-4 text-white xl:p-5">
-        <p className="text-[10px] font-medium tracking-[0.15em] text-white/65 uppercase">
-          {location}
+      <div className="flex h-full flex-col justify-between p-4 xl:p-5">
+        <p className="font-bricolage text-[10px] font-medium tracking-[0.12em] uppercase opacity-45 xl:text-xs">
+          {label}
         </p>
         <h2
           className={`font-bricolage mt-1 leading-[0.95] font-medium tracking-[-0.04em] ${featured ? "text-3xl xl:text-4xl" : "text-xl xl:text-2xl"}`}
