@@ -28,14 +28,43 @@ const EMPTY_DETAILS: WaitlistDetails = {
 export default function WaitlistPage() {
   const [joined, setJoined] = useState(false);
   const [details, setDetails] = useState(EMPTY_DETAILS);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function joinWaitlist(event: FormEvent<HTMLFormElement>) {
+  async function joinWaitlist(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!event.currentTarget.checkValidity()) {
       event.currentTarget.reportValidity();
       return;
     }
-    setJoined(true);
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: details.fullName,
+          email: details.email,
+          phone: details.phone,
+          role: details.role,
+        }),
+      });
+      if (res.ok) {
+        setJoined(true);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setError(
+          typeof data?.error === "string"
+            ? data.error
+            : "Something went wrong. Please try again."
+        );
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   function updateDetail(field: keyof WaitlistDetails, value: string) {
@@ -43,10 +72,10 @@ export default function WaitlistPage() {
   }
 
   return (
-    <main className="relative h-svh overflow-hidden bg-white text-black">
+    <main className="relative min-h-svh bg-white text-black">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute bottom-0 left-0 h-[48rem] w-[min(72vw,64rem)] opacity-70"
+        className="pointer-events-none absolute bottom-0 left-0 hidden h-[48rem] w-[min(72vw,64rem)] opacity-70 lg:block"
         style={{
           backgroundImage:
             "linear-gradient(rgba(0, 0, 0, 0.09) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, 0.09) 1px, transparent 1px)",
@@ -71,11 +100,11 @@ export default function WaitlistPage() {
         </HistoryBackButton>
       </header>
 
-      <section className="relative z-10 h-[calc(100svh-86px)] px-5 sm:px-8 lg:px-12">
-        <div className="mx-auto grid h-full w-full max-w-[1500px] items-center gap-8 py-4 sm:py-6 lg:grid-cols-[1.2fr_0.8fr] xl:gap-14">
+      <section className="relative z-10 px-5 sm:px-8 lg:px-12">
+        <div className="mx-auto grid w-full max-w-[1500px] items-center gap-8 py-8 sm:py-10 lg:min-h-[calc(100svh-86px)] lg:py-6 lg:grid-cols-[1.2fr_0.8fr] xl:gap-14">
           <div
             aria-label="HauxHunt feature cards"
-            className="relative hidden h-[min(40svh,390px)] min-h-[320px] -translate-y-28 lg:block xl:-translate-y-32"
+            className="relative hidden h-[min(40svh,390px)] min-h-[320px] -translate-y-28 lg:block xl:-translate-y-32 overflow-visible"
           >
             <FeatureCube />
             <Image
@@ -85,13 +114,13 @@ export default function WaitlistPage() {
             />
           </div>
 
-          <div className="relative mx-auto w-full max-w-md">
+          <div className="relative mx-auto w-full max-w-md pb-10 lg:pb-0">
             {joined ? (
               <div className="py-8 text-center" role="status">
                 <Image
                   src={agreedImage}
                   alt="Waitlist registration confirmed"
-                  className="mx-auto h-52 w-auto object-contain sm:h-64"
+                  className="mx-auto h-44 w-auto object-contain sm:h-64"
                 />
                 <h2 className="font-bricolage text-carbon-900 mt-5 text-4xl font-medium tracking-[-0.04em] sm:text-5xl">
                   You&apos;re on the list.
@@ -106,9 +135,9 @@ export default function WaitlistPage() {
                 <Image
                   src={waitlistImage}
                   alt=""
-                  className="absolute -top-32 -left-36 h-44 w-auto rotate-[20deg] object-contain object-left xl:-top-40 xl:-left-44 xl:h-52"
+                  className="absolute -top-32 -left-36 h-44 w-auto rotate-[20deg] object-contain object-left xl:-top-40 xl:-left-44 xl:h-52 hidden sm:block"
                 />
-                <h2 className="font-bricolage text-carbon-900 text-[clamp(2.8rem,5vw,4.7rem)] leading-[0.92] font-medium tracking-[-0.055em]">
+                <h2 className="font-bricolage text-carbon-900 text-[clamp(2.2rem,5vw,4.7rem)] leading-[0.92] font-medium tracking-[-0.055em]">
                   Join the waitlist.
                 </h2>
                 <p className="text-carbon-500 mt-4 max-w-md text-sm leading-6">
@@ -174,11 +203,15 @@ export default function WaitlistPage() {
                     </span>
                   </label>
 
+                  {error && (
+                    <p className="text-sm text-red-600">{error}</p>
+                  )}
                   <button
                     type="submit"
-                    className="font-bricolage mt-1 h-11 w-full rounded-full bg-black px-6 text-sm font-medium text-white transition-colors hover:bg-black/80"
+                    disabled={loading}
+                    className="font-bricolage mt-1 h-11 w-full rounded-full bg-black px-6 text-sm font-medium text-white transition-colors hover:bg-black/80 disabled:opacity-60"
                   >
-                    Join the waitlist
+                    {loading ? "Joining..." : "Join the waitlist"}
                   </button>
                 </form>
                 <p className="text-carbon-400 mt-5 text-center text-xs">
