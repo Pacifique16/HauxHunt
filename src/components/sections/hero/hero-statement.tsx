@@ -81,14 +81,11 @@ export function HeroStatement() {
               ["Seconds", countdown.seconds],
             ] as const
           ).map(([label, value]) => (
-            <div
-              key={label}
-              className="min-w-16 border border-white/15 px-2 py-2.5 sm:min-w-20 sm:px-3"
-            >
-              <span className="font-bricolage block text-2xl leading-none font-medium tracking-[-0.04em] text-white tabular-nums sm:text-3xl">
+            <div key={label} className="min-w-16 sm:min-w-20">
+              <span className="font-bricolage relative flex h-14 items-center justify-center overflow-hidden rounded-lg bg-[#1b191d] px-2 text-4xl leading-none font-semibold tracking-[-0.06em] text-white tabular-nums shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] after:absolute after:inset-x-0 after:top-1/2 after:h-px after:bg-black/75 after:content-[''] sm:h-16 sm:px-3 sm:text-5xl">
                 {String(value).padStart(2, "0")}
               </span>
-              <span className="mt-1 block text-[0.58rem] font-medium tracking-[0.14em] text-white/50 uppercase sm:text-[0.65rem]">
+              <span className="mt-2 block text-[0.58rem] font-medium tracking-[0.14em] text-white/50 uppercase sm:text-[0.65rem]">
                 {label}
               </span>
             </div>
