@@ -101,7 +101,7 @@ export function HeroStatement() {
               className="min-w-16 [perspective:500px] sm:min-w-20"
             >
               <span
-                className="countdown-flap-number font-bricolage relative block h-14 overflow-hidden rounded-lg bg-[#1b191d] text-4xl leading-none font-semibold tracking-[-0.06em] text-white tabular-nums shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] after:absolute after:inset-x-0 after:top-1/2 after:z-30 after:h-px after:bg-black/75 after:content-[''] sm:h-16 sm:text-5xl"
+                className="countdown-flap-number font-bricolage relative block h-14 overflow-hidden rounded-lg bg-[#1b191d] text-4xl leading-none font-semibold tracking-[-0.06em] text-white tabular-nums shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] sm:h-16 sm:text-5xl"
                 aria-label={String(value).padStart(2, "0")}
               >
                 <span key={`${label}-${value}`} aria-hidden="true">
@@ -120,6 +120,10 @@ export function HeroStatement() {
                     </span>
                   </span>
                 </span>
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-x-0 top-1/2 z-50 h-px -translate-y-1/2 bg-black/75"
+                />
               </span>
               <span className="mt-2 block text-[0.58rem] font-medium tracking-[0.14em] text-white/50 uppercase sm:text-[0.65rem]">
                 {label}
