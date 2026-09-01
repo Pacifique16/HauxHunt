@@ -105,15 +105,29 @@ export function HeroStatement() {
                 aria-label={String(value).padStart(2, "0")}
               >
                 <span key={`${label}-${value}`} aria-hidden="true">
-                  <span className="countdown-flap-static countdown-flap-static--previous">
-                    {String(previousValue).padStart(2, "0")}
-                  </span>
-                  <span className="countdown-flap-static countdown-flap-static--current">
+                  <span className="countdown-flap-reduced-current">
                     {String(value).padStart(2, "0")}
                   </span>
-                  <span className="countdown-flap-half countdown-flap-half--top">
+                  <span className="countdown-flap-static-half countdown-flap-static-half--top">
                     <span className="countdown-flap-half-value countdown-flap-half-value--top">
+                      {String(value).padStart(2, "0")}
+                    </span>
+                  </span>
+                  <span className="countdown-flap-static-half countdown-flap-static-half--bottom">
+                    <span className="countdown-flap-half-value countdown-flap-half-value--bottom">
                       {String(previousValue).padStart(2, "0")}
+                    </span>
+                  </span>
+                  <span className="countdown-flap-sheet">
+                    <span className="countdown-flap-sheet-face countdown-flap-sheet-face--front">
+                      <span className="countdown-flap-half-value countdown-flap-half-value--top">
+                        {String(previousValue).padStart(2, "0")}
+                      </span>
+                    </span>
+                    <span className="countdown-flap-sheet-face countdown-flap-sheet-face--back">
+                      <span className="countdown-flap-half-value countdown-flap-half-value--bottom">
+                        {String(value).padStart(2, "0")}
+                      </span>
                     </span>
                   </span>
                 </span>
