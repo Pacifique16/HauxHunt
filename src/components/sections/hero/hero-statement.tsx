@@ -83,7 +83,7 @@ export function HeroStatement() {
           ).map(([label, value]) => (
             <div
               key={label}
-              className="min-w-16 border border-white/15 bg-black/20 px-2 py-2.5 backdrop-blur-sm sm:min-w-20 sm:px-3"
+              className="min-w-16 border border-white/15 px-2 py-2.5 sm:min-w-20 sm:px-3"
             >
               <span className="font-bricolage block text-2xl leading-none font-medium tracking-[-0.04em] text-white tabular-nums sm:text-3xl">
                 {String(value).padStart(2, "0")}
