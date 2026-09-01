@@ -38,10 +38,17 @@ function getCountdown(): Countdown {
 }
 
 export function HeroStatement() {
-  const [countdown, setCountdown] = useState(EMPTY_COUNTDOWN);
+  const [countdown, setCountdown] = useState({
+    current: EMPTY_COUNTDOWN,
+    previous: EMPTY_COUNTDOWN,
+  });
 
   useEffect(() => {
-    const updateCountdown = () => setCountdown(getCountdown());
+    const updateCountdown = () =>
+      setCountdown(({ current }) => ({
+        current: getCountdown(),
+        previous: current,
+      }));
 
     updateCountdown();
     const interval = window.setInterval(updateCountdown, 1_000);
@@ -75,12 +82,20 @@ export function HeroStatement() {
         >
           {(
             [
-              ["Days", countdown.days],
-              ["Hours", countdown.hours],
-              ["Minutes", countdown.minutes],
-              ["Seconds", countdown.seconds],
+              ["Days", countdown.current.days, countdown.previous.days],
+              ["Hours", countdown.current.hours, countdown.previous.hours],
+              [
+                "Minutes",
+                countdown.current.minutes,
+                countdown.previous.minutes,
+              ],
+              [
+                "Seconds",
+                countdown.current.seconds,
+                countdown.previous.seconds,
+              ],
             ] as const
-          ).map(([label, value]) => (
+          ).map(([label, value, previousValue]) => (
             <div
               key={label}
               className="min-w-16 [perspective:500px] sm:min-w-20"
@@ -98,7 +113,7 @@ export function HeroStatement() {
                 <span key={`${label}-${value}`} aria-hidden="true">
                   <span className="countdown-flap-half countdown-flap-half--top">
                     <span className="countdown-flap-half-value countdown-flap-half-value--top">
-                      {String(value).padStart(2, "0")}
+                      {String(previousValue).padStart(2, "0")}
                     </span>
                   </span>
                   <span className="countdown-flap-half countdown-flap-half--bottom">
