@@ -15,6 +15,7 @@ type WaitlistDetails = {
   fullName: string;
   email: string;
   phone: string;
+  country: string;
   role: string;
 };
 
@@ -22,6 +23,7 @@ const EMPTY_DETAILS: WaitlistDetails = {
   fullName: "",
   email: "",
   phone: "",
+  country: "",
   role: "",
 };
 
@@ -47,6 +49,7 @@ export default function WaitlistPage() {
           name: details.fullName,
           email: details.email,
           phone: details.phone,
+          country: details.country,
           role: details.role,
         }),
       });
@@ -172,6 +175,33 @@ export default function WaitlistPage() {
                     onChange={(value) => updateDetail("phone", value)}
                     placeholder="+250 7XX XXX XXX"
                   />
+                  <label className="block">
+                    <span className="text-carbon-700 mb-1.5 block text-sm font-medium">
+                      Country
+                    </span>
+                    <span className="relative block">
+                      <select
+                        name="country"
+                        value={details.country}
+                        onChange={(event) =>
+                          updateDetail("country", event.target.value)
+                        }
+                        required
+                        className="h-10 w-full appearance-none rounded-lg border-0 bg-black/[0.035] px-3.5 pr-10 text-sm text-black transition-colors outline-none focus:bg-black/[0.055] focus:ring-0"
+                      >
+                        <option value="" disabled>Select your country</option>
+                        <option value="Rwanda">Rwanda</option>
+                        <option value="Nigeria">Nigeria</option>
+                        <option value="Ghana">Ghana</option>
+                        <option value="Kenya">Kenya</option>
+                        <option value="Egypt">Egypt</option>
+                      </select>
+                      <ChevronDown
+                        aria-hidden="true"
+                        className="pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2"
+                      />
+                    </span>
+                  </label>
                   <label className="block">
                     <span className="text-carbon-700 mb-1.5 block text-sm font-medium">
                       Role

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const GOOGLE_FORM_URL =
-  "https://docs.google.com/forms/d/e/1FAIpQLSeLg0YFsAUTXcR4Y17CqPSpmYf2-tYrXLJhNqjyDkEGm4pscA/formResponse";
+  "https://docs.google.com/forms/d/e/1FAIpQLSe8K_eTf7tLW6IQJWFtl2HXbnue9Y56Us7sr4-WFdN60nvKzg/formResponse";
 
 const ROLE_MAP: Record<string, string> = {
   renter: "Renter",
@@ -11,6 +11,7 @@ const ROLE_MAP: Record<string, string> = {
 };
 
 const VALID_ROLES = new Set(Object.values(ROLE_MAP));
+const VALID_COUNTRIES = new Set(["Rwanda", "Nigeria", "Ghana", "Kenya", "Egypt"]);
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^\+?[0-9]{9,15}$/;
@@ -47,6 +48,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ field: "phone", error: "A valid phone number is required (9–15 digits)." }, { status: 422 });
   }
 
+  // --- Validate country ---
+  const country = typeof raw.country === "string" ? raw.country.trim() : "";
+  if (!country || !VALID_COUNTRIES.has(country)) {
+    return NextResponse.json({ field: "country", error: "Please select a valid country." }, { status: 422 });
+  }
+
   // --- Validate role ---
   const rawRole = typeof raw.role === "string" ? raw.role.trim() : "";
   const role = ROLE_MAP[rawRole] ?? (VALID_ROLES.has(rawRole) ? rawRole : null);
@@ -56,10 +63,11 @@ export async function POST(req: NextRequest) {
 
   // --- Submit to Google Forms ---
   const formData = new URLSearchParams({
-    "entry.290393496": name,
-    "entry.1381189264": email,
-    "entry.1899925226": phone,
-    "entry.1283363607": role,
+    "entry.164015311": name,
+    "entry.1146935068": email,
+    "entry.127791103": phone,
+    "entry.103367112": country,
+    "entry.1201267938": role,
   });
 
   try {
