@@ -78,7 +78,7 @@ export default function WaitlistPage() {
     <main className="relative min-h-svh bg-white text-black">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute bottom-0 left-0 hidden h-[48rem] w-[min(72vw,64rem)] opacity-70 lg:block"
+        className="pointer-events-none absolute bottom-0 left-0 hidden h-[48rem] w-[min(72vw,64rem)] opacity-35 lg:block"
         style={{
           backgroundImage:
             "linear-gradient(rgba(0, 0, 0, 0.09) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, 0.09) 1px, transparent 1px)",
