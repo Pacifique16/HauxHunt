@@ -155,10 +155,6 @@ function CountdownFlapValue({
           </span>
         );
       })}
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-1/2 z-50 h-px -translate-y-1/2 bg-black/75"
-      />
     </span>
   );
 }
