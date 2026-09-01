@@ -1634,6 +1634,15 @@ select.catalogue-filter-control {
   transform-style: preserve-3d;
 }
 
+.countdown-flap-digit {
+  position: relative;
+  min-width: 0;
+  flex: 1 1 0;
+  height: 100%;
+  perspective: 500px;
+  transform-style: preserve-3d;
+}
+
 .countdown-flap-static {
   position: absolute;
   inset: 0;

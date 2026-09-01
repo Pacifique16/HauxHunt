@@ -100,31 +100,11 @@ export function HeroStatement() {
               key={label}
               className="min-w-16 [perspective:500px] sm:min-w-20"
             >
-              <span
-                className="countdown-flap-number font-bricolage relative block h-14 overflow-hidden rounded-lg bg-[#1b191d] text-4xl leading-none font-semibold tracking-[-0.06em] text-white tabular-nums shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] sm:h-16 sm:text-5xl"
-                aria-label={String(value).padStart(2, "0")}
-              >
-                <span key={`${label}-${value}`} aria-hidden="true">
-                  <span className="countdown-flap-reduced-current">
-                    {String(value).padStart(2, "0")}
-                  </span>
-                  <span className="countdown-flap-static countdown-flap-static--previous">
-                    {String(previousValue).padStart(2, "0")}
-                  </span>
-                  <span className="countdown-flap-static countdown-flap-static--current">
-                    {String(value).padStart(2, "0")}
-                  </span>
-                  <span className="countdown-flap-sheet">
-                    <span className="countdown-flap-half-value countdown-flap-half-value--top">
-                      {String(previousValue).padStart(2, "0")}
-                    </span>
-                  </span>
-                </span>
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-x-0 top-1/2 z-50 h-px -translate-y-1/2 bg-black/75"
-                />
-              </span>
+              <CountdownFlapValue
+                label={label}
+                value={value}
+                previousValue={previousValue}
+              />
               <span className="mt-2 block text-[0.58rem] font-medium tracking-[0.14em] text-white/50 uppercase sm:text-[0.65rem]">
                 {label}
               </span>
@@ -133,5 +113,59 @@ export function HeroStatement() {
         </div>
       </motion.div>
     </motion.div>
+  );
+}
+
+function CountdownFlapValue({
+  label,
+  value,
+  previousValue,
+}: {
+  label: string;
+  value: number;
+  previousValue: number;
+}) {
+  const digitCount = Math.max(
+    2,
+    String(value).length,
+    String(previousValue).length,
+  );
+  const currentDigits = String(value).padStart(digitCount, "0").split("");
+  const previousDigits = String(previousValue)
+    .padStart(digitCount, "0")
+    .split("");
+
+  return (
+    <span
+      className="countdown-flap-number font-bricolage relative flex h-14 overflow-hidden rounded-lg bg-[#1b191d] text-4xl leading-none font-semibold tracking-[-0.06em] text-white tabular-nums shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] sm:h-16 sm:text-5xl"
+      aria-label={currentDigits.join("")}
+    >
+      {currentDigits.map((digit, index) => {
+        const previousDigit = previousDigits[index];
+
+        return (
+          <span key={`${label}-${index}`} className="countdown-flap-digit">
+            <span key={`${label}-${index}-${digit}`} aria-hidden="true">
+              <span className="countdown-flap-reduced-current">{digit}</span>
+              <span className="countdown-flap-static countdown-flap-static--previous">
+                {previousDigit}
+              </span>
+              <span className="countdown-flap-static countdown-flap-static--current">
+                {digit}
+              </span>
+              <span className="countdown-flap-sheet">
+                <span className="countdown-flap-half-value countdown-flap-half-value--top">
+                  {previousDigit}
+                </span>
+              </span>
+            </span>
+          </span>
+        );
+      })}
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-1/2 z-50 h-px -translate-y-1/2 bg-black/75"
+      />
+    </span>
   );
 }
