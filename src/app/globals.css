@@ -1631,32 +1631,76 @@ select.catalogue-filter-control {
 }
 
 .countdown-flap-number {
-  transform-origin: center top;
-  backface-visibility: hidden;
-  animation: countdown-paper-flip 560ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
+  transform-style: preserve-3d;
 }
 
-@keyframes countdown-paper-flip {
-  0% {
-    opacity: 0.35;
-    transform: rotateX(-92deg);
+.countdown-flap-half {
+  position: absolute;
+  z-index: 20;
+  right: 0;
+  left: 0;
+  height: 50%;
+  overflow: hidden;
+  background: #1b191d;
+  backface-visibility: hidden;
+}
+
+.countdown-flap-half--top {
+  top: 0;
+  transform-origin: center bottom;
+  animation: countdown-flap-top 600ms cubic-bezier(0.45, 0, 0.55, 1) both;
+}
+
+.countdown-flap-half--bottom {
+  bottom: 0;
+  transform-origin: center top;
+  animation: countdown-flap-bottom 600ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
+}
+
+.countdown-flap-half-value {
+  position: absolute;
+  left: 0;
+  display: flex;
+  width: 100%;
+  height: 200%;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 0.5rem;
+}
+
+.countdown-flap-half-value--top {
+  top: 0;
+}
+
+.countdown-flap-half-value--bottom {
+  bottom: 0;
+}
+
+@keyframes countdown-flap-top {
+  0%,
+  42% {
+    transform: rotateX(0deg);
   }
-  48% {
-    opacity: 0.85;
-    transform: rotateX(12deg);
+  50%,
+  100% {
+    transform: rotateX(-90deg);
   }
-  72% {
-    transform: rotateX(-5deg);
+}
+
+@keyframes countdown-flap-bottom {
+  0%,
+  50% {
+    transform: rotateX(90deg);
   }
   100% {
-    opacity: 1;
     transform: rotateX(0deg);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .countdown-flap-number {
+  .countdown-flap-half {
     animation: none;
+    transform: none;
   }
 }
 

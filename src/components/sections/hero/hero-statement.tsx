@@ -86,10 +86,27 @@ export function HeroStatement() {
               className="min-w-16 [perspective:500px] sm:min-w-20"
             >
               <span
-                key={`${label}-${value}`}
-                className="countdown-flap-number font-bricolage relative flex h-14 items-center justify-center overflow-hidden rounded-lg bg-[#1b191d] px-2 text-4xl leading-none font-semibold tracking-[-0.06em] text-white tabular-nums shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] after:absolute after:inset-x-0 after:top-1/2 after:h-px after:bg-black/75 after:content-[''] sm:h-16 sm:px-3 sm:text-5xl"
+                className="countdown-flap-number font-bricolage relative block h-14 overflow-hidden rounded-lg bg-[#1b191d] text-4xl leading-none font-semibold tracking-[-0.06em] text-white tabular-nums shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] after:absolute after:inset-x-0 after:top-1/2 after:z-30 after:h-px after:bg-black/75 after:content-[''] sm:h-16 sm:text-5xl"
+                aria-label={String(value).padStart(2, "0")}
               >
-                {String(value).padStart(2, "0")}
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-0 flex items-center justify-center px-2 sm:px-3"
+                >
+                  {String(value).padStart(2, "0")}
+                </span>
+                <span key={`${label}-${value}`} aria-hidden="true">
+                  <span className="countdown-flap-half countdown-flap-half--top">
+                    <span className="countdown-flap-half-value countdown-flap-half-value--top">
+                      {String(value).padStart(2, "0")}
+                    </span>
+                  </span>
+                  <span className="countdown-flap-half countdown-flap-half--bottom">
+                    <span className="countdown-flap-half-value countdown-flap-half-value--bottom">
+                      {String(value).padStart(2, "0")}
+                    </span>
+                  </span>
+                </span>
               </span>
               <span className="mt-2 block text-[0.58rem] font-medium tracking-[0.14em] text-white/50 uppercase sm:text-[0.65rem]">
                 {label}
