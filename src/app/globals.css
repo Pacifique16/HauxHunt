@@ -1660,7 +1660,7 @@ select.catalogue-filter-control {
   height: 50%;
   transform-origin: center bottom;
   transform-style: preserve-3d;
-  animation: countdown-calendar-sheet 680ms cubic-bezier(0.55, 0.06, 0.35, 1)
+  animation: countdown-calendar-sheet 520ms cubic-bezier(0.55, 0.06, 0.35, 1)
     both;
 }
 
@@ -1669,11 +1669,17 @@ select.catalogue-filter-control {
   inset: 0;
   overflow: hidden;
   background: #1b191d;
+  -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
+  transform-style: preserve-3d;
+}
+
+.countdown-flap-sheet-face--front {
+  transform: rotateX(0deg) translateZ(0.5px);
 }
 
 .countdown-flap-sheet-face--back {
-  transform: rotateX(180deg);
+  transform: rotateX(180deg) translateZ(0.5px);
 }
 
 .countdown-flap-half-value {
