@@ -1634,6 +1634,23 @@ select.catalogue-filter-control {
   transform-style: preserve-3d;
 }
 
+.countdown-flap-static {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 0.5rem;
+}
+
+.countdown-flap-static--previous {
+  animation: countdown-hide-previous 720ms linear both;
+}
+
+.countdown-flap-static--current {
+  animation: countdown-show-current 720ms linear both;
+}
+
 .countdown-flap-half {
   position: absolute;
   z-index: 20;
@@ -1683,10 +1700,40 @@ select.catalogue-filter-control {
   }
 }
 
+@keyframes countdown-hide-previous {
+  0%,
+  57% {
+    visibility: visible;
+  }
+  58%,
+  100% {
+    visibility: hidden;
+  }
+}
+
+@keyframes countdown-show-current {
+  0%,
+  57% {
+    visibility: hidden;
+  }
+  58%,
+  100% {
+    visibility: visible;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .countdown-flap-half {
+    display: none;
+  }
+
+  .countdown-flap-static--previous {
+    display: none;
+  }
+
+  .countdown-flap-static--current {
     animation: none;
-    transform: none;
+    visibility: visible;
   }
 }
 
