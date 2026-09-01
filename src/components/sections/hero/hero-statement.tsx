@@ -116,11 +116,6 @@ export function HeroStatement() {
                       {String(previousValue).padStart(2, "0")}
                     </span>
                   </span>
-                  <span className="countdown-flap-half countdown-flap-half--bottom">
-                    <span className="countdown-flap-half-value countdown-flap-half-value--bottom">
-                      {String(value).padStart(2, "0")}
-                    </span>
-                  </span>
                 </span>
               </span>
               <span className="mt-2 block text-[0.58rem] font-medium tracking-[0.14em] text-white/50 uppercase sm:text-[0.65rem]">
