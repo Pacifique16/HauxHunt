@@ -147,17 +147,10 @@ function CountdownFlapValue({
           <span key={`${label}-${index}`} className="countdown-flap-digit">
             <span key={`${label}-${index}-${digit}`} aria-hidden="true">
               <span className="countdown-flap-reduced-current">{digit}</span>
-              <span className="countdown-flap-static countdown-flap-static--previous">
-                {previousDigit}
-              </span>
               <span className="countdown-flap-static countdown-flap-static--current">
                 {digit}
               </span>
-              <span className="countdown-flap-sheet">
-                <span className="countdown-flap-half-value countdown-flap-half-value--top">
-                  {previousDigit}
-                </span>
-              </span>
+              <span className="countdown-flap-sheet">{previousDigit}</span>
             </span>
           </span>
         );
