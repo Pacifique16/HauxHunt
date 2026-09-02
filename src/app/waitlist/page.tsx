@@ -60,7 +60,7 @@ export default function WaitlistPage() {
         setError(
           typeof data?.error === "string"
             ? data.error
-            : "Something went wrong. Please try again."
+            : "Something went wrong. Please try again.",
         );
       }
     } catch {
@@ -104,10 +104,10 @@ export default function WaitlistPage() {
       </header>
 
       <section className="relative z-10 px-5 sm:px-8 lg:px-12">
-        <div className="mx-auto grid w-full max-w-[1500px] items-center gap-8 py-8 sm:py-10 lg:min-h-[calc(100svh-86px)] lg:py-6 lg:grid-cols-[1.2fr_0.8fr] xl:gap-14">
+        <div className="mx-auto grid w-full max-w-[1500px] items-center gap-8 py-8 sm:py-10 lg:min-h-[calc(100svh-86px)] lg:grid-cols-[1.2fr_0.8fr] lg:py-6 xl:gap-14">
           <div
             aria-label="HauxHunt feature cards"
-            className="relative hidden h-[min(40svh,390px)] min-h-[320px] -translate-y-28 lg:block xl:-translate-y-32 overflow-visible"
+            className="relative hidden h-[min(40svh,390px)] min-h-[320px] -translate-y-28 overflow-visible lg:block xl:-translate-y-32"
           >
             <FeatureCube />
             <Image
@@ -138,7 +138,7 @@ export default function WaitlistPage() {
                 <Image
                   src={waitlistImage}
                   alt=""
-                  className="absolute -top-32 -left-36 h-44 w-auto rotate-[20deg] object-contain object-left xl:-top-40 xl:-left-44 xl:h-52 hidden sm:block"
+                  className="absolute -top-24 -left-44 hidden h-44 w-auto rotate-[20deg] object-contain object-left sm:block xl:-top-32 xl:-left-52 xl:h-52"
                 />
                 <h2 className="font-bricolage text-carbon-900 text-[clamp(2.2rem,5vw,4.7rem)] leading-[0.92] font-medium tracking-[-0.055em]">
                   Join the waitlist.
@@ -189,7 +189,9 @@ export default function WaitlistPage() {
                         required
                         className="h-10 w-full appearance-none rounded-lg border-0 bg-black/[0.035] px-3.5 pr-10 text-sm text-black transition-colors outline-none focus:bg-black/[0.055] focus:ring-0"
                       >
-                        <option value="" disabled>Select your country</option>
+                        <option value="" disabled>
+                          Select your country
+                        </option>
                         <option value="Rwanda">Rwanda</option>
                         <option value="Nigeria">Nigeria</option>
                         <option value="Ghana">Ghana</option>
@@ -233,9 +235,7 @@ export default function WaitlistPage() {
                     </span>
                   </label>
 
-                  {error && (
-                    <p className="text-sm text-red-600">{error}</p>
-                  )}
+                  {error && <p className="text-sm text-red-600">{error}</p>}
                   <button
                     type="submit"
                     disabled={loading}
@@ -260,7 +260,14 @@ export default function WaitlistPage() {
 function FeatureCube() {
   const sceneRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const stateRef = useRef({ hovered: false, rx: 0, ry: 0, targetRx: 0, targetRy: 0, raf: 0 });
+  const stateRef = useRef({
+    hovered: false,
+    rx: 0,
+    ry: 0,
+    targetRx: 0,
+    targetRy: 0,
+    raf: 0,
+  });
 
   useEffect(() => {
     const s = stateRef.current;
@@ -280,8 +287,10 @@ function FeatureCube() {
     const rect = sceneRef.current?.getBoundingClientRect();
     if (!rect) return;
     const s = stateRef.current;
-    s.targetRx = ((e.clientY - (rect.top + rect.height / 2)) / (rect.height / 2)) * -25;
-    s.targetRy = ((e.clientX - (rect.left + rect.width / 2)) / (rect.width / 2)) * 25;
+    s.targetRx =
+      ((e.clientY - (rect.top + rect.height / 2)) / (rect.height / 2)) * -25;
+    s.targetRy =
+      ((e.clientX - (rect.left + rect.width / 2)) / (rect.width / 2)) * 25;
   }
 
   function handleMouseLeave() {
@@ -295,18 +304,53 @@ function FeatureCube() {
     <div
       ref={sceneRef}
       className="waitlist-cube-scene absolute top-[2%] left-[32%]"
-      onMouseEnter={() => { stateRef.current.hovered = true; }}
+      onMouseEnter={() => {
+        stateRef.current.hovered = true;
+      }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
-      <div ref={wrapperRef} style={{ width: "100%", height: "100%", transformStyle: "preserve-3d" }}>
+      <div
+        ref={wrapperRef}
+        style={{ width: "100%", height: "100%", transformStyle: "preserve-3d" }}
+      >
         <div className="waitlist-feature-cube">
-          <FeatureCard label="HauxHunt" title="Find your fit." tone="white" face="front" />
-          <FeatureCard label="Clear details" title="Know before you go." tone="lime" face="right" />
-          <FeatureCard label="Saved homes" title="Keep favourites close." tone="white" face="back" />
-          <FeatureCard label="Trusted listings" title="Move with clarity." tone="green" face="left" />
-          <FeatureCard label="Your next move" title="Start somewhere good." tone="dark" face="top" />
-          <FeatureCard label="24/7 access" title="Welcome home." tone="dark" face="bottom" />
+          <FeatureCard
+            label="HauxHunt"
+            title="Find your fit."
+            tone="white"
+            face="front"
+          />
+          <FeatureCard
+            label="Clear details"
+            title="Know before you go."
+            tone="lime"
+            face="right"
+          />
+          <FeatureCard
+            label="Saved homes"
+            title="Keep favourites close."
+            tone="white"
+            face="back"
+          />
+          <FeatureCard
+            label="Trusted listings"
+            title="Move with clarity."
+            tone="green"
+            face="left"
+          />
+          <FeatureCard
+            label="Your next move"
+            title="Start somewhere good."
+            tone="dark"
+            face="top"
+          />
+          <FeatureCard
+            label="24/7 access"
+            title="Welcome home."
+            tone="dark"
+            face="bottom"
+          />
         </div>
       </div>
     </div>

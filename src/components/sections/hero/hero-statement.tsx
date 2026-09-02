@@ -1,15 +1,13 @@
 "use client";
 
-import Image from "next/image";
-import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useCallback, useEffect, useState } from "react";
 
-import comingSoon from "@/assets/images/coming-soon.png";
 import { heroContainer, heroRise } from "./hero-motion";
 
 const HEADLINE_LINES = ["Find a home that fits", "the way you live."];
 const LAUNCH_AT = new Date(
-  process.env.NEXT_PUBLIC_LAUNCH_DATE ?? "2026-10-01T00:00:00+02:00",
+  process.env.NEXT_PUBLIC_LAUNCH_DATE ?? "2026-11-01T00:00:00+02:00",
 ).getTime();
 
 type Countdown = {
@@ -38,17 +36,10 @@ function getCountdown(): Countdown {
 }
 
 export function HeroStatement() {
-  const [countdown, setCountdown] = useState({
-    current: EMPTY_COUNTDOWN,
-    previous: EMPTY_COUNTDOWN,
-  });
+  const [countdown, setCountdown] = useState(EMPTY_COUNTDOWN);
 
   useEffect(() => {
-    const updateCountdown = () =>
-      setCountdown(({ current }) => ({
-        current: getCountdown(),
-        previous: current,
-      }));
+    const updateCountdown = () => setCountdown(getCountdown());
 
     updateCountdown();
     const interval = window.setInterval(updateCountdown, 1_000);
@@ -71,41 +62,22 @@ export function HeroStatement() {
         ))}
       </h1>
       <motion.div variants={heroRise} className="mt-6">
-        <Image
-          src={comingSoon}
-          alt="Coming soon"
-          className="h-auto w-[clamp(10rem,20vw,16rem)] object-contain"
-        />
+        <ComingSoonReveal />
         <div
-          className="mt-5 grid grid-cols-4 gap-2 sm:gap-3"
+          className="mt-5 grid grid-cols-4 gap-2 sm:gap-5"
           aria-label="Time remaining until HauxHunt launches"
         >
           {(
             [
-              ["Days", countdown.current.days, countdown.previous.days],
-              ["Hours", countdown.current.hours, countdown.previous.hours],
-              [
-                "Minutes",
-                countdown.current.minutes,
-                countdown.previous.minutes,
-              ],
-              [
-                "Seconds",
-                countdown.current.seconds,
-                countdown.previous.seconds,
-              ],
+              ["Days", countdown.days],
+              ["Hours", countdown.hours],
+              ["Minutes", countdown.minutes],
+              ["Seconds", countdown.seconds],
             ] as const
-          ).map(([label, value, previousValue]) => (
-            <div
-              key={label}
-              className="min-w-16 [perspective:500px] sm:min-w-20"
-            >
-              <CountdownFlapValue
-                label={label}
-                value={value}
-                previousValue={previousValue}
-              />
-              <span className="mt-2 block text-[0.58rem] font-medium tracking-[0.14em] text-white/50 uppercase sm:text-[0.65rem]">
+          ).map(([label, value]) => (
+            <div key={label} className="min-w-16 sm:min-w-20">
+              <CountdownValue value={value} />
+              <span className="font-bricolage mt-2 block text-[0.58rem] font-medium tracking-[0.14em] text-white uppercase sm:text-[0.65rem]">
                 {label}
               </span>
             </div>
@@ -116,45 +88,63 @@ export function HeroStatement() {
   );
 }
 
-function CountdownFlapValue({
-  label,
-  value,
-  previousValue,
-}: {
-  label: string;
-  value: number;
-  previousValue: number;
-}) {
-  const digitCount = Math.max(
-    2,
-    String(value).length,
-    String(previousValue).length,
+function ComingSoonReveal() {
+  const messages = ["Coming soon", "Stay tuned"] as const;
+  const [messageIndex, setMessageIndex] = useState(0);
+  const advanceMessage = useCallback(
+    () => setMessageIndex((current) => (current + 1) % messages.length),
+    [messages.length],
   );
-  const currentDigits = String(value).padStart(digitCount, "0").split("");
-  const previousDigits = String(previousValue)
-    .padStart(digitCount, "0")
-    .split("");
 
   return (
-    <span
-      className="countdown-flap-number font-bricolage relative flex h-14 overflow-hidden rounded-lg bg-[#1b191d] text-4xl leading-none font-semibold tracking-[-0.06em] text-white tabular-nums shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] sm:h-16 sm:text-5xl"
-      aria-label={currentDigits.join("")}
-    >
-      {currentDigits.map((digit, index) => {
-        const previousDigit = previousDigits[index];
+    <div className="relative mx-auto w-[clamp(15rem,32vw,24rem)] py-1 text-center">
+      <span className="sr-only">Coming soon. Stay tuned.</span>
+      <div
+        className="flex h-[clamp(4.5rem,8vw,7rem)] items-center justify-center"
+        aria-hidden="true"
+      >
+        <AnimatePresence mode="wait">
+          <HandwrittenLine
+            key={messages[messageIndex]}
+            text={messages[messageIndex]}
+            onFinished={advanceMessage}
+          />
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
 
-        return (
-          <span key={`${label}-${index}`} className="countdown-flap-digit">
-            <span key={`${label}-${index}-${digit}`} aria-hidden="true">
-              <span className="countdown-flap-reduced-current">{digit}</span>
-              <span className="countdown-flap-static countdown-flap-static--current">
-                {digit}
-              </span>
-              <span className="countdown-flap-sheet">{previousDigit}</span>
-            </span>
-          </span>
-        );
-      })}
+function HandwrittenLine({
+  text,
+  onFinished,
+}: {
+  text: string;
+  onFinished: () => void;
+}) {
+  useEffect(() => {
+    const timeout = window.setTimeout(onFinished, 5_000);
+
+    return () => window.clearTimeout(timeout);
+  }, [onFinished]);
+
+  return (
+    <motion.span
+      className="font-bricolage block pb-2 text-[clamp(1.25rem,2.4vw,1.8rem)] leading-[1.2] font-normal tracking-[-0.025em] whitespace-nowrap text-white"
+      initial={{ clipPath: "inset(0 100% 0 0)" }}
+      animate={{ clipPath: "inset(0 0% 0 0)" }}
+      exit={{ clipPath: "inset(0 100% 0 0)" }}
+      transition={{ duration: 1.25, ease: [0.45, 0, 0.55, 1] }}
+    >
+      {text}
+    </motion.span>
+  );
+}
+
+function CountdownValue({ value }: { value: number }) {
+  return (
+    <span className="font-bricolage flex h-14 items-center justify-center text-4xl leading-none font-semibold tracking-[-0.06em] text-white tabular-nums sm:h-16 sm:text-5xl">
+      {String(value).padStart(2, "0")}
     </span>
   );
 }
